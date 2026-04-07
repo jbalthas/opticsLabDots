@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PIV Ground Truth — Synthetic Particle Field</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    canvas {
+      display: block;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+    }
+
+    /* ── Fullscreen splash ─────────────────────────────────────── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    #splash h1 { font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: #4af; margin-bottom: 10px; }
+    #splash p  { font-size: 11px; color: #555; letter-spacing: 1px; }
+    #splash .pulse {
+      margin-top: 28px;
+      width: 48px; height: 48px;
+      border: 1px solid #4af;
+      border-radius: 50%;
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.2; transform: scale(0.9); }
+      50%       { opacity: 1;   transform: scale(1.1); }
+    }
+
+    /* ── Control Panel ─────────────────────────────────────────── */
+    #panel {
+      position: fixed;
+      top: 12px; right: 12px;
+      width: 340px;
+      max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(8, 8, 8, 0.93);
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      z-index: 100;
+      backdrop-filter: blur(6px);
+      transition: opacity 0.2s, transform 0.2s;
+      scrollbar-width: thin;
+      scrollbar-color: #222 transparent;
+    }
+    #panel::-webkit-scrollbar { width: 4px; }
+    #panel::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+    #panel.hidden { opacity: 0; pointer-events: none; transform: translateX(12px); }
+
+    #panel-header {
+      position: sticky; top: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px 8px;
+      border-bottom: 1px solid #1e1e1e;
+      background: rgba(8,8,8,0.97);
+      z-index: 1;
+    }
+    #panel-header h2 { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #666; }
+    #panel-close {
+      background: none; border: none; color: #444; font-size: 16px;
+      line-height: 1; cursor: pointer; padding: 0 2px; transition: color 0.15s;
+    }
+    #panel-close:hover { color: #ccc; }
+    #panel-body { padding: 12px 14px 14px; }
+
+    .section-label {
+      font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+      color: #3a3a3a; margin-bottom: 7px; margin-top: 2px;
+    }
+    .row {
+      display: flex; align-items: center; margin-bottom: 8px; gap: 8px;
+    }
+    .row label {
+      font-size: 10px; color: #888; white-space: nowrap; width: 108px; flex-shrink: 0;
+    }
+    .row input[type=range] { flex: 1; accent-color: #4af; cursor: pointer; }
+    .row input[type=number] {
+      width: 64px; flex-shrink: 0;
+      background: #0d0d0d; border: 1px solid #2e2e2e; color: #4af;
+      font-family: inherit; font-size: 11px; padding: 3px 6px;
+      border-radius: 3px; text-align: right; transition: border-color 0.15s;
+    }
+    .row input[type=number]:focus { outline: none; border-color: #4af; }
+    .row input[type=number]::-webkit-inner-spin-button,
+    .row input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; }
+    .row input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+
+    .divider { border: none; border-top: 1px solid #181818; margin: 10px 0; }
+
+    /* obstacle toggle button */
+    .obs-btn {
+      flex: 1;
+      background: #0d0d0d; border: 1px solid #2e2e2e; color: #888;
+      font-family: inherit; font-size: 10px; letter-spacing: 1px;
+      padding: 4px 8px; border-radius: 3px; cursor: pointer;
+      text-transform: uppercase; transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .obs-btn.active { background: #1a2a1a; border-color: #3c3; color: #3c3; }
+    .obs-btn:not(.active):hover { border-color: #555; color: #ccc; }
+
+    .info-row {
+      font-size: 9px; color: #333; letter-spacing: 0.5px;
+      margin-bottom: 8px; line-height: 1.5;
+    }
+
+    /* ── Show-panel button ──────────────────────────────────────── */
+    #show-panel {
+      position: fixed; top: 12px; right: 12px;
+      background: rgba(8,8,8,0.85); border: 1px solid #2a2a2a; border-radius: 4px;
+      color: #555; font-family: inherit; font-size: 11px; letter-spacing: 1px;
+      padding: 6px 10px; cursor: pointer; z-index: 100; display: none;
+      transition: color 0.15s;
+    }
+    #show-panel:hover { color: #ccc; }
+    #show-panel.visible { display: block; }
+
+    /* ── Bottom readout ─────────────────────────────────────────── */
+    #truth {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.90); border: 1px solid #2a2a2a;
+      border-radius: 6px; padding: 12px 22px 14px;
+      z-index: 100; text-align: center; min-width: 580px;
+      transition: opacity 0.2s;
+    }
+    #truth.hidden { opacity: 0; pointer-events: none; }
+
+    #truth .row1 {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 0 10px; padding-bottom: 10px;
+      border-bottom: 1px solid #181818; margin-bottom: 10px;
+    }
+    #truth .row2 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 10px; }
+
+    .metric { display: flex; flex-direction: column; align-items: center; }
+    .metric .name   { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; color: #444; margin-bottom: 2px; }
+    .metric .number { font-size: 15px; font-weight: bold; margin: 1px 0; }
+    .metric .unit   { font-size: 8px; color: #383838; }
+
+    #truth .row1 .number { color: #4af; }
+    .gt-true .number { color: #4af; }
+    .gt-meas .number { color: #e0e0e0; }
+    .gt-err  .number { color: #888; }
+    .gt-pct  .number { font-size: 20px; color: #888; }
+
+    #measInput {
+      background: transparent; border: none;
+      border-bottom: 1px solid #333; color: #e0e0e0;
+      font-family: inherit; font-size: 15px; font-weight: bold;
+      width: 80px; text-align: center; padding: 0 2px; margin: 1px 0;
+      transition: border-color 0.15s;
+    }
+    #measInput:focus { outline: none; border-bottom-color: #4af; }
+    #measInput::placeholder { color: #333; font-size: 12px; }
+    #measInput::-webkit-inner-spin-button,
+    #measInput::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; }
+    #measInput { -moz-appearance: textfield; appearance: textfield; }
+
+    /* ── Hint ────────────────────────────────────────────────────── */
+    #hint { position: fixed; bottom: 7px; right: 12px; font-size: 9px; color: #222; z-index: 100; }
+
+    /* ── Pause overlay ───────────────────────────────────────────── */
+    #paused {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px; color: rgba(255,255,255,0.10);
+      letter-spacing: 10px; text-transform: uppercase;
+      z-index: 50; display: none; pointer-events: none;
+    }
+
+    /* ── Obstacle cursor mode ────────────────────────────────────── */
+    body.placing { cursor: crosshair; }
+    body.cursor-hidden,
+    body.cursor-hidden * { cursor: none !important; }
+  </style>
+</head>
+<body>
+
+<div id="splash">
+  <h1>PIV Ground Truth</h1>
+  <p>Synthetic Particle Field Generator</p>
+  <div class="pulse"></div>
+  <p style="margin-top:20px; font-size:10px; color:#333; letter-spacing:2px;">CLICK TO START</p>
+</div>
+
+<canvas id="canvas"></canvas>
+<div id="paused">PAUSED</div>
+
+<!-- ── Control Panel ──────────────────────────────────────────── -->
+<div id="panel">
+  <div id="panel-header">
+    <h2>PIV Ground Truth</h2>
+    <button id="panel-close" title="Hide panel (H)">✕</button>
+  </div>
+  <div id="panel-body">
+
+    <!-- ── Velocity ── -->
+    <div class="section-label">Mean Flow</div>
+    <div class="row">
+      <label>Vx (m/s)</label>
+      <input type="range" id="vxSlider" min="-2" max="2" step="0.001" value="0.08">
+      <input type="number" id="vxNum" step="0.001" value="0.08">
+    </div>
+    <div class="row">
+      <label>Vy (m/s)</label>
+      <input type="range" id="vySlider" min="-2" max="2" step="0.001" value="0">
+      <input type="number" id="vyNum" step="0.001" value="0">
+    </div>
+    <div class="row">
+      <label>Turbulence (±m/s)</label>
+      <input type="range" id="turbSlider" min="0" max="1" step="0.001" value="0">
+      <input type="number" id="turbNum" step="0.001" value="0">
+    </div>
+    <div class="info-row" id="turbInfo" style="display:none;">
+      Each particle has a random velocity offset drawn uniformly from [−T, +T].<br>
+      Readout shows mean flow. Re-seed [R] to draw new offsets.
+    </div>
+
+    <hr class="divider">
+    <!-- ── Particles ── -->
+    <div class="section-label">Particles</div>
+    <div class="row">
+      <label>Count</label>
+      <input type="range" id="countSlider" min="50" max="2000" step="10" value="400">
+      <input type="number" id="countNum" value="400">
+    </div>
+    <div class="row">
+      <label>Min Diam (px)</label>
+      <input type="range" id="minSizeSlider" min="0.5" max="20" step="0.5" value="2">
+      <input type="number" id="minSizeNum" step="0.5" value="2">
+    </div>
+    <div class="row">
+      <label>Max Diam (px)</label>
+      <input type="range" id="maxSizeSlider" min="0.5" max="20" step="0.5" value="4">
+      <input type="number" id="maxSizeNum" step="0.5" value="4">
+    </div>
+    <div class="row">
+      <label>Brightness</label>
+      <input type="range" id="brightSlider" min="50" max="255" step="1" value="220">
+      <input type="number" id="brightNum" value="220">
+    </div>
+
+    <hr class="divider">
+    <!-- ── Timing ── -->
+    <div class="section-label">Timing</div>
+    <div class="row">
+      <label>Camera fps</label>
+      <input type="range" id="camFpsSlider" min="1" max="240" step="1" value="30">
+      <input type="number" id="camFpsNum" value="30">
+    </div>
+    <div class="row">
+      <label>Display fps</label>
+      <input type="range" id="dispFpsSlider" min="24" max="240" step="1" value="60">
+      <input type="number" id="dispFpsNum" value="60">
+    </div>
+
+    <hr class="divider">
+    <!-- ── Scale ── -->
+    <div class="section-label">Scale Calibration</div>
+    <div class="row">
+      <label>TV width (mm)</label>
+      <input type="range" id="tvWSlider" min="200" max="3000" step="0.01" value="1543.05">
+      <input type="number" id="tvWNum" step="0.01" value="1543.05">
+    </div>
+    <div class="row">
+      <label>TV height (mm)</label>
+      <input type="range" id="tvHSlider" min="100" max="2000" step="0.01" value="863.6">
+      <input type="number" id="tvHNum" step="0.01" value="863.6">
+    </div>
+    <div class="row">
+      <label>Res. width (px)</label>
+      <input type="range" id="resWSlider" min="640" max="7680" step="1" value="1920">
+      <input type="number" id="resWNum" step="1" value="1920">
+    </div>
+    <div class="row">
+      <label>Res. height (px)</label>
+      <input type="range" id="resHSlider" min="360" max="4320" step="1" value="1080">
+      <input type="number" id="resHNum" step="1" value="1080">
+    </div>
+    <div class="row" style="margin-top:4px;">
+      <label style="color:#3a3a3a;">Scale X (px/mm)</label>
+      <span style="flex:1;"></span>
+      <span id="scaleXDisplay" style="font-size:11px; color:#4af; width:64px; text-align:right;">1.2443</span>
+    </div>
+    <div class="row" style="margin-top:-4px;">
+      <label style="color:#3a3a3a;">Scale Y (px/mm)</label>
+      <span style="flex:1;"></span>
+      <span id="scaleYDisplay" style="font-size:11px; color:#4af; width:64px; text-align:right;">1.2503</span>
+    </div>
+    <div class="row" style="margin-top:-4px;">
+      <label style="color:#3a3a3a;">mm/px (X / Y)</label>
+      <span style="flex:1;"></span>
+      <span id="mmPerPxDisplay" style="font-size:10px; color:#3a3a3a; width:112px; text-align:right;">0.8036 / 0.7998</span>
+    </div>
+
+    <hr class="divider">
+    <!-- ── Seed ── -->
+    <div class="section-label">Particle Seed</div>
+    <div class="row">
+      <label>Seed value</label>
+      <input type="number" id="seedNum" step="1" value="" placeholder="auto" style="flex:1; width:auto;">
+      <button id="seedRandom" class="obs-btn" style="flex-shrink:0; width:60px;">&#8635; New</button>
+    </div>
+    <div class="info-row">Enter a seed to reproduce a particle layout. Hit &#8635; New to generate a random one, then reseed with [R].</div>
+
+    <hr class="divider">
+    <!-- ── Obstacle ── -->
+    <div class="section-label">Obstacle</div>
+    <div class="row">
+      <label>Flow object</label>
+      <button class="obs-btn" id="obstacleToggle">Add obstacle</button>
+    </div>
+    <div id="obstacleControls" style="display:none;">
+      <div class="info-row">Click canvas to place · Right-click to remove</div>
+      <div class="row">
+        <label>Radius (px)</label>
+        <input type="range" id="obsRadiusSlider" min="10" max="400" step="1" value="80">
+        <input type="number" id="obsRadiusNum" value="80">
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<button id="show-panel">☰ Controls</button>
+
+<!-- ── Bottom readout ────────────────────────────────────────── -->
+<div id="truth">
+  <div class="row1">
+    <div class="metric">
+      <div class="name">Mean Speed</div>
+      <div class="number" id="gtSpeed">—</div>
+      <div class="unit">px / s</div>
+    </div>
+    <div class="metric">
+      <div class="name">Direction</div>
+      <div class="number" id="gtAngle">—</div>
+      <div class="unit">degrees</div>
+    </div>
+    <div class="metric">
+      <div class="name">Δpx / TV frame</div>
+      <div class="number" id="gtTVdisp">—</div>
+      <div class="unit">@ <span id="tvFpsLabel">60</span> Hz</div>
+    </div>
+    <div class="metric">
+      <div class="name">Δpx / cam frame</div>
+      <div class="number" id="gtCamDisp">—</div>
+      <div class="unit">@ <span id="camFpsLabel">30</span> fps</div>
+    </div>
+  </div>
+  <div class="row2">
+    <div class="metric gt-true">
+      <div class="name">True Speed</div>
+      <div class="number" id="gtMmTrue">—</div>
+      <div class="unit">m / s</div>
+    </div>
+    <div class="metric gt-meas">
+      <div class="name">PIV Measured &#9998;</div>
+      <input type="number" id="measInput" placeholder="type here" step="0.0001">
+      <div class="unit">m / s</div>
+    </div>
+    <div class="metric gt-err">
+      <div class="name">Error</div>
+      <div class="number" id="gtErr">—</div>
+      <div class="unit">m / s</div>
+    </div>
+    <div class="metric gt-pct">
+      <div class="name">% Error</div>
+      <div class="number" id="gtPct">—</div>
+      <div class="unit" id="gtVerdict"></div>
+    </div>
+  </div>
+</div>
+
+<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed</div>
+
+<script>
+// ── Seeded PRNG (mulberry32) ──────────────────────────────────────────────────
+// Returns a deterministic float in [0, 1) given a uint32 seed state.
+let _prngState = 0;
+
+function prngSeed(s) { _prngState = (s >>> 0) || 1; }
+
+function prng() {
+  _prngState += 0x6D2B79F5;
+  let z = _prngState;
+  z = Math.imul(z ^ (z >>> 15), z | 1);
+  z ^= z + Math.imul(z ^ (z >>> 7), z | 61);
+  return ((z ^ (z >>> 14)) >>> 0) / 4294967296;
+}
+
+// Active seed (null = truly random; number = seeded)
+let currentSeed = null;
+
+function applySeededRandom() {
+  if (currentSeed !== null) {
+    prngSeed(currentSeed);
+  }
+}
+
+// rand() used in particle generation — seeded when a seed is active
+function rand() {
+  return currentSeed !== null ? prng() : Math.random();
+}
+
+// ── Canvas ───────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+let W = 0, H = 0;
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+// User-facing values in m/s; internal vx/vy/turbulence are in px/s
+let vxMs = 0.08, vyMs = 0.0, turbMs = 0.0;
+let vx = 0, vy = 0;   // px/s, derived via msToPs()
+let turbulence = 0;   // px/s, derived via msToPs()
+
+function msToPs(ms) { return ms * 1000 * pxPerMm; }
+let minRadius   = 1.0;   // half of minDiam
+let maxRadius   = 2.0;   // half of maxDiam
+let brightness  = 220;
+let camFps      = 30;
+let dispFps     = 60;
+
+let pxPerMmX = 1920 / 1543.05;
+let pxPerMmY = 1080 / 863.6;
+let pxPerMm  = (pxPerMmX + pxPerMmY) / 2;
+
+let tvWidthMm   = 1543.05;
+let tvHeightMm  = 863.6;
+let resWidthPx  = 1920;
+let resHeightPx = 1080;
+
+let paused     = false;
+let hudVisible = true;
+
+// Obstacle: null = none, { cx, cy, r } when active
+let obstacle      = null;
+let obstacleActive = false;
+let obsRadius     = 80;
+
+// Particles
+let particles = [];
+
+// ── Particle seeding ──────────────────────────────────────────────────────────
+function makeParticle() {
+  const angle = rand() * Math.PI * 2;
+  const speed = rand() * turbulence;
+  let px, py;
+  // Place outside obstacle if one exists
+  do {
+    px = rand() * W;
+    py = rand() * H;
+  } while (obstacle && distSq(px, py, obstacle.cx, obstacle.cy) < obstacle.r * obstacle.r);
+
+  return {
+    x:   px,
+    y:   py,
+    dvx: Math.cos(angle) * speed,
+    dvy: Math.sin(angle) * speed,
+    r:   minRadius + rand() * (maxRadius - minRadius),
+  };
+}
+
+function seedParticles(n) {
+  applySeededRandom();   // reset PRNG to seed before generating
+  particles = Array.from({ length: n }, makeParticle);
+}
+
+function resizeParticles(n) {
+  while (particles.length < n) particles.push(makeParticle());
+  particles.length = n;
+}
+
+function reseedTurbulence() {
+  for (const p of particles) {
+    const angle = rand() * Math.PI * 2;
+    const speed = rand() * turbulence;
+    p.dvx = Math.cos(angle) * speed;
+    p.dvy = Math.sin(angle) * speed;
+  }
+}
+
+function reseedSizes() {
+  for (const p of particles) {
+    p.r = minRadius + rand() * (maxRadius - minRadius);
+  }
+}
+
+// ── Normalized unit sprite (σ=1, drawn at scale=radius) ──────────────────────
+// Unit sprite: Gaussian with σ=1, extent ±6px → 13×13
+const UNIT_SZ = 13;
+let unitSprite = null;
+let cachedBright = -1;
+
+function buildUnitSprite(bright) {
+  const oc  = document.createElement('canvas');
+  oc.width  = UNIT_SZ;
+  oc.height = UNIT_SZ;
+  const ox  = oc.getContext('2d');
+  const img = ox.createImageData(UNIT_SZ, UNIT_SZ);
+  const c   = 6; // center pixel
+  for (let py = 0; py < UNIT_SZ; py++) {
+    for (let px = 0; px < UNIT_SZ; px++) {
+      const r2  = (px - c) ** 2 + (py - c) ** 2;
+      const val = bright * Math.exp(-r2 / 2);  // σ=1
+      const i   = (py * UNIT_SZ + px) * 4;
+      img.data[i] = img.data[i+1] = img.data[i+2] = val;
+      img.data[i+3] = Math.round(val);
+    }
+  }
+  ox.putImageData(img, 0, 0);
+  return oc;
+}
+
+function getSprite() {
+  if (cachedBright !== brightness) {
+    unitSprite   = buildUnitSprite(brightness);
+    cachedBright = brightness;
+  }
+  return unitSprite;
+}
+
+// ── Velocity field ────────────────────────────────────────────────────────────
+// Potential flow (irrotational, inviscid) around a cylinder.
+// For uniform upstream (U, V) and cylinder at origin with radius R:
+//   vx_total = U - R²[U(x²-y²) + 2Vxy] / r⁴
+//   vy_total = V + R²[V(x²-y²) - 2Uxy] / r⁴
+// This is the exact analytic solution — streamlines wrap cleanly around the body.
+function flowVelocity(px, py, U, V) {
+  if (!obstacle) return { vx: U, vy: V };
+
+  const dx = px - obstacle.cx;
+  const dy = py - obstacle.cy;
+  const r2 = dx * dx + dy * dy;
+  const R2 = obstacle.r * obstacle.r;
+
+  if (r2 < R2) return { vx: 0, vy: 0 };  // inside body
+
+  const r4    = r2 * r2;
+  const dx2dy2 = dx * dx - dy * dy;
+  const dxy2   = 2 * dx * dy;
+
+  return {
+    vx: U - R2 * (U * dx2dy2 + V * dxy2) / r4,
+    vy: V + R2 * (V * dx2dy2 - U * dxy2) / r4,
+  };
+}
+
+function distSq(ax, ay, bx, by) {
+  return (ax - bx) ** 2 + (ay - by) ** 2;
+}
+
+// ── Render loop ───────────────────────────────────────────────────────────────
+let lastTime = null;
+
+function frame(ts) {
+  requestAnimationFrame(frame);
+  if (lastTime === null) lastTime = ts;
+  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+  lastTime = ts;
+
+  if (!paused) {
+    for (const p of particles) {
+      const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, vx + p.dvx, vy + p.dvy);
+      p.x = ((p.x + pvx * dt) % W + W) % W;
+      p.y = ((p.y + pvy * dt) % H + H) % H;
+
+      // Push particles that ended up inside the obstacle to a random valid spot
+      if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r * obstacle.r) {
+        const a = Math.random() * Math.PI * 2;
+        p.x = obstacle.cx + (obstacle.r + 2) * Math.cos(a);
+        p.y = obstacle.cy + (obstacle.r + 2) * Math.sin(a);
+        p.x = ((p.x % W) + W) % W;
+        p.y = ((p.y % H) + H) % H;
+      }
+    }
+  }
+
+  // ── Draw ──
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+
+  // Particles — additive blending
+  ctx.globalCompositeOperation = 'lighter';
+  const spr = getSprite();
+  for (const p of particles) {
+    const drawSz = UNIT_SZ * p.r;
+    ctx.drawImage(spr, p.x - drawSz / 2, p.y - drawSz / 2, drawSz, drawSz);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Obstacle — drawn on top so particles don't bleed through
+  if (obstacle) {
+    ctx.beginPath();
+    ctx.arc(obstacle.cx, obstacle.cy, obstacle.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#000';
+    ctx.fill();
+    ctx.strokeStyle = obstacleActive ? '#4af' : '#2a2a2a';
+    ctx.lineWidth   = obstacleActive ? 1.5 : 1;
+    ctx.stroke();
+
+    // Label
+    if (obstacleActive) {
+      ctx.fillStyle   = '#2a4a5a';
+      ctx.font        = '10px Courier New';
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`r = ${obstacle.r}px`, obstacle.cx, obstacle.cy);
+    }
+  }
+
+  updateReadout();
+}
+
+// ── Readout ───────────────────────────────────────────────────────────────────
+function updateReadout() {
+  const speed   = Math.sqrt(vx * vx + vy * vy);
+  const angle   = Math.atan2(vy, vx) * 180 / Math.PI;
+  const tvDisp  = speed / dispFps;
+  const camDisp = speed / camFps;
+  const trueMs  = speed / pxPerMm / 1000;
+
+  document.getElementById('gtSpeed').textContent    = speed.toFixed(1);
+  document.getElementById('gtAngle').textContent    = angle.toFixed(1) + '°';
+  document.getElementById('gtTVdisp').textContent   = tvDisp.toFixed(2);
+  document.getElementById('gtCamDisp').textContent  = camDisp.toFixed(2);
+  document.getElementById('tvFpsLabel').textContent  = dispFps;
+  document.getElementById('camFpsLabel').textContent = camFps;
+  document.getElementById('gtMmTrue').textContent    = trueMs.toFixed(4);
+
+  const measVal = parseFloat(document.getElementById('measInput').value);
+  if (!isNaN(measVal) && trueMs > 0) {
+    const errMs  = measVal - trueMs;
+    const pctErr = (errMs / trueMs) * 100;
+    const absErr = Math.abs(pctErr);
+    let col, verdict;
+    if      (absErr < 5)  { col = '#3c3'; verdict = 'PASS'; }
+    else if (absErr < 15) { col = '#fa0'; verdict = 'WARN'; }
+    else                  { col = '#f44'; verdict = 'FAIL'; }
+
+    document.getElementById('gtErr').textContent      = (errMs >= 0 ? '+' : '') + errMs.toFixed(4);
+    document.getElementById('gtPct').textContent      = (pctErr >= 0 ? '+' : '') + pctErr.toFixed(1) + '%';
+    document.getElementById('gtErr').style.color      = col;
+    document.getElementById('gtPct').style.color      = col;
+    document.getElementById('gtVerdict').textContent  = verdict;
+    document.getElementById('gtVerdict').style.color  = col;
+  } else {
+    ['gtErr', 'gtPct'].forEach(id => {
+      document.getElementById(id).textContent = '—';
+      document.getElementById(id).style.color = '#888';
+    });
+    document.getElementById('gtVerdict').textContent = '';
+  }
+}
+
+// ── Scale recompute ───────────────────────────────────────────────────────────
+function recomputeScale() {
+  pxPerMmX = resWidthPx  / tvWidthMm;
+  pxPerMmY = resHeightPx / tvHeightMm;
+  pxPerMm  = (pxPerMmX + pxPerMmY) / 2;
+  document.getElementById('scaleXDisplay').textContent  = pxPerMmX.toFixed(4);
+  document.getElementById('scaleYDisplay').textContent  = pxPerMmY.toFixed(4);
+  document.getElementById('mmPerPxDisplay').textContent =
+    (1 / pxPerMmX).toFixed(4) + ' / ' + (1 / pxPerMmY).toFixed(4);
+  // Recompute internal px/s from stored m/s values
+  vx         = msToPs(vxMs);
+  vy         = msToPs(vyMs);
+  turbulence = msToPs(turbMs);
+}
+recomputeScale();
+
+// ── Obstacle controls ─────────────────────────────────────────────────────────
+function setObstacleActive(on) {
+  obstacleActive = on;
+  const btn = document.getElementById('obstacleToggle');
+  btn.textContent = on ? 'Remove obstacle' : 'Add obstacle';
+  btn.classList.toggle('active', on);
+  document.getElementById('obstacleControls').style.display = on ? 'block' : 'none';
+  document.body.classList.toggle('placing', on);
+
+  if (!on) {
+    obstacle = null;
+  } else if (!obstacle) {
+    // Place at center to start
+    obstacle = { cx: W / 2, cy: H / 2, r: obsRadius };
+  }
+}
+
+document.getElementById('obstacleToggle').addEventListener('click', () => {
+  setObstacleActive(!obstacleActive);
+});
+
+// Click canvas → move obstacle; right-click → remove
+canvas.addEventListener('click', e => {
+  if (!obstacleActive) return;
+  if (!obstacle) obstacle = { cx: e.clientX, cy: e.clientY, r: obsRadius };
+  else           { obstacle.cx = e.clientX; obstacle.cy = e.clientY; }
+});
+
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  if (obstacleActive && obstacle) {
+    obstacle = null;
+  }
+});
+
+// ── Slider ↔ number wiring ────────────────────────────────────────────────────
+function wireSliderNum(sliderId, numId, clampMin, clampMax, decimals, callback) {
+  const slider = document.getElementById(sliderId);
+  const num    = document.getElementById(numId);
+
+  slider.addEventListener('input', () => {
+    const v = parseFloat(slider.value);
+    num.value = decimals === 0 ? Math.round(v) : v.toFixed(decimals);
+    callback(v);
+  });
+
+  num.addEventListener('input', () => {
+    const v = parseFloat(num.value);
+    if (isNaN(v)) return;
+    slider.value = Math.max(clampMin, Math.min(clampMax, v));
+    callback(v);
+  });
+
+  const commit = () => {
+    const v = parseFloat(num.value);
+    if (!isNaN(v)) { slider.value = Math.max(clampMin, Math.min(clampMax, v)); callback(v); }
+  };
+  num.addEventListener('blur',    commit);
+  num.addEventListener('keydown', e => { if (e.key === 'Enter') num.blur(); });
+}
+
+// Prevent inputs from triggering keyboard shortcuts
+document.querySelectorAll('input').forEach(el => {
+  el.addEventListener('keydown', e => e.stopPropagation());
+});
+
+// Wire all controls
+wireSliderNum('vxSlider',   'vxNum',   -2, 2, 3, v => { vxMs = v; vx = msToPs(v); });
+wireSliderNum('vySlider',   'vyNum',   -2, 2, 3, v => { vyMs = v; vy = msToPs(v); });
+wireSliderNum('turbSlider', 'turbNum', 0,  1, 3, v => {
+  turbMs = v; turbulence = msToPs(v);
+  document.getElementById('turbInfo').style.display = v > 0 ? 'block' : 'none';
+  reseedTurbulence();
+});
+wireSliderNum('countSlider',   'countNum',   50,   2000, 0,  v => { resizeParticles(Math.max(1, Math.round(v))); });
+wireSliderNum('minSizeSlider', 'minSizeNum', 0.5,  20,   1,  v => {
+  minRadius = v / 2;
+  if (maxRadius < minRadius) { maxRadius = minRadius; document.getElementById('maxSizeSlider').value = v; document.getElementById('maxSizeNum').value = v.toFixed(1); }
+  reseedSizes();
+});
+wireSliderNum('maxSizeSlider', 'maxSizeNum', 0.5,  20,   1,  v => {
+  maxRadius = v / 2;
+  if (minRadius > maxRadius) { minRadius = maxRadius; document.getElementById('minSizeSlider').value = v; document.getElementById('minSizeNum').value = v.toFixed(1); }
+  reseedSizes();
+});
+wireSliderNum('brightSlider',  'brightNum',  50,   255,  0,  v => { brightness = Math.max(1, Math.min(255, v)); });
+wireSliderNum('camFpsSlider',  'camFpsNum',  1,    240,  0,  v => { camFps  = Math.max(1, v); });
+wireSliderNum('dispFpsSlider', 'dispFpsNum', 24,   240,  0,  v => { dispFps = Math.max(1, v); });
+wireSliderNum('tvWSlider',     'tvWNum',     200,  3000, 2,  v => { tvWidthMm   = Math.max(1, v); recomputeScale(); });
+wireSliderNum('tvHSlider',     'tvHNum',     100,  2000, 2,  v => { tvHeightMm  = Math.max(1, v); recomputeScale(); });
+wireSliderNum('resWSlider',    'resWNum',    640,  7680, 0,  v => { resWidthPx  = Math.max(1, v); recomputeScale(); });
+wireSliderNum('resHSlider',    'resHNum',    360,  4320, 0,  v => { resHeightPx = Math.max(1, v); recomputeScale(); });
+wireSliderNum('obsRadiusSlider', 'obsRadiusNum', 10, 400, 0, v => {
+  obsRadius = v;
+  if (obstacle) obstacle.r = v;
+});
+
+// ── Panel show / hide ─────────────────────────────────────────────────────────
+const panel   = document.getElementById('panel');
+const showBtn = document.getElementById('show-panel');
+
+function setHud(visible) {
+  hudVisible = visible;
+  panel.classList.toggle('hidden', !visible);
+  showBtn.classList.toggle('visible', !visible);
+  document.getElementById('truth').classList.toggle('hidden', !visible);
+  document.getElementById('hint').style.opacity = visible ? '1' : '0';
+}
+
+document.getElementById('panel-close').addEventListener('click', () => setHud(false));
+showBtn.addEventListener('click', () => setHud(true));
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  switch (e.key.toLowerCase()) {
+    case 'h': setHud(!hudVisible); break;
+    case 'p':
+      paused = !paused;
+      document.getElementById('paused').style.display = paused ? 'block' : 'none';
+      break;
+    case 'f':
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+      break;
+    case 'r':
+      seedParticles(particles.length);
+      break;
+    case 'escape':
+      if (obstacleActive) setObstacleActive(false);
+      break;
+  }
+});
+
+// ── Splash ────────────────────────────────────────────────────────────────────
+document.getElementById('splash').addEventListener('click', () => {
+  document.documentElement.requestFullscreen().catch(() => {});
+  document.getElementById('splash').style.display = 'none';
+});
+
+// ── Seed controls ─────────────────────────────────────────────────────────────
+const seedNumEl = document.getElementById('seedNum');
+
+seedNumEl.addEventListener('change', () => {
+  const v = seedNumEl.value.trim();
+  currentSeed = v === '' ? null : (Math.abs(parseInt(v, 10)) >>> 0) || 1;
+  seedParticles(particles.length);
+});
+
+seedNumEl.addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter') { seedNumEl.blur(); seedNumEl.dispatchEvent(new Event('change')); }
+});
+
+document.getElementById('seedRandom').addEventListener('click', () => {
+  const s = (Math.random() * 0xFFFFFFFF) >>> 0;
+  seedNumEl.value = s;
+  currentSeed = s;
+  seedParticles(particles.length);
+});
+
+// ── Cursor auto-hide after 3 s of inactivity ─────────────────────────────────
+let cursorTimer = null;
+function showCursor() {
+  document.body.classList.remove('cursor-hidden');
+  clearTimeout(cursorTimer);
+  cursorTimer = setTimeout(() => document.body.classList.add('cursor-hidden'), 3000);
+}
+document.addEventListener('mousemove', showCursor);
+document.addEventListener('mousedown', showCursor);
+showCursor(); // start the timer immediately
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+resize();
+window.addEventListener('resize', () => { resize(); seedParticles(particles.length); });
+seedParticles(400);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

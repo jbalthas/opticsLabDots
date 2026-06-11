@@ -85,6 +85,25 @@ The bottom bar shows (labels adapt to the active flow type):
 | Error (m/s) | Signed difference |
 | % Error | PASS < 5% · WARN 5–15% · FAIL > 15% |
 
+For non-uniform flows a third row appears showing the **analytical velocity profile**:
+
+| Flow | V min | V center | V max |
+|---|---|---|---|
+| Linear Shear | `Vx·(1 − γ)` at y=0 | `Vx` at y=H/2 | `Vx·(1 + γ)` at y=H |
+| Poiseuille | 0 (wall) | Peak at y=H/2 | = V center |
+| Solid Vortex | 0 (center) | 0 (center) | ω·r at corner |
+| Rankine Vortex | 0 (center) | Vc (core edge) | Vc (core edge) |
+
+### Cursor Velocity Probe
+Move the mouse over the canvas to see the exact analytical ground truth at that position: Vx, Vy (px/s), |V| (m/s), direction (°), and Δpx per camera frame. Updates every render frame. Useful for spot-checking your PIV output against the known solution at a specific interrogation window.
+
+### Color-by-Speed Mode
+Press `[V]` to color every particle by its local true speed using a blue→cyan→green→yellow→red colormap. A colorbar appears showing the 0→Vmax range in m/s.
+
+- **Uniform** — all particles are the same color, confirming identical speed everywhere
+- **Linear Shear / Poiseuille** — a smooth color gradient reveals the spatial velocity profile; a velocity profile diagram also appears along the left canvas edge as horizontal arrows
+- **Vortex** — radial color banding shows rotation speed increasing with radius
+
 ---
 
 ## Keyboard Shortcuts
@@ -96,6 +115,7 @@ The bottom bar shows (labels adapt to the active flow type):
 | `F` | Fullscreen |
 | `R` | Re-seed particle field |
 | `C` | Capture frame pair A→B / exit frame pair |
+| `V` | Toggle color-by-speed particle colormap |
 | `Esc` | Exit frame pair mode or remove obstacle |
 
 ---

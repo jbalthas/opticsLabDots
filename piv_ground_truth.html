@@ -945,11 +945,18 @@ function captureFramePair() {
   const dt = 1 / camFps;
   for (const p of particles) {
     const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, p.dvx, p.dvy);
-    p.x = ((p.x + pvx*dt) % W + W) % W;
-    p.y = ((p.y + pvy*dt) % H + H) % H;
-    if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r) {
+    const nx = p.x + pvx*dt;
+    const ny = p.y + pvy*dt;
+    if (obstacle && (nx < 0 || nx >= W || ny < 0 || ny >= H)) {
       do { p.x = Math.random()*W; p.y = Math.random()*H; }
       while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
+    } else {
+      p.x = ((nx % W) + W) % W;
+      p.y = ((ny % H) + H) % H;
+      if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r) {
+        do { p.x = Math.random()*W; p.y = Math.random()*H; }
+        while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
+      }
     }
     if (alignToFlow) {
       const f = baseFlow(p.x, p.y);
@@ -983,11 +990,21 @@ function frame(ts) {
     // Advance particles
     for (const p of particles) {
       const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, p.dvx, p.dvy);
-      p.x = ((p.x + pvx*dt) % W + W) % W;
-      p.y = ((p.y + pvy*dt) % H + H) % H;
-      if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r) {
+      const nx = p.x + pvx*dt;
+      const ny = p.y + pvy*dt;
+      // With an obstacle, wrapping preserves coordinates and locks particles onto
+      // stagnation streamlines — they re-approach the stagnation points indefinitely.
+      // Respawn at a random position instead to maintain uniform seeding density.
+      if (obstacle && (nx < 0 || nx >= W || ny < 0 || ny >= H)) {
         do { p.x = Math.random()*W; p.y = Math.random()*H; }
         while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
+      } else {
+        p.x = ((nx % W) + W) % W;
+        p.y = ((ny % H) + H) % H;
+        if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r) {
+          do { p.x = Math.random()*W; p.y = Math.random()*H; }
+          while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
+        }
       }
       // Update flow-alignment angle
       if (alignToFlow) {

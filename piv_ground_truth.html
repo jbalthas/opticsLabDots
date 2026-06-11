@@ -23,23 +23,17 @@
 
     /* ── Fullscreen splash ─────────────────────────────────────── */
     #splash {
-      position: fixed;
-      inset: 0;
-      background: #000;
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      position: fixed; inset: 0;
+      background: #000; z-index: 999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
       cursor: pointer;
     }
     #splash h1 { font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: #4af; margin-bottom: 10px; }
     #splash p  { font-size: 11px; color: #555; letter-spacing: 1px; }
     #splash .pulse {
-      margin-top: 28px;
-      width: 48px; height: 48px;
-      border: 1px solid #4af;
-      border-radius: 50%;
+      margin-top: 28px; width: 48px; height: 48px;
+      border: 1px solid #4af; border-radius: 50%;
       animation: pulse 1.6s ease-in-out infinite;
     }
     @keyframes pulse {
@@ -49,19 +43,14 @@
 
     /* ── Control Panel ─────────────────────────────────────────── */
     #panel {
-      position: fixed;
-      top: 12px; right: 12px;
-      width: 340px;
-      max-height: calc(100vh - 24px);
+      position: fixed; top: 12px; right: 12px;
+      width: 340px; max-height: calc(100vh - 24px);
       overflow-y: auto;
-      background: rgba(8, 8, 8, 0.93);
-      border: 1px solid #2a2a2a;
-      border-radius: 6px;
-      z-index: 100;
+      background: rgba(8,8,8,0.93); border: 1px solid #2a2a2a;
+      border-radius: 6px; z-index: 100;
       backdrop-filter: blur(6px);
       transition: opacity 0.2s, transform 0.2s;
-      scrollbar-width: thin;
-      scrollbar-color: #222 transparent;
+      scrollbar-width: thin; scrollbar-color: #222 transparent;
     }
     #panel::-webkit-scrollbar { width: 4px; }
     #panel::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
@@ -69,13 +58,9 @@
 
     #panel-header {
       position: sticky; top: 0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 14px 8px;
-      border-bottom: 1px solid #1e1e1e;
-      background: rgba(8,8,8,0.97);
-      z-index: 1;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px 8px; border-bottom: 1px solid #1e1e1e;
+      background: rgba(8,8,8,0.97); z-index: 1;
     }
     #panel-header h2 { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #666; }
     #panel-close {
@@ -95,7 +80,7 @@
     .row label {
       font-size: 10px; color: #888; white-space: nowrap; width: 108px; flex-shrink: 0;
     }
-    .row input[type=range] { flex: 1; accent-color: #4af; cursor: pointer; }
+    .row input[type=range]  { flex: 1; accent-color: #4af; cursor: pointer; }
     .row input[type=number] {
       width: 64px; flex-shrink: 0;
       background: #0d0d0d; border: 1px solid #2e2e2e; color: #4af;
@@ -109,16 +94,22 @@
 
     .divider { border: none; border-top: 1px solid #181818; margin: 10px 0; }
 
-    /* obstacle toggle button */
+    select.flow-select {
+      flex: 1; background: #0d0d0d; border: 1px solid #2e2e2e; color: #4af;
+      font-family: inherit; font-size: 10px; padding: 4px 6px;
+      border-radius: 3px; cursor: pointer; outline: none;
+    }
+    select.flow-select option { background: #111; }
+
     .obs-btn {
-      flex: 1;
-      background: #0d0d0d; border: 1px solid #2e2e2e; color: #888;
+      flex: 1; background: #0d0d0d; border: 1px solid #2e2e2e; color: #888;
       font-family: inherit; font-size: 10px; letter-spacing: 1px;
       padding: 4px 8px; border-radius: 3px; cursor: pointer;
       text-transform: uppercase; transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
     .obs-btn.active { background: #1a2a1a; border-color: #3c3; color: #3c3; }
-    .obs-btn:not(.active):hover { border-color: #555; color: #ccc; }
+    .obs-btn.active-orange { background: #2a1a00; border-color: #f80; color: #f80; }
+    .obs-btn:not(.active):not(.active-orange):hover { border-color: #555; color: #ccc; }
 
     .info-row {
       font-size: 9px; color: #333; letter-spacing: 0.5px;
@@ -136,17 +127,28 @@
     #show-panel:hover { color: #ccc; }
     #show-panel.visible { display: block; }
 
+    /* ── Frame pair badge ───────────────────────────────────────── */
+    #pairBadge {
+      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      background: rgba(8,8,8,0.90); border: 1px solid #2a2a2a;
+      border-radius: 4px; padding: 5px 14px; white-space: nowrap;
+      font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+      color: #888; z-index: 100; display: none; pointer-events: none;
+    }
+    #pairBadge.active { display: block; border-color: #630; }
+    #pairBadge .a { color: #f44; }
+    #pairBadge .b { color: #4d4; }
+
     /* ── Bottom readout ─────────────────────────────────────────── */
     #truth {
       position: fixed; bottom: 20px; left: 50%;
       transform: translateX(-50%);
       background: rgba(0,0,0,0.90); border: 1px solid #2a2a2a;
       border-radius: 6px; padding: 12px 22px 14px;
-      z-index: 100; text-align: center; min-width: 580px;
+      z-index: 100; text-align: center; min-width: 620px;
       transition: opacity 0.2s;
     }
     #truth.hidden { opacity: 0; pointer-events: none; }
-
     #truth .row1 {
       display: grid; grid-template-columns: repeat(4, 1fr);
       gap: 0 10px; padding-bottom: 10px;
@@ -190,7 +192,6 @@
       z-index: 50; display: none; pointer-events: none;
     }
 
-    /* ── Obstacle cursor mode ────────────────────────────────────── */
     body.placing { cursor: crosshair; }
     body.cursor-hidden,
     body.cursor-hidden * { cursor: none !important; }
@@ -207,6 +208,7 @@
 
 <canvas id="canvas"></canvas>
 <div id="paused">PAUSED</div>
+<div id="pairBadge">FRAME PAIR &nbsp;·&nbsp; <span class="a">■ A</span> &nbsp;·&nbsp; <span class="b">■ B</span> &nbsp;·&nbsp; [C] exit</div>
 
 <!-- ── Control Panel ──────────────────────────────────────────── -->
 <div id="panel">
@@ -216,27 +218,100 @@
   </div>
   <div id="panel-body">
 
-    <!-- ── Velocity ── -->
-    <div class="section-label">Mean Flow</div>
+    <!-- ── Flow Field ── -->
+    <div class="section-label">Flow Field</div>
     <div class="row">
-      <label>Vx (m/s)</label>
-      <input type="range" id="vxSlider" min="-2" max="2" step="0.001" value="0.08">
-      <input type="number" id="vxNum" step="0.001" value="0.08">
+      <label>Type</label>
+      <select class="flow-select" id="flowType">
+        <option value="uniform">Uniform</option>
+        <option value="shear">Linear Shear</option>
+        <option value="vortex">Solid Vortex</option>
+        <option value="poiseuille">Poiseuille (Channel)</option>
+        <option value="rankine">Rankine Vortex</option>
+      </select>
     </div>
-    <div class="row">
-      <label>Vy (m/s)</label>
-      <input type="range" id="vySlider" min="-2" max="2" step="0.001" value="0">
-      <input type="number" id="vyNum" step="0.001" value="0">
+
+    <!-- Uniform params -->
+    <div id="fp-uniform">
+      <div class="row">
+        <label>Vx (m/s)</label>
+        <input type="range" id="vxSlider" min="-2" max="2" step="0.001" value="0.08">
+        <input type="number" id="vxNum" step="0.001" value="0.08">
+      </div>
+      <div class="row">
+        <label>Vy (m/s)</label>
+        <input type="range" id="vySlider" min="-2" max="2" step="0.001" value="0">
+        <input type="number" id="vyNum" step="0.001" value="0">
+      </div>
     </div>
+
+    <!-- Shear params -->
+    <div id="fp-shear" style="display:none;">
+      <div class="row">
+        <label>Vx center (m/s)</label>
+        <input type="range" id="shearVxSlider" min="-2" max="2" step="0.001" value="0.2">
+        <input type="number" id="shearVxNum" step="0.001" value="0.2">
+      </div>
+      <div class="row">
+        <label>Shear rate</label>
+        <input type="range" id="shearRateSlider" min="-2" max="2" step="0.01" value="0.8">
+        <input type="number" id="shearRateNum" step="0.01" value="0.8">
+      </div>
+      <div class="info-row">Vx(y) = Vx_c × (1 + rate × (2y/H − 1)). Rate=1 → top: 0, bottom: 2×Vx_c.</div>
+    </div>
+
+    <!-- Vortex params -->
+    <div id="fp-vortex" style="display:none;">
+      <div class="row">
+        <label>ω (rad/s)</label>
+        <input type="range" id="vortexOmegaSlider" min="-3" max="3" step="0.01" value="0.5">
+        <input type="number" id="vortexOmegaNum" step="0.01" value="0.5">
+      </div>
+      <div class="row">
+        <label>Background Vx</label>
+        <input type="range" id="vortexBgVxSlider" min="-1" max="1" step="0.001" value="0">
+        <input type="number" id="vortexBgVxNum" step="0.001" value="0">
+      </div>
+      <div class="info-row">Solid-body rotation centered on screen. Angular velocity ω in rad/s. Add background drift Vx for spiral paths.</div>
+    </div>
+
+    <!-- Poiseuille params -->
+    <div id="fp-poiseuille" style="display:none;">
+      <div class="row">
+        <label>Peak Vx (m/s)</label>
+        <input type="range" id="poisVxSlider" min="0" max="3" step="0.001" value="0.3">
+        <input type="number" id="poisVxNum" step="0.001" value="0.3">
+      </div>
+      <div class="info-row">Plane Poiseuille flow: parabolic profile, zero at top/bottom walls, maximum at channel center.</div>
+    </div>
+
+    <!-- Rankine params -->
+    <div id="fp-rankine" style="display:none;">
+      <div class="row">
+        <label>Vc at core (m/s)</label>
+        <input type="range" id="rankineVcSlider" min="0" max="2" step="0.001" value="0.3">
+        <input type="number" id="rankineVcNum" step="0.001" value="0.3">
+      </div>
+      <div class="row">
+        <label>Core radius (%)</label>
+        <input type="range" id="rankineRcSlider" min="2" max="45" step="0.5" value="15">
+        <input type="number" id="rankineRcNum" step="0.5" value="15">
+      </div>
+      <div class="row">
+        <label>Background Vx</label>
+        <input type="range" id="rankineBgVxSlider" min="-1" max="1" step="0.001" value="0">
+        <input type="number" id="rankineBgVxNum" step="0.001" value="0">
+      </div>
+      <div class="info-row">Rankine: solid-body core + potential exterior. Vc = tangential speed at core edge (m/s). Core % of min screen dimension.</div>
+    </div>
+
+    <!-- Turbulence (all modes) -->
     <div class="row">
       <label>Turbulence (±m/s)</label>
       <input type="range" id="turbSlider" min="0" max="1" step="0.001" value="0">
       <input type="number" id="turbNum" step="0.001" value="0">
     </div>
-    <div class="info-row" id="turbInfo" style="display:none;">
-      Each particle has a random velocity offset drawn uniformly from [−T, +T].<br>
-      Readout shows mean flow. Re-seed [R] to draw new offsets.
-    </div>
+    <div class="info-row" id="turbInfo" style="display:none;">Random velocity offset per particle, drawn from [−T, +T]. Reseed [R] to draw new offsets.</div>
 
     <hr class="divider">
     <!-- ── Particles ── -->
@@ -261,6 +336,68 @@
       <input type="range" id="brightSlider" min="50" max="255" step="1" value="220">
       <input type="number" id="brightNum" value="220">
     </div>
+    <div class="row" style="margin-top:-2px;">
+      <label style="color:#3a3a3a;">Seeding density</label>
+      <span style="flex:1;"></span>
+      <span id="seedDensDisplay" style="font-size:10px; color:#3a3a3a; width:112px; text-align:right;">— ppp</span>
+    </div>
+
+    <!-- Particle Shape (SynthPix: correlated 2D Gaussian) -->
+    <div class="section-label" style="margin-top:8px;">Particle Shape</div>
+    <div class="row">
+      <label>Elongation ρ</label>
+      <input type="range" id="rhoSlider" min="-0.95" max="0.95" step="0.01" value="0">
+      <input type="number" id="rhoNum" step="0.01" value="0">
+    </div>
+    <div class="row">
+      <label>ρ variability</label>
+      <input type="range" id="rhoVarSlider" min="0" max="0.5" step="0.01" value="0">
+      <input type="number" id="rhoVarNum" step="0.01" value="0">
+    </div>
+    <div class="row">
+      <label>Align to flow</label>
+      <button class="obs-btn" id="alignFlowBtn">Off</button>
+    </div>
+    <div class="info-row">ρ=0 circular, ρ→±1 elongated (correlated 2D Gaussian). Align makes particles orient along local velocity — models motion blur.</div>
+
+    <!-- Particle Variability (SynthPix: intensity_var, diameter_var) -->
+    <div class="section-label" style="margin-top:8px;">Particle Variability</div>
+    <div class="row">
+      <label>Intensity var σ</label>
+      <input type="range" id="intensVarSlider" min="0" max="0.8" step="0.01" value="0">
+      <input type="number" id="intensVarNum" step="0.01" value="0">
+    </div>
+    <div class="row">
+      <label>Diameter var σ</label>
+      <input type="range" id="diamVarSlider" min="0" max="0.8" step="0.01" value="0">
+      <input type="number" id="diamVarNum" step="0.01" value="0">
+    </div>
+    <div class="row">
+      <label>Out-of-plane %</label>
+      <input type="range" id="outPlaneSlider" min="0" max="80" step="1" value="0">
+      <input type="number" id="outPlaneNum" value="0">
+    </div>
+    <div class="info-row" id="varInfo" style="display:none;">Intensity/diameter drawn from N(1, σ) per particle. Out-of-plane: fraction of particles dimmed each camera frame (models light-sheet loss).</div>
+
+    <hr class="divider">
+    <!-- ── Noise ── -->
+    <div class="section-label">Image Noise</div>
+    <div class="row">
+      <label>Read noise σ (DN)</label>
+      <input type="range" id="readNoiseSlider" min="0" max="30" step="0.5" value="0">
+      <input type="number" id="readNoiseNum" step="0.5" value="0">
+    </div>
+    <div class="row">
+      <label>Shot noise (×)</label>
+      <input type="range" id="shotNoiseSlider" min="0" max="3" step="0.05" value="0">
+      <input type="number" id="shotNoiseNum" step="0.05" value="0">
+    </div>
+    <div class="row">
+      <label>Background (DN)</label>
+      <input type="range" id="bgNoiseSlider" min="0" max="40" step="1" value="0">
+      <input type="number" id="bgNoiseNum" step="1" value="0">
+    </div>
+    <div class="info-row" id="noiseInfo" style="display:none;">Read noise: Gaussian σ in DN. Shot: Poisson-approx, σ∝√(scale·I). Background: uniform pedestal added before noise.</div>
 
     <hr class="divider">
     <!-- ── Timing ── -->
@@ -275,6 +412,11 @@
       <input type="range" id="dispFpsSlider" min="24" max="240" step="1" value="60">
       <input type="number" id="dispFpsNum" value="60">
     </div>
+    <div class="row" style="margin-top:4px;">
+      <label>Frame pair</label>
+      <button class="obs-btn" id="pairCaptureBtn">[C] Capture A→B</button>
+    </div>
+    <div class="info-row">Captures Frame A (red), advances 1 camera frame, shows Frame B (green). Overlap = yellow. Measures actual Δpx.</div>
 
     <hr class="divider">
     <!-- ── Scale ── -->
@@ -323,7 +465,7 @@
       <input type="number" id="seedNum" step="1" value="" placeholder="auto" style="flex:1; width:auto;">
       <button id="seedRandom" class="obs-btn" style="flex-shrink:0; width:60px;">&#8635; New</button>
     </div>
-    <div class="info-row">Enter a seed to reproduce a particle layout. Hit &#8635; New to generate a random one, then reseed with [R].</div>
+    <div class="info-row">Enter seed to reproduce a particle layout. Hit &#8635; New for a random one, then reseed with [R].</div>
 
     <hr class="divider">
     <!-- ── Obstacle ── -->
@@ -341,8 +483,8 @@
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /panel-body -->
+</div><!-- /panel -->
 
 <button id="show-panel">☰ Controls</button>
 
@@ -350,7 +492,7 @@
 <div id="truth">
   <div class="row1">
     <div class="metric">
-      <div class="name">Mean Speed</div>
+      <div class="name" id="refSpeedLabel">Ref Speed</div>
       <div class="number" id="gtSpeed">—</div>
       <div class="unit">px / s</div>
     </div>
@@ -372,7 +514,7 @@
   </div>
   <div class="row2">
     <div class="metric gt-true">
-      <div class="name">True Speed</div>
+      <div class="name" id="trueSpeedLabel">True Speed</div>
       <div class="number" id="gtMmTrue">—</div>
       <div class="unit">m / s</div>
     </div>
@@ -394,15 +536,12 @@
   </div>
 </div>
 
-<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed</div>
+<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed &nbsp;·&nbsp; [C] frame pair</div>
 
 <script>
-// ── Seeded PRNG (mulberry32) ──────────────────────────────────────────────────
-// Returns a deterministic float in [0, 1) given a uint32 seed state.
+// ── Seeded PRNG (mulberry32) ─────────────────────────────────────────────
 let _prngState = 0;
-
 function prngSeed(s) { _prngState = (s >>> 0) || 1; }
-
 function prng() {
   _prngState += 0x6D2B79F5;
   let z = _prngState;
@@ -410,22 +549,27 @@ function prng() {
   z ^= z + Math.imul(z ^ (z >>> 7), z | 61);
   return ((z ^ (z >>> 14)) >>> 0) / 4294967296;
 }
-
-// Active seed (null = truly random; number = seeded)
 let currentSeed = null;
+function applySeededRandom() { if (currentSeed !== null) prngSeed(currentSeed); }
+function rand() { return currentSeed !== null ? prng() : Math.random(); }
 
-function applySeededRandom() {
-  if (currentSeed !== null) {
-    prngSeed(currentSeed);
-  }
+// Box-Muller N(0,1) — always uses Math.random(), not seeded
+let _spareGaussian = null;
+function gaussian() {
+  if (_spareGaussian !== null) { const s = _spareGaussian; _spareGaussian = null; return s; }
+  let u, v, s;
+  do { u = Math.random()*2-1; v = Math.random()*2-1; s = u*u+v*v; } while (s>=1||s===0);
+  const m = Math.sqrt(-2*Math.log(s)/s);
+  _spareGaussian = v * m;
+  return u * m;
 }
 
-// rand() used in particle generation — seeded when a seed is active
-function rand() {
-  return currentSeed !== null ? prng() : Math.random();
-}
+// Pre-computed Gaussian table for noise hot-loop
+const NOISE_TABLE_LEN = 1 << 17;
+const _noiseTable = new Float32Array(NOISE_TABLE_LEN);
+for (let i = 0; i < NOISE_TABLE_LEN; i++) _noiseTable[i] = gaussian();
 
-// ── Canvas ───────────────────────────────────────────────────────────────────
+// ── Canvas ───────────────────────────────────────────────────────────────
 const canvas = document.getElementById('canvas');
 const ctx    = canvas.getContext('2d');
 let W = 0, H = 0;
@@ -435,75 +579,214 @@ function resize() {
   H = canvas.height = window.innerHeight;
 }
 
-// ── State ─────────────────────────────────────────────────────────────────────
-// User-facing values in m/s; internal vx/vy/turbulence are in px/s
-let vxMs = 0.08, vyMs = 0.0, turbMs = 0.0;
-let vx = 0, vy = 0;   // px/s, derived via msToPs()
-let turbulence = 0;   // px/s, derived via msToPs()
+// ── State ─────────────────────────────────────────────────────────────────
 
-function msToPs(ms) { return ms * 1000 * pxPerMm; }
-let minRadius   = 1.0;   // half of minDiam
-let maxRadius   = 2.0;   // half of maxDiam
+// Flow field
+let flowType = 'uniform';
+
+// Uniform flow
+let vxMs = 0.08, vyMs = 0.0;
+let vx = 0, vy = 0; // px/s
+
+// Turbulence
+let turbMs = 0.0;
+let turbulence = 0; // px/s
+
+// Shear flow
+let shearVxMs = 0.2;
+let shearRate  = 0.8;
+
+// Solid vortex
+let vortexOmega  = 0.5;  // rad/s (pixel angular velocity)
+let vortexBgVxMs = 0.0;  // background drift m/s
+
+// Poiseuille
+let poisVxMaxMs = 0.3;
+
+// Rankine vortex
+let rankineVcMs  = 0.3;  // tangential speed at core edge (m/s)
+let rankineRcPct = 15;   // core radius as % of min(W,H)
+let rankineBgVxMs = 0.0;
+
+// Particle params
+let minRadius   = 1.0;
+let maxRadius   = 2.0;
 let brightness  = 220;
-let camFps      = 30;
-let dispFps     = 60;
 
+// Particle shape (SynthPix: correlated 2D Gaussian)
+let rhoBase    = 0.0;  // base elongation coefficient [-0.95, 0.95]
+let rhoVar     = 0.0;  // per-particle rho spread
+let alignToFlow = false;
+
+// Particle variability (SynthPix: intensity_var, diameter_var)
+let intensVar    = 0.0;  // σ of per-particle brightness factor
+let diamVar      = 0.0;  // σ of per-particle size factor
+let outOfPlanePct = 0.0; // fraction of particles dimmed (0-1)
+
+// Timing
+let camFps  = 30;
+let dispFps = 60;
+
+// Scale
 let pxPerMmX = 1920 / 1543.05;
 let pxPerMmY = 1080 / 863.6;
 let pxPerMm  = (pxPerMmX + pxPerMmY) / 2;
-
 let tvWidthMm   = 1543.05;
 let tvHeightMm  = 863.6;
 let resWidthPx  = 1920;
 let resHeightPx = 1080;
 
-let paused     = false;
-let hudVisible = true;
+// Noise
+let noiseReadSigma  = 0;
+let noiseShotScale  = 0;
+let noiseBackground = 0;
+let noiseActive     = false;
 
-// Obstacle: null = none, { cx, cy, r } when active
+// Obstacle
 let obstacle      = null;
 let obstacleActive = false;
 let obsRadius     = 80;
 
+// Frame pair
+let framePairMode  = false;
+let frameAParticles = null; // snapshot of particle positions for frame A
+
+// UI state
+let paused     = false;
+let hudVisible = true;
+
 // Particles
 let particles = [];
 
-// ── Particle seeding ──────────────────────────────────────────────────────────
+// Per-camera-frame out-of-plane refresh counter
+let _camFrameAcc = 0; // accumulated time in seconds
+
+function msToPs(ms) { return ms * 1000 * pxPerMm; }
+
+// ── Flow Field ──────────────────────────────────────────────────────────
+
+// Returns { vx, vy } in px/s at canvas position (px, py).
+// Includes turbulence offset (dvx, dvy) from particle.
+function flowVelocity(px, py, dvx, dvy) {
+  const base = baseFlow(px, py);
+  const U = base.vx + dvx;
+  const V = base.vy + dvy;
+
+  if (!obstacle) return { vx: U, vy: V };
+
+  const dx = px - obstacle.cx;
+  const dy = py - obstacle.cy;
+  const r2 = dx*dx + dy*dy;
+  const R2 = obstacle.r * obstacle.r;
+  if (r2 < R2) return { vx: 0, vy: 0 };
+
+  const r4      = r2 * r2;
+  const dx2dy2  = dx*dx - dy*dy;
+  const dxy2    = 2*dx*dy;
+  return {
+    vx: U - R2*(U*dx2dy2 + V*dxy2) / r4,
+    vy: V + R2*(V*dx2dy2 - U*dxy2) / r4,
+  };
+}
+
+function baseFlow(px, py) {
+  switch (flowType) {
+    case 'shear': {
+      const yNorm = py / H;
+      const shearFactor = 1 + shearRate * (yNorm*2 - 1);
+      return { vx: msToPs(shearVxMs) * shearFactor, vy };
+    }
+    case 'vortex': {
+      const cx = W/2, cy = H/2;
+      const dx = px - cx, dy = py - cy;
+      // Solid-body rotation: v_tangential = ω × r → vx = -ω·dy, vy = ω·dx
+      return {
+        vx: -vortexOmega * dy + msToPs(vortexBgVxMs),
+        vy:  vortexOmega * dx,
+      };
+    }
+    case 'poiseuille': {
+      const yNorm = py / H;
+      const profile = 4 * yNorm * (1 - yNorm);
+      return { vx: msToPs(poisVxMaxMs) * profile, vy: 0 };
+    }
+    case 'rankine': {
+      const cx = W/2, cy = H/2;
+      const dx = px - cx, dy = py - cy;
+      const r  = Math.sqrt(dx*dx + dy*dy) + 0.01;
+      const rc = rankineRcPct / 100 * Math.min(W, H);
+      const vcPx = msToPs(rankineVcMs);
+      const speed = r <= rc ? vcPx * r / rc : vcPx * rc / r;
+      return {
+        vx: -speed * dy/r + msToPs(rankineBgVxMs),
+        vy:  speed * dx/r,
+      };
+    }
+    default: // uniform
+      return { vx, vy };
+  }
+}
+
+// Reference flow at screen center (for readout)
+function centerFlow() {
+  return baseFlow(W/2, H/2);
+}
+
+function distSq(ax, ay, bx, by) {
+  return (ax-bx)**2 + (ay-by)**2;
+}
+
+// ── Particle system ──────────────────────────────────────────────────────
+
 function makeParticle() {
-  const angle = rand() * Math.PI * 2;
-  const speed = rand() * turbulence;
+  const tAngle = rand() * Math.PI * 2;
+  const tSpeed = rand() * turbulence;
   let px, py;
-  // Place outside obstacle if one exists
   do {
     px = rand() * W;
     py = rand() * H;
   } while (obstacle && distSq(px, py, obstacle.cx, obstacle.cy) < obstacle.r * obstacle.r);
 
+  // Per-particle elongation (SynthPix rho)
+  const rhoRaw = rhoBase + (rhoVar > 0 ? (rand()*2 - 1) * rhoVar : 0);
+  const pRho   = Math.max(-0.95, Math.min(0.95, rhoRaw));
+
+  // Per-particle variability factors drawn from truncated uniform (fast; approximates Gaussian spread)
+  const bFactor = intensVar > 0 ? 1 + (rand()*2 - 1) * intensVar * 2 : 1;
+  const sFactor = diamVar   > 0 ? 1 + (rand()*2 - 1) * diamVar   * 2 : 1;
+
   return {
-    x:   px,
-    y:   py,
-    dvx: Math.cos(angle) * speed,
-    dvy: Math.sin(angle) * speed,
+    x:   px, y:   py,
+    dvx: Math.cos(tAngle) * tSpeed,
+    dvy: Math.sin(tAngle) * tSpeed,
     r:   minRadius + rand() * (maxRadius - minRadius),
+    rho: pRho,
+    angle: alignToFlow ? 0 : rand() * Math.PI,
+    brightFactor: Math.max(0.1, Math.min(2.0, bFactor)),
+    sizeFactor:   Math.max(0.3, Math.min(2.0, sFactor)),
+    dimmed: false, // out-of-plane flag, updated per camera frame
   };
 }
 
 function seedParticles(n) {
-  applySeededRandom();   // reset PRNG to seed before generating
+  applySeededRandom();
   particles = Array.from({ length: n }, makeParticle);
+  _camFrameAcc = 0;
+  updateDensityDisplay();
 }
 
 function resizeParticles(n) {
   while (particles.length < n) particles.push(makeParticle());
   particles.length = n;
+  updateDensityDisplay();
 }
 
 function reseedTurbulence() {
   for (const p of particles) {
-    const angle = rand() * Math.PI * 2;
-    const speed = rand() * turbulence;
-    p.dvx = Math.cos(angle) * speed;
-    p.dvy = Math.sin(angle) * speed;
+    const a = rand() * Math.PI * 2;
+    const s = rand() * turbulence;
+    p.dvx = Math.cos(a) * s;
+    p.dvy = Math.sin(a) * s;
   }
 }
 
@@ -513,25 +796,48 @@ function reseedSizes() {
   }
 }
 
-// ── Normalized unit sprite (σ=1, drawn at scale=radius) ──────────────────────
-// Unit sprite: Gaussian with σ=1, extent ±6px → 13×13
-const UNIT_SZ = 13;
-let unitSprite = null;
-let cachedBright = -1;
+function reseedShapes() {
+  for (const p of particles) {
+    const rhoRaw = rhoBase + (rhoVar > 0 ? (rand()*2-1)*rhoVar : 0);
+    p.rho = Math.max(-0.95, Math.min(0.95, rhoRaw));
+    if (!alignToFlow) p.angle = rand() * Math.PI;
+  }
+}
 
-function buildUnitSprite(bright) {
-  const oc  = document.createElement('canvas');
-  oc.width  = UNIT_SZ;
-  oc.height = UNIT_SZ;
-  const ox  = oc.getContext('2d');
+function refreshOutOfPlane() {
+  for (const p of particles) {
+    p.dimmed = Math.random() < outOfPlanePct;
+  }
+}
+
+function updateDensityDisplay() {
+  if (W && H) {
+    const ppp = (particles.length / (W * H)).toExponential(2);
+    document.getElementById('seedDensDisplay').textContent = ppp + ' ppp';
+  }
+}
+
+// ── Sprite system (correlated 2D Gaussian) ──────────────────────────────
+// The unit sprite is a symmetric Gaussian (σ=1), drawn at scale=radius.
+// Per-particle elongation is applied via canvas transform (scale + rotate).
+// Colored variants used in frame pair mode.
+
+const UNIT_SZ = 13;
+const SPRITE_CENTER = 6; // center pixel in the 13×13 grid
+
+function buildColoredSprite(bright, rCh, gCh, bCh) {
+  const oc = document.createElement('canvas');
+  oc.width = oc.height = UNIT_SZ;
+  const ox = oc.getContext('2d');
   const img = ox.createImageData(UNIT_SZ, UNIT_SZ);
-  const c   = 6; // center pixel
   for (let py = 0; py < UNIT_SZ; py++) {
     for (let px = 0; px < UNIT_SZ; px++) {
-      const r2  = (px - c) ** 2 + (py - c) ** 2;
-      const val = bright * Math.exp(-r2 / 2);  // σ=1
-      const i   = (py * UNIT_SZ + px) * 4;
-      img.data[i] = img.data[i+1] = img.data[i+2] = val;
+      const r2  = (px-SPRITE_CENTER)**2 + (py-SPRITE_CENTER)**2;
+      const val = bright * Math.exp(-r2/2);
+      const i   = (py*UNIT_SZ + px) * 4;
+      img.data[i]   = val * rCh;
+      img.data[i+1] = val * gCh;
+      img.data[i+2] = val * bCh;
       img.data[i+3] = Math.round(val);
     }
   }
@@ -539,45 +845,132 @@ function buildUnitSprite(bright) {
   return oc;
 }
 
+let _whiteSpr = null, _redSpr = null, _greenSpr = null, _cachedBright = -1;
+
+function refreshSprites() {
+  _whiteSpr  = buildColoredSprite(brightness, 1, 1, 1);
+  _redSpr    = buildColoredSprite(brightness, 1, 0, 0);
+  _greenSpr  = buildColoredSprite(brightness, 0, 0.85, 0);
+  _cachedBright = brightness;
+}
+
 function getSprite() {
-  if (cachedBright !== brightness) {
-    unitSprite   = buildUnitSprite(brightness);
-    cachedBright = brightness;
+  if (_cachedBright !== brightness) refreshSprites();
+  return _whiteSpr;
+}
+
+// Draw a set of particles using a given sprite, with per-particle transform.
+function drawParticles(ptList, spr) {
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of ptList) {
+    if (p.dimmed) continue;
+    const rEff    = p.r * (p.sizeFactor ?? 1);
+    const drawSz  = UNIT_SZ * rEff;
+    const alpha   = Math.max(0.05, Math.min(1.0, p.brightFactor ?? 1));
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(p.x, p.y);
+
+    const rho = p.rho ?? 0;
+    if (rho !== 0 || (alignToFlow && p._flowAngle != null)) {
+      const ang    = alignToFlow ? (p._flowAngle ?? 0) : p.angle;
+      const aspect = 1 + Math.abs(rho) * 1.0; // 1.0 at rho=0, up to 2.0 at rho=0.95
+      ctx.rotate(ang);
+      ctx.scale(aspect, 1 / aspect);  // preserves area approximately
+    }
+
+    ctx.drawImage(spr, -drawSz/2, -drawSz/2, drawSz, drawSz);
+    ctx.restore();
   }
-  return unitSprite;
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
 }
 
-// ── Velocity field ────────────────────────────────────────────────────────────
-// Potential flow (irrotational, inviscid) around a cylinder.
-// For uniform upstream (U, V) and cylinder at origin with radius R:
-//   vx_total = U - R²[U(x²-y²) + 2Vxy] / r⁴
-//   vy_total = V + R²[V(x²-y²) - 2Uxy] / r⁴
-// This is the exact analytic solution — streamlines wrap cleanly around the body.
-function flowVelocity(px, py, U, V) {
-  if (!obstacle) return { vx: U, vy: V };
+// ── Noise canvas ─────────────────────────────────────────────────────────
+const NOISE_REBUILD_EVERY = 4;
+let _noiseCvs = null, _noiseCtxOff = null, _noiseImg = null, _noiseStride = 0;
 
-  const dx = px - obstacle.cx;
-  const dy = py - obstacle.cy;
-  const r2 = dx * dx + dy * dy;
-  const R2 = obstacle.r * obstacle.r;
+function applyNoise() {
+  if (!noiseActive) return;
 
-  if (r2 < R2) return { vx: 0, vy: 0 };  // inside body
+  if (!_noiseCvs || _noiseCvs.width !== W || _noiseCvs.height !== H) {
+    _noiseCvs = document.createElement('canvas');
+    _noiseCvs.width  = W;
+    _noiseCvs.height = H;
+    _noiseCtxOff = _noiseCvs.getContext('2d');
+    _noiseImg    = _noiseCtxOff.createImageData(W, H);
+    _noiseStride = 0;
+  }
 
-  const r4    = r2 * r2;
-  const dx2dy2 = dx * dx - dy * dy;
-  const dxy2   = 2 * dx * dy;
+  if (_noiseStride++ % NOISE_REBUILD_EVERY === 0) {
+    const d     = _noiseImg.data;
+    const total = W * H;
+    const bg    = noiseBackground;
+    const rs    = noiseReadSigma;
+    const ss    = noiseShotScale > 0 ? Math.sqrt(noiseShotScale * brightness) : 0;
+    if (rs === 0 && ss === 0) {
+      const bgi = bg > 255 ? 255 : bg | 0;
+      for (let i = 0; i < total; i++) {
+        const idx = i << 2;
+        d[idx] = d[idx+1] = d[idx+2] = bgi; d[idx+3] = 255;
+      }
+    } else {
+      const mask = NOISE_TABLE_LEN - 1;
+      const tbl  = _noiseTable;
+      let   ni   = (Math.random() * NOISE_TABLE_LEN) | 0;
+      for (let i = 0; i < total; i++) {
+        const idx = i << 2;
+        let v = bg;
+        if (rs > 0) v += tbl[ni++ & mask] * rs;
+        if (ss > 0) v += Math.abs(tbl[ni++ & mask]) * ss;
+        d[idx] = d[idx+1] = d[idx+2] = v<0?0:v>255?255:v|0; d[idx+3] = 255;
+      }
+    }
+    _noiseCtxOff.putImageData(_noiseImg, 0, 0);
+  }
 
-  return {
-    vx: U - R2 * (U * dx2dy2 + V * dxy2) / r4,
-    vy: V + R2 * (V * dx2dy2 - U * dxy2) / r4,
-  };
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.drawImage(_noiseCvs, 0, 0);
+  ctx.globalCompositeOperation = 'source-over';
 }
 
-function distSq(ax, ay, bx, by) {
-  return (ax - bx) ** 2 + (ay - by) ** 2;
+// ── Frame pair ───────────────────────────────────────────────────────────
+
+function captureFramePair() {
+  // Snapshot current state as Frame A
+  frameAParticles = particles.map(p => ({ ...p }));
+
+  // Advance exactly one camera frame
+  const dt = 1 / camFps;
+  for (const p of particles) {
+    const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, p.dvx, p.dvy);
+    p.x = ((p.x + pvx*dt) % W + W) % W;
+    p.y = ((p.y + pvy*dt) % H + H) % H;
+    if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r) {
+      do { p.x = Math.random()*W; p.y = Math.random()*H; }
+      while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
+    }
+    if (alignToFlow) {
+      const f = baseFlow(p.x, p.y);
+      p._flowAngle = Math.atan2(f.vy, f.vx);
+    }
+  }
+
+  framePairMode = true;
+  paused = true;
+  document.getElementById('paused').style.display = 'none';
+  document.getElementById('pairBadge').classList.add('active');
 }
 
-// ── Render loop ───────────────────────────────────────────────────────────────
+function exitFramePair() {
+  framePairMode   = false;
+  frameAParticles = null;
+  paused          = false;
+  document.getElementById('pairBadge').classList.remove('active');
+}
+
+// ── Render loop ───────────────────────────────────────────────────────────
 let lastTime = null;
 
 function frame(ts) {
@@ -586,19 +979,29 @@ function frame(ts) {
   const dt = Math.min((ts - lastTime) / 1000, 0.05);
   lastTime = ts;
 
-  if (!paused) {
+  if (!paused && !framePairMode) {
+    // Advance particles
     for (const p of particles) {
-      const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, vx + p.dvx, vy + p.dvy);
-      p.x = ((p.x + pvx * dt) % W + W) % W;
-      p.y = ((p.y + pvy * dt) % H + H) % H;
+      const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, p.dvx, p.dvy);
+      p.x = ((p.x + pvx*dt) % W + W) % W;
+      p.y = ((p.y + pvy*dt) % H + H) % H;
+      if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r) {
+        do { p.x = Math.random()*W; p.y = Math.random()*H; }
+        while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
+      }
+      // Update flow-alignment angle
+      if (alignToFlow) {
+        const f = baseFlow(p.x, p.y);
+        p._flowAngle = Math.atan2(f.vy, f.vx);
+      }
+    }
 
-      // Push particles that ended up inside the obstacle to a random valid spot
-      if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r * obstacle.r) {
-        const a = Math.random() * Math.PI * 2;
-        p.x = obstacle.cx + (obstacle.r + 2) * Math.cos(a);
-        p.y = obstacle.cy + (obstacle.r + 2) * Math.sin(a);
-        p.x = ((p.x % W) + W) % W;
-        p.y = ((p.y % H) + H) % H;
+    // Per-camera-frame out-of-plane refresh
+    if (outOfPlanePct > 0) {
+      _camFrameAcc += dt;
+      if (_camFrameAcc >= 1/camFps) {
+        _camFrameAcc -= 1/camFps;
+        refreshOutOfPlane();
       }
     }
   }
@@ -607,45 +1010,50 @@ function frame(ts) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, H);
 
-  // Particles — additive blending
-  ctx.globalCompositeOperation = 'lighter';
-  const spr = getSprite();
-  for (const p of particles) {
-    const drawSz = UNIT_SZ * p.r;
-    ctx.drawImage(spr, p.x - drawSz / 2, p.y - drawSz / 2, drawSz, drawSz);
+  if (framePairMode && frameAParticles) {
+    // Frame pair: A in red, B in green, overlap → yellow
+    if (_cachedBright !== brightness) refreshSprites();
+    drawParticles(frameAParticles, _redSpr);
+    drawParticles(particles,       _greenSpr);
+  } else {
+    drawParticles(particles, getSprite());
   }
-  ctx.globalCompositeOperation = 'source-over';
 
-  // Obstacle — drawn on top so particles don't bleed through
+  // Obstacle
   if (obstacle) {
     ctx.beginPath();
-    ctx.arc(obstacle.cx, obstacle.cy, obstacle.r, 0, Math.PI * 2);
+    ctx.arc(obstacle.cx, obstacle.cy, obstacle.r, 0, Math.PI*2);
     ctx.fillStyle = '#000';
     ctx.fill();
     ctx.strokeStyle = obstacleActive ? '#4af' : '#2a2a2a';
     ctx.lineWidth   = obstacleActive ? 1.5 : 1;
     ctx.stroke();
-
-    // Label
     if (obstacleActive) {
-      ctx.fillStyle   = '#2a4a5a';
-      ctx.font        = '10px Courier New';
-      ctx.textAlign   = 'center';
+      ctx.fillStyle = '#2a4a5a';
+      ctx.font = '10px Courier New';
+      ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(`r = ${obstacle.r}px`, obstacle.cx, obstacle.cy);
     }
   }
 
+  applyNoise();
   updateReadout();
 }
 
-// ── Readout ───────────────────────────────────────────────────────────────────
+// ── Readout ───────────────────────────────────────────────────────────────
 function updateReadout() {
-  const speed   = Math.sqrt(vx * vx + vy * vy);
-  const angle   = Math.atan2(vy, vx) * 180 / Math.PI;
+  const cf    = centerFlow();
+  const speed = Math.sqrt(cf.vx*cf.vx + cf.vy*cf.vy);
+  const angle = Math.atan2(cf.vy, cf.vx) * 180 / Math.PI;
+
   const tvDisp  = speed / dispFps;
   const camDisp = speed / camFps;
   const trueMs  = speed / pxPerMm / 1000;
+
+  const isUniform = (flowType === 'uniform');
+  document.getElementById('refSpeedLabel').textContent  = isUniform ? 'Mean Speed' : 'Center Speed';
+  document.getElementById('trueSpeedLabel').textContent = isUniform ? 'True Speed' : 'Ref Speed';
 
   document.getElementById('gtSpeed').textContent    = speed.toFixed(1);
   document.getElementById('gtAngle').textContent    = angle.toFixed(1) + '°';
@@ -664,15 +1072,14 @@ function updateReadout() {
     if      (absErr < 5)  { col = '#3c3'; verdict = 'PASS'; }
     else if (absErr < 15) { col = '#fa0'; verdict = 'WARN'; }
     else                  { col = '#f44'; verdict = 'FAIL'; }
-
-    document.getElementById('gtErr').textContent      = (errMs >= 0 ? '+' : '') + errMs.toFixed(4);
-    document.getElementById('gtPct').textContent      = (pctErr >= 0 ? '+' : '') + pctErr.toFixed(1) + '%';
-    document.getElementById('gtErr').style.color      = col;
-    document.getElementById('gtPct').style.color      = col;
-    document.getElementById('gtVerdict').textContent  = verdict;
-    document.getElementById('gtVerdict').style.color  = col;
+    document.getElementById('gtErr').textContent     = (errMs >= 0 ? '+' : '') + errMs.toFixed(4);
+    document.getElementById('gtPct').textContent     = (pctErr >= 0 ? '+' : '') + pctErr.toFixed(1) + '%';
+    document.getElementById('gtErr').style.color     = col;
+    document.getElementById('gtPct').style.color     = col;
+    document.getElementById('gtVerdict').textContent = verdict;
+    document.getElementById('gtVerdict').style.color = col;
   } else {
-    ['gtErr', 'gtPct'].forEach(id => {
+    ['gtErr','gtPct'].forEach(id => {
       document.getElementById(id).textContent = '—';
       document.getElementById(id).style.color = '#888';
     });
@@ -680,7 +1087,7 @@ function updateReadout() {
   }
 }
 
-// ── Scale recompute ───────────────────────────────────────────────────────────
+// ── Scale recompute ───────────────────────────────────────────────────────
 function recomputeScale() {
   pxPerMmX = resWidthPx  / tvWidthMm;
   pxPerMmY = resHeightPx / tvHeightMm;
@@ -688,15 +1095,14 @@ function recomputeScale() {
   document.getElementById('scaleXDisplay').textContent  = pxPerMmX.toFixed(4);
   document.getElementById('scaleYDisplay').textContent  = pxPerMmY.toFixed(4);
   document.getElementById('mmPerPxDisplay').textContent =
-    (1 / pxPerMmX).toFixed(4) + ' / ' + (1 / pxPerMmY).toFixed(4);
-  // Recompute internal px/s from stored m/s values
+    (1/pxPerMmX).toFixed(4) + ' / ' + (1/pxPerMmY).toFixed(4);
   vx         = msToPs(vxMs);
   vy         = msToPs(vyMs);
   turbulence = msToPs(turbMs);
 }
 recomputeScale();
 
-// ── Obstacle controls ─────────────────────────────────────────────────────────
+// ── Obstacle controls ─────────────────────────────────────────────────────
 function setObstacleActive(on) {
   obstacleActive = on;
   const btn = document.getElementById('obstacleToggle');
@@ -704,20 +1110,12 @@ function setObstacleActive(on) {
   btn.classList.toggle('active', on);
   document.getElementById('obstacleControls').style.display = on ? 'block' : 'none';
   document.body.classList.toggle('placing', on);
-
-  if (!on) {
-    obstacle = null;
-  } else if (!obstacle) {
-    // Place at center to start
-    obstacle = { cx: W / 2, cy: H / 2, r: obsRadius };
-  }
+  if (!on) { obstacle = null; }
+  else if (!obstacle) { obstacle = { cx: W/2, cy: H/2, r: obsRadius }; }
 }
 
-document.getElementById('obstacleToggle').addEventListener('click', () => {
-  setObstacleActive(!obstacleActive);
-});
+document.getElementById('obstacleToggle').addEventListener('click', () => setObstacleActive(!obstacleActive));
 
-// Click canvas → move obstacle; right-click → remove
 canvas.addEventListener('click', e => {
   if (!obstacleActive) return;
   if (!obstacle) obstacle = { cx: e.clientX, cy: e.clientY, r: obsRadius };
@@ -726,74 +1124,173 @@ canvas.addEventListener('click', e => {
 
 canvas.addEventListener('contextmenu', e => {
   e.preventDefault();
-  if (obstacleActive && obstacle) {
-    obstacle = null;
+  if (obstacleActive && obstacle) obstacle = null;
+});
+
+// ── Flow type switching ───────────────────────────────────────────────────
+const flowParamDivs = {
+  uniform:    document.getElementById('fp-uniform'),
+  shear:      document.getElementById('fp-shear'),
+  vortex:     document.getElementById('fp-vortex'),
+  poiseuille: document.getElementById('fp-poiseuille'),
+  rankine:    document.getElementById('fp-rankine'),
+};
+
+document.getElementById('flowType').addEventListener('change', e => {
+  flowType = e.target.value;
+  Object.entries(flowParamDivs).forEach(([k, el]) => {
+    el.style.display = k === flowType ? 'block' : 'none';
+  });
+});
+
+// ── Align to flow toggle ──────────────────────────────────────────────────
+const alignBtn = document.getElementById('alignFlowBtn');
+alignBtn.addEventListener('click', () => {
+  alignToFlow = !alignToFlow;
+  alignBtn.textContent = alignToFlow ? 'On' : 'Off';
+  alignBtn.classList.toggle('active', alignToFlow);
+  if (!alignToFlow) {
+    // Restore random angles
+    for (const p of particles) p.angle = rand() * Math.PI;
   }
 });
 
-// ── Slider ↔ number wiring ────────────────────────────────────────────────────
+// ── Frame pair button ─────────────────────────────────────────────────────
+document.getElementById('pairCaptureBtn').addEventListener('click', () => {
+  if (framePairMode) exitFramePair();
+  else captureFramePair();
+});
+
+// ── Slider ↔ number wiring ────────────────────────────────────────────────
 function wireSliderNum(sliderId, numId, clampMin, clampMax, decimals, callback) {
   const slider = document.getElementById(sliderId);
   const num    = document.getElementById(numId);
-
   slider.addEventListener('input', () => {
     const v = parseFloat(slider.value);
     num.value = decimals === 0 ? Math.round(v) : v.toFixed(decimals);
     callback(v);
   });
-
   num.addEventListener('input', () => {
     const v = parseFloat(num.value);
     if (isNaN(v)) return;
     slider.value = Math.max(clampMin, Math.min(clampMax, v));
     callback(v);
   });
-
   const commit = () => {
     const v = parseFloat(num.value);
     if (!isNaN(v)) { slider.value = Math.max(clampMin, Math.min(clampMax, v)); callback(v); }
   };
-  num.addEventListener('blur',    commit);
+  num.addEventListener('blur', commit);
   num.addEventListener('keydown', e => { if (e.key === 'Enter') num.blur(); });
 }
 
-// Prevent inputs from triggering keyboard shortcuts
 document.querySelectorAll('input').forEach(el => {
   el.addEventListener('keydown', e => e.stopPropagation());
 });
 
-// Wire all controls
-wireSliderNum('vxSlider',   'vxNum',   -2, 2, 3, v => { vxMs = v; vx = msToPs(v); });
-wireSliderNum('vySlider',   'vyNum',   -2, 2, 3, v => { vyMs = v; vy = msToPs(v); });
-wireSliderNum('turbSlider', 'turbNum', 0,  1, 3, v => {
+// Uniform flow
+wireSliderNum('vxSlider', 'vxNum', -2, 2, 3, v => { vxMs = v; vx = msToPs(v); });
+wireSliderNum('vySlider', 'vyNum', -2, 2, 3, v => { vyMs = v; vy = msToPs(v); });
+
+// Turbulence (all modes)
+wireSliderNum('turbSlider', 'turbNum', 0, 1, 3, v => {
   turbMs = v; turbulence = msToPs(v);
   document.getElementById('turbInfo').style.display = v > 0 ? 'block' : 'none';
   reseedTurbulence();
 });
-wireSliderNum('countSlider',   'countNum',   50,   2000, 0,  v => { resizeParticles(Math.max(1, Math.round(v))); });
-wireSliderNum('minSizeSlider', 'minSizeNum', 0.5,  20,   1,  v => {
-  minRadius = v / 2;
-  if (maxRadius < minRadius) { maxRadius = minRadius; document.getElementById('maxSizeSlider').value = v; document.getElementById('maxSizeNum').value = v.toFixed(1); }
+
+// Shear
+wireSliderNum('shearVxSlider',  'shearVxNum',  -2,  2,  3, v => { shearVxMs = v; });
+wireSliderNum('shearRateSlider','shearRateNum', -2,  2,  2, v => { shearRate  = v; });
+
+// Vortex
+wireSliderNum('vortexOmegaSlider','vortexOmegaNum', -3, 3, 2, v => { vortexOmega  = v; });
+wireSliderNum('vortexBgVxSlider', 'vortexBgVxNum',  -1, 1, 3, v => { vortexBgVxMs = v; });
+
+// Poiseuille
+wireSliderNum('poisVxSlider','poisVxNum', 0, 3, 3, v => { poisVxMaxMs = v; });
+
+// Rankine
+wireSliderNum('rankineVcSlider',   'rankineVcNum',    0,   2,  3, v => { rankineVcMs   = v; });
+wireSliderNum('rankineRcSlider',   'rankineRcNum',    2,  45,  1, v => { rankineRcPct  = v; });
+wireSliderNum('rankineBgVxSlider', 'rankineBgVxNum', -1,   1,  3, v => { rankineBgVxMs = v; });
+
+// Particles
+wireSliderNum('countSlider',   'countNum',   50, 2000, 0, v => { resizeParticles(Math.max(1, Math.round(v))); });
+wireSliderNum('minSizeSlider', 'minSizeNum', 0.5, 20, 1, v => {
+  minRadius = v/2;
+  if (maxRadius < minRadius) {
+    maxRadius = minRadius;
+    document.getElementById('maxSizeSlider').value = v;
+    document.getElementById('maxSizeNum').value = v.toFixed(1);
+  }
   reseedSizes();
 });
-wireSliderNum('maxSizeSlider', 'maxSizeNum', 0.5,  20,   1,  v => {
-  maxRadius = v / 2;
-  if (minRadius > maxRadius) { minRadius = maxRadius; document.getElementById('minSizeSlider').value = v; document.getElementById('minSizeNum').value = v.toFixed(1); }
+wireSliderNum('maxSizeSlider', 'maxSizeNum', 0.5, 20, 1, v => {
+  maxRadius = v/2;
+  if (minRadius > maxRadius) {
+    minRadius = maxRadius;
+    document.getElementById('minSizeSlider').value = v;
+    document.getElementById('minSizeNum').value = v.toFixed(1);
+  }
   reseedSizes();
 });
-wireSliderNum('brightSlider',  'brightNum',  50,   255,  0,  v => { brightness = Math.max(1, Math.min(255, v)); });
-wireSliderNum('camFpsSlider',  'camFpsNum',  1,    240,  0,  v => { camFps  = Math.max(1, v); });
-wireSliderNum('dispFpsSlider', 'dispFpsNum', 24,   240,  0,  v => { dispFps = Math.max(1, v); });
-wireSliderNum('tvWSlider',     'tvWNum',     200,  3000, 2,  v => { tvWidthMm   = Math.max(1, v); recomputeScale(); });
-wireSliderNum('tvHSlider',     'tvHNum',     100,  2000, 2,  v => { tvHeightMm  = Math.max(1, v); recomputeScale(); });
-wireSliderNum('resWSlider',    'resWNum',    640,  7680, 0,  v => { resWidthPx  = Math.max(1, v); recomputeScale(); });
-wireSliderNum('resHSlider',    'resHNum',    360,  4320, 0,  v => { resHeightPx = Math.max(1, v); recomputeScale(); });
-wireSliderNum('obsRadiusSlider', 'obsRadiusNum', 10, 400, 0, v => {
+wireSliderNum('brightSlider', 'brightNum', 50, 255, 0, v => { brightness = Math.max(1, Math.min(255, v)); });
+
+// Particle shape
+wireSliderNum('rhoSlider',    'rhoNum',    -0.95, 0.95, 2, v => { rhoBase = v; reseedShapes(); });
+wireSliderNum('rhoVarSlider', 'rhoVarNum',  0,    0.5,  2, v => { rhoVar  = v; reseedShapes(); });
+
+// Particle variability
+function updateVarInfo() {
+  const any = intensVar > 0 || diamVar > 0 || outOfPlanePct > 0;
+  document.getElementById('varInfo').style.display = any ? 'block' : 'none';
+}
+wireSliderNum('intensVarSlider', 'intensVarNum', 0, 0.8, 2, v => {
+  intensVar = v; updateVarInfo();
+  for (const p of particles) {
+    const b = intensVar > 0 ? 1 + (Math.random()*2-1)*intensVar*2 : 1;
+    p.brightFactor = Math.max(0.1, Math.min(2.0, b));
+  }
+});
+wireSliderNum('diamVarSlider', 'diamVarNum', 0, 0.8, 2, v => {
+  diamVar = v; updateVarInfo();
+  for (const p of particles) {
+    const s = diamVar > 0 ? 1 + (Math.random()*2-1)*diamVar*2 : 1;
+    p.sizeFactor = Math.max(0.3, Math.min(2.0, s));
+  }
+});
+wireSliderNum('outPlaneSlider', 'outPlaneNum', 0, 80, 0, v => {
+  outOfPlanePct = v / 100; updateVarInfo(); refreshOutOfPlane();
+});
+
+// Timing
+wireSliderNum('camFpsSlider',  'camFpsNum',  1,   240, 0, v => { camFps  = Math.max(1, v); });
+wireSliderNum('dispFpsSlider', 'dispFpsNum', 24,  240, 0, v => { dispFps = Math.max(1, v); });
+
+// Scale
+wireSliderNum('tvWSlider',  'tvWNum',  200,  3000, 2, v => { tvWidthMm   = Math.max(1,v); recomputeScale(); });
+wireSliderNum('tvHSlider',  'tvHNum',  100,  2000, 2, v => { tvHeightMm  = Math.max(1,v); recomputeScale(); });
+wireSliderNum('resWSlider', 'resWNum', 640,  7680, 0, v => { resWidthPx  = Math.max(1,v); recomputeScale(); });
+wireSliderNum('resHSlider', 'resHNum', 360,  4320, 0, v => { resHeightPx = Math.max(1,v); recomputeScale(); });
+
+// Obstacle radius
+wireSliderNum('obsRadiusSlider','obsRadiusNum', 10, 400, 0, v => {
   obsRadius = v;
   if (obstacle) obstacle.r = v;
 });
 
-// ── Panel show / hide ─────────────────────────────────────────────────────────
+// Noise
+function updateNoiseActive() {
+  noiseActive  = noiseReadSigma > 0 || noiseShotScale > 0 || noiseBackground > 0;
+  _noiseStride = 0;
+  document.getElementById('noiseInfo').style.display = noiseActive ? 'block' : 'none';
+}
+wireSliderNum('readNoiseSlider','readNoiseNum', 0,  30, 1, v => { noiseReadSigma  = v; updateNoiseActive(); });
+wireSliderNum('shotNoiseSlider','shotNoiseNum', 0,   3, 2, v => { noiseShotScale  = v; updateNoiseActive(); });
+wireSliderNum('bgNoiseSlider',  'bgNoiseNum',   0,  40, 0, v => { noiseBackground = v; updateNoiseActive(); });
+
+// ── Panel show / hide ─────────────────────────────────────────────────────
 const panel   = document.getElementById('panel');
 const showBtn = document.getElementById('show-panel');
 
@@ -808,13 +1305,15 @@ function setHud(visible) {
 document.getElementById('panel-close').addEventListener('click', () => setHud(false));
 showBtn.addEventListener('click', () => setHud(true));
 
-// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+// ── Keyboard shortcuts ────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   switch (e.key.toLowerCase()) {
     case 'h': setHud(!hudVisible); break;
     case 'p':
-      paused = !paused;
-      document.getElementById('paused').style.display = paused ? 'block' : 'none';
+      if (!framePairMode) {
+        paused = !paused;
+        document.getElementById('paused').style.display = paused ? 'block' : 'none';
+      }
       break;
     case 'f':
       if (!document.fullscreenElement) document.documentElement.requestFullscreen();
@@ -823,32 +1322,34 @@ document.addEventListener('keydown', e => {
     case 'r':
       seedParticles(particles.length);
       break;
+    case 'c':
+      if (framePairMode) exitFramePair();
+      else captureFramePair();
+      break;
     case 'escape':
+      if (framePairMode) { exitFramePair(); break; }
       if (obstacleActive) setObstacleActive(false);
       break;
   }
 });
 
-// ── Splash ────────────────────────────────────────────────────────────────────
+// ── Splash ────────────────────────────────────────────────────────────────
 document.getElementById('splash').addEventListener('click', () => {
   document.documentElement.requestFullscreen().catch(() => {});
   document.getElementById('splash').style.display = 'none';
 });
 
-// ── Seed controls ─────────────────────────────────────────────────────────────
+// ── Seed controls ─────────────────────────────────────────────────────────
 const seedNumEl = document.getElementById('seedNum');
-
 seedNumEl.addEventListener('change', () => {
   const v = seedNumEl.value.trim();
-  currentSeed = v === '' ? null : (Math.abs(parseInt(v, 10)) >>> 0) || 1;
+  currentSeed = v === '' ? null : (Math.abs(parseInt(v,10)) >>> 0) || 1;
   seedParticles(particles.length);
 });
-
 seedNumEl.addEventListener('keydown', e => {
   e.stopPropagation();
   if (e.key === 'Enter') { seedNumEl.blur(); seedNumEl.dispatchEvent(new Event('change')); }
 });
-
 document.getElementById('seedRandom').addEventListener('click', () => {
   const s = (Math.random() * 0xFFFFFFFF) >>> 0;
   seedNumEl.value = s;
@@ -856,7 +1357,7 @@ document.getElementById('seedRandom').addEventListener('click', () => {
   seedParticles(particles.length);
 });
 
-// ── Cursor auto-hide after 3 s of inactivity ─────────────────────────────────
+// ── Cursor auto-hide ──────────────────────────────────────────────────────
 let cursorTimer = null;
 function showCursor() {
   document.body.classList.remove('cursor-hidden');
@@ -865,9 +1366,9 @@ function showCursor() {
 }
 document.addEventListener('mousemove', showCursor);
 document.addEventListener('mousedown', showCursor);
-showCursor(); // start the timer immediately
+showCursor();
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────
 resize();
 window.addEventListener('resize', () => { resize(); seedParticles(particles.length); });
 seedParticles(400);

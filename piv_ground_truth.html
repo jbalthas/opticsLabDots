@@ -14,7 +14,7 @@
       user-select: none;
     }
 
-    canvas {
+    #canvas {
       display: block;
       position: fixed;
       top: 0; left: 0;
@@ -192,6 +192,43 @@
       font-size: 48px; color: rgba(255,255,255,0.10);
       letter-spacing: 10px; text-transform: uppercase;
       z-index: 50; display: none; pointer-events: none;
+    }
+
+    /* ── Keybinds modal ─────────────────────────────────────────── */
+    #keybindsModal {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.75);
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #keybindsModal.active { display: flex; }
+    #keybindsBox {
+      background: #0a0a0a; border: 1px solid #2a2a2a;
+      border-radius: 6px; padding: 0; width: 340px;
+      overflow: hidden;
+    }
+    #keybindsBox-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px 8px; border-bottom: 1px solid #1e1e1e;
+      background: rgba(8,8,8,0.97);
+      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #666;
+    }
+    #keybinds-close {
+      background: none; border: none; color: #444; font-size: 16px;
+      line-height: 1; cursor: pointer; padding: 0 2px; transition: color 0.15s;
+    }
+    #keybinds-close:hover { color: #ccc; }
+    #keybindsTable {
+      width: 100%; border-collapse: collapse;
+      padding: 10px 0; display: table;
+    }
+    #keybindsTable tr { border-bottom: 1px solid #111; }
+    #keybindsTable tr:last-child { border-bottom: none; }
+    #keybindsTable td { padding: 7px 14px; font-size: 11px; color: #888; }
+    .kb-key {
+      font-family: 'Courier New', monospace;
+      color: #4af !important; width: 48px;
+      letter-spacing: 1px;
     }
 
     body.placing { cursor: crosshair; }
@@ -774,7 +811,27 @@
   </div>
 </div>
 
-<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed &nbsp;·&nbsp; [C] frame pair &nbsp;·&nbsp; [V] color by speed</div>
+<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed &nbsp;·&nbsp; [C] frame pair &nbsp;·&nbsp; [V] color by speed &nbsp;·&nbsp; [?] keys</div>
+
+<!-- ── Keybinds modal ─────────────────────────────────────────── -->
+<div id="keybindsModal">
+  <div id="keybindsBox">
+    <div id="keybindsBox-header">
+      <span>Keyboard Shortcuts</span>
+      <button id="keybinds-close">✕</button>
+    </div>
+    <table id="keybindsTable">
+      <tr><td class="kb-key">H</td><td>Toggle control panel</td></tr>
+      <tr><td class="kb-key">P</td><td>Pause / resume simulation</td></tr>
+      <tr><td class="kb-key">F</td><td>Toggle fullscreen</td></tr>
+      <tr><td class="kb-key">R</td><td>Re-seed particles (new random layout)</td></tr>
+      <tr><td class="kb-key">C</td><td>Capture frame pair A→B / exit pair mode</td></tr>
+      <tr><td class="kb-key">V</td><td>Toggle color-by-speed mode</td></tr>
+      <tr><td class="kb-key">Esc</td><td>Exit frame pair / remove obstacle</td></tr>
+      <tr><td class="kb-key">?</td><td>Show / hide this reference</td></tr>
+    </table>
+  </div>
+</div>
 
 <!-- ── Cursor velocity probe ──────────────────────────────────── -->
 <div id="cursorProbe">
@@ -1822,10 +1879,24 @@ document.addEventListener('keydown', e => {
       colorBySpeed = !colorBySpeed;
       break;
     case 'escape':
+      if (document.getElementById('keybindsModal').classList.contains('active')) {
+        document.getElementById('keybindsModal').classList.remove('active'); break;
+      }
       if (framePairMode) { exitFramePair(); break; }
       if (obstacleActive) setObstacleActive(false);
       break;
+    case '?':
+      document.getElementById('keybindsModal').classList.toggle('active');
+      break;
   }
+});
+
+document.getElementById('keybinds-close').addEventListener('click', () => {
+  document.getElementById('keybindsModal').classList.remove('active');
+});
+document.getElementById('keybindsModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('keybindsModal'))
+    document.getElementById('keybindsModal').classList.remove('active');
 });
 
 // ── Splash ────────────────────────────────────────────────────────────────

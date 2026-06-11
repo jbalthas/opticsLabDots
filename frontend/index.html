@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OLB — USGS Optics Lab Bench</title>
+
+<!-- Alpine.js for reactivity -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+<!-- Chart.js for data visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<style>
+  /* ── Reset & Variables ───────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:          #0b0d14;
+    --surface:     #13161f;
+    --surface2:    #1a1e2e;
+    --border:      #252a3d;
+    --border2:     #313756;
+    --text:        #d4d8f0;
+    --text-dim:    #7a80a0;
+    --text-bright: #eef0ff;
+    --blue:        #4a7fff;
+    --blue-dim:    #2a4fa0;
+    --green:       #22c97a;
+    --amber:       #f5a623;
+    --red:         #f04060;
+    --purple:      #9f7aea;
+    --radius:      6px;
+    --header-h:    52px;
+    --sidebar-w:   320px;
+    --font:        'Segoe UI', system-ui, sans-serif;
+    --font-mono:   'Cascadia Code', 'Consolas', monospace;
+  }
+
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 13px; }
+
+  /* ── Layout ──────────────────────────────────────────────────────────── */
+  #app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  header {
+    height: var(--header-h); flex-shrink: 0;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 16px; gap: 16px;
+  }
+
+  .main-area { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+  /* Left panel */
+  .left-panel {
+    width: var(--sidebar-w); flex-shrink: 0;
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+  }
+
+  /* Right panel */
+  .right-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+
+  /*
+   * Tab panel — used by x-show tab content divs.
+   * Must be a CSS class, NOT inline display:flex, because Alpine.js x-show
+   * toggles el.style.display directly — if display:flex is inline it gets
+   * clobbered and reverts to display:block on show, breaking flex height.
+   */
+  .tab-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+
+  /* ── Typography ──────────────────────────────────────────────────────── */
+  h1 { font-size: 15px; font-weight: 600; color: var(--text-bright); letter-spacing: .3px; }
+  h2 { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: .8px; }
+  h3 { font-size: 13px; font-weight: 600; color: var(--text-bright); }
+
+  /* ── Utilities ───────────────────────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;
+  }
+  .badge-green  { background: rgba(34,201,122,.15); color: var(--green); }
+  .badge-red    { background: rgba(240, 64, 96,.15); color: var(--red); }
+  .badge-amber  { background: rgba(245,166, 35,.15); color: var(--amber); }
+  .badge-blue   { background: rgba(74,127,255,.15);  color: var(--blue); }
+  .badge-purple { background: rgba(159,122,234,.15); color: var(--purple); }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .dot-green  { background: var(--green); box-shadow: 0 0 5px var(--green); }
+  .dot-red    { background: var(--red); }
+  .dot-amber  { background: var(--amber); }
+
+  .divider { height: 1px; background: var(--border); margin: 8px 0; }
+  .scroll  { overflow-y: auto; }
+
+  /* ── Buttons ─────────────────────────────────────────────────────────── */
+  button {
+    border: none; cursor: pointer; font-family: var(--font); font-size: 12px;
+    border-radius: var(--radius); transition: all .15s; font-weight: 500;
+  }
+  .btn-primary   { background: var(--blue); color: #fff; padding: 7px 14px; }
+  .btn-primary:hover { background: #5c8fff; }
+  .btn-secondary { background: var(--surface2); color: var(--text); padding: 7px 14px; border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-success   { background: rgba(34,201,122,.2); color: var(--green); padding: 7px 14px; border: 1px solid rgba(34,201,122,.3); }
+  .btn-success:hover { background: rgba(34,201,122,.3); }
+  .btn-danger    { background: rgba(240,64,96,.15); color: var(--red); padding: 7px 14px; border: 1px solid rgba(240,64,96,.25); }
+  .btn-danger:hover { background: rgba(240,64,96,.25); }
+  .btn-icon      { background: transparent; color: var(--text-dim); padding: 5px 8px; }
+  .btn-icon:hover { color: var(--text-bright); background: var(--surface2); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Forms ───────────────────────────────────────────────────────────── */
+  input, select, textarea {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    border-radius: var(--radius); padding: 6px 10px; font-family: var(--font);
+    font-size: 12px; width: 100%; outline: none; transition: border .15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--blue); }
+  select option { background: var(--surface2); }
+  label { font-size: 11px; color: var(--text-dim); display: block; margin-bottom: 4px; }
+  .form-group { margin-bottom: 10px; }
+
+  /* ── Panels / Cards ──────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px;
+  }
+  .panel-header {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  /* ── Tab bar ─────────────────────────────────────────────────────────── */
+  .tab-bar {
+    display: flex; gap: 2px; padding: 8px 14px 0;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+    background: var(--surface);
+  }
+  .tab {
+    padding: 7px 14px; cursor: pointer; border-radius: 6px 6px 0 0;
+    font-size: 12px; font-weight: 500; color: var(--text-dim);
+    border: 1px solid transparent; border-bottom: none;
+    transition: all .15s; user-select: none;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active {
+    color: var(--text-bright); background: var(--bg);
+    border-color: var(--border); border-bottom-color: var(--bg);
+    margin-bottom: -1px;
+  }
+
+  /* ── Header ──────────────────────────────────────────────────────────── */
+  .logo { font-weight: 700; color: var(--blue); font-size: 14px; letter-spacing: .5px; white-space: nowrap; }
+  .logo span { color: var(--text-dim); font-weight: 400; }
+  .header-sep { flex: 1; }
+  .header-clock { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+
+  /* ── Camera panel ────────────────────────────────────────────────────── */
+  .cam-tabs { display: flex; gap: 4px; padding: 10px 12px 0; flex-shrink: 0; }
+  .cam-tab {
+    padding: 5px 12px; border-radius: 4px; cursor: pointer;
+    font-size: 11px; font-weight: 600; color: var(--text-dim);
+    border: 1px solid var(--border); background: transparent;
+    transition: all .15s; text-align: center;
+  }
+  .cam-tab:hover { background: var(--surface2); }
+  .cam-tab.active { background: var(--blue-dim); color: var(--blue); border-color: var(--blue-dim); }
+
+  .preview-container {
+    position: relative; background: #000; flex-shrink: 0;
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .preview-container img { width: 100%; height: 200px; object-fit: contain; display: block; }
+  .preview-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,.7));
+    padding: 8px 10px 6px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .preview-status { font-size: 10px; color: rgba(255,255,255,.6); font-family: var(--font-mono); }
+
+  .cam-info { padding: 8px 12px; flex-shrink: 0; }
+  .cam-info-row { display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0; }
+  .cam-info-row .key { color: var(--text-dim); }
+  .cam-info-row .val { color: var(--text); font-family: var(--font-mono); }
+
+  .capture-controls { padding: 10px 12px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+  /* ── Session Steps ───────────────────────────────────────────────────── */
+  .step-list { padding: 0 12px; }
+  .step-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 7px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .step-item:last-child { border-bottom: none; }
+  .step-check {
+    width: 16px; height: 16px; flex-shrink: 0;
+    border: 1px solid var(--border2); border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px; transition: all .15s;
+  }
+  .step-check.done { background: var(--green); border-color: var(--green); }
+  .step-check svg { width: 10px; height: 10px; fill: none; stroke: white; stroke-width: 2.5; }
+  .step-num { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); flex-shrink: 0; min-width: 18px; }
+  .step-text { font-size: 11px; line-height: 1.4; flex: 1; }
+  .step-text.done { color: var(--text-dim); text-decoration: line-through; }
+
+  /* ── Session log ─────────────────────────────────────────────────────── */
+  .log-entry { padding: 4px 8px; font-size: 11px; font-family: var(--font-mono); border-bottom: 1px solid rgba(255,255,255,.04); }
+  .log-entry .ts { color: var(--text-dim); margin-right: 6px; }
+  .log-entry.warn .msg  { color: var(--amber); }
+  .log-entry.error .msg { color: var(--red); }
+  .log-entry.info .msg  { color: var(--text); }
+
+  /* ── Capture grid ────────────────────────────────────────────────────── */
+  .capture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding: 14px; }
+  .capture-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .capture-card:hover { border-color: var(--blue); }
+  .capture-card.selected { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+  .capture-card img { width: 100%; height: 100px; object-fit: cover; display: block; background: #000; }
+  .capture-card-meta { padding: 6px 8px; }
+  .capture-card-meta .filename { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .capture-card-meta .dims { font-size: 10px; color: var(--text-dim); }
+
+  /* ── Analysis results ────────────────────────────────────────────────── */
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px; }
+  .metric-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 12px;
+  }
+  .metric-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 4px; }
+  .metric-value { font-size: 22px; font-weight: 600; color: var(--text-bright); font-family: var(--font-mono); }
+  .metric-unit  { font-size: 11px; color: var(--text-dim); }
+
+  .engine-tabs { display: flex; gap: 6px; padding: 12px 14px 0; }
+  .engine-tab {
+    padding: 5px 12px; border-radius: var(--radius);
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text-dim); transition: all .15s;
+  }
+  .engine-tab:hover { color: var(--text); }
+  .engine-tab.active { background: var(--blue-dim); color: var(--blue); border-color: var(--blue-dim); }
+  .engine-tab.disabled { opacity: .4; cursor: not-allowed; }
+  .engine-tab.disabled:hover { color: var(--text-dim); }
+
+  .results-json {
+    font-family: var(--font-mono); font-size: 11px; color: var(--text);
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px; white-space: pre-wrap;
+    overflow: auto; max-height: 300px; margin: 12px;
+  }
+
+  /* ── History table ───────────────────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; }
+  thead th { padding: 8px 12px; text-align: left; font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .7px; border-bottom: 1px solid var(--border); font-weight: 600; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 8px 12px; font-size: 12px; }
+
+  /* ── Modal ───────────────────────────────────────────────────────────── */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000; backdrop-filter: blur(2px);
+  }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 10px; padding: 24px; min-width: 360px; max-width: 480px;
+    box-shadow: 0 24px 48px rgba(0,0,0,.5);
+  }
+  .modal h3 { margin-bottom: 16px; font-size: 15px; }
+
+  /* ── Scrollbar ───────────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── Chart detection ─────────────────────────────────────────────────── */
+  .detect-present  { border-color: var(--green)  !important; background: rgba(34,201,122,.06)  !important; }
+  .detect-none     { border-color: var(--border2) !important; background: var(--surface2) !important; }
+  .detect-unknown  { border-color: var(--amber)  !important; background: rgba(245,166,35,.05) !important; }
+  .test-tile-recommended { border-color: var(--green) !important; background: rgba(34,201,122,.07) !important; }
+
+  /* ── Misc ────────────────────────────────────────────────────────────── */
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-dim); }
+  .empty-state svg { opacity: .3; margin-bottom: 10px; }
+  .progress-bar-bg { background: var(--border); border-radius: 4px; height: 4px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--green); border-radius: 4px; transition: width .3s; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Protocol Gate ───────────────────────────────────────────────────── */
+  .protocol-gate {
+    position: fixed; inset: 0; background: rgba(0,0,0,.92);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2000; backdrop-filter: blur(6px);
+  }
+  .protocol-gate-modal {
+    background: var(--surface); border: 2px solid var(--border2);
+    border-radius: 12px; width: 580px; max-width: 96vw; max-height: 90vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 32px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(74,127,255,.1);
+  }
+  .protocol-gate-header {
+    padding: 20px 24px 14px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .protocol-gate-title {
+    font-size: 17px; font-weight: 700; color: var(--text-bright); margin-bottom: 4px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .protocol-gate-subtitle { font-size: 12px; color: var(--text-dim); line-height: 1.4; }
+  .protocol-gate-body { flex: 1; overflow-y: auto; padding: 14px 20px; }
+  .protocol-gate-footer {
+    padding: 14px 24px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; gap: 12px;
+  }
+  .proto-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 12px; border-radius: var(--radius); margin-bottom: 5px;
+    border: 1px solid var(--border); cursor: pointer; transition: all .15s;
+  }
+  .proto-step:hover:not(.done) { border-color: var(--blue-dim); background: rgba(74,127,255,.06); }
+  .proto-step.done { border-color: rgba(34,201,122,.25); background: rgba(34,201,122,.05); cursor: default; }
+  .proto-step-check {
+    width: 22px; height: 22px; flex-shrink: 0; margin-top: 1px;
+    border: 2px solid var(--border2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .proto-step-check.done { background: var(--green); border-color: var(--green); }
+  .proto-step-check svg { width: 12px; height: 12px; fill: none; stroke: white; stroke-width: 2.5; }
+  .proto-step-num { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); min-width: 22px; flex-shrink: 0; padding-top: 3px; }
+  .proto-step-text { font-size: 13px; line-height: 1.5; flex: 1; }
+  .proto-step-text.done { color: var(--text-dim); text-decoration: line-through; }
+  .protocol-gate-progress { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 10px 0 4px; }
+  .protocol-gate-progress-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+
+  /* ── Steps panel — enhanced ──────────────────────────────────────────── */
+  .steps-header-warning {
+    background: rgba(245,166,35,.08); border-color: rgba(245,166,35,.3) !important;
+  }
+  .steps-header-complete {
+    background: rgba(34,201,122,.07); border-color: rgba(34,201,122,.25) !important;
+  }
+  .capture-protocol-warn {
+    display: flex; align-items: center; gap: 7px; padding: 7px 10px;
+    background: rgba(245,166,35,.1); border: 1px solid rgba(245,166,35,.3);
+    border-radius: var(--radius); font-size: 11px; color: var(--amber);
+    margin-bottom: 8px; cursor: pointer;
+  }
+  .capture-protocol-warn:hover { background: rgba(245,166,35,.18); }
+</style>
+</head>
+
+<body>
+<div id="app" x-data="olb()" x-init="init()">
+
+  <!-- ── HEADER ─────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo">OLB <span>/ USGS Optics Lab Bench</span></div>
+
+    <!-- Active session badge -->
+    <template x-if="activeSession">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="dot dot-green"></span>
+        <span style="font-size:12px;color:var(--green);font-weight:600" x-text="'Session ' + activeSession.mode + ' — Active'"></span>
+        <span style="font-size:11px;color:var(--text-dim)" x-text="completedSteps + '/' + totalSteps + ' steps'"></span>
+        <div class="progress-bar-bg" style="width:100px">
+          <div class="progress-bar" :style="`width:${totalSteps ? completedSteps/totalSteps*100 : 0}%`"></div>
+        </div>
+      </div>
+    </template>
+    <template x-if="!activeSession">
+      <span class="badge badge-amber">No Active Session</span>
+    </template>
+
+    <div class="header-sep"></div>
+
+    <!-- Mode indicator -->
+    <template x-if="activeSession">
+      <span :class="`badge badge-${activeSession.mode === 'QA' ? 'blue' : activeSession.mode === 'PIV' ? 'purple' : 'amber'}`"
+            x-text="activeSession.mode + ' Mode'"></span>
+    </template>
+
+    <div class="header-clock" x-text="clock"></div>
+
+    <button class="btn-secondary" @click="showNewSession = true" :disabled="!!activeSession" style="padding:5px 12px">
+      + New Session
+    </button>
+    <template x-if="activeSession">
+      <button class="btn-danger" @click="endSession()" style="padding:5px 12px">End Session</button>
+    </template>
+  </header>
+
+  <!-- ── MAIN ───────────────────────────────────────────────────────────── -->
+  <div class="main-area">
+
+    <!-- ── LEFT PANEL (cameras + session steps) ──────────────────────────── -->
+    <div class="left-panel">
+
+      <!-- Camera selector -->
+      <div class="panel-header">
+        <h2>Cameras</h2>
+        <button class="btn-icon" @click="refreshCameras()" title="Refresh camera status">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+      </div>
+
+      <div class="cam-tabs">
+        <template x-for="cam in cameras" :key="cam.id">
+          <div :class="`cam-tab ${activeCameraId === cam.id ? 'active' : ''}`"
+               @click="selectCamera(cam.id)">
+            <div x-text="cam.model"></div>
+            <div style="margin-top:2px">
+              <span :class="`dot dot-${cam.online ? 'green' : 'red'}`"></span>
+            </div>
+          </div>
+        </template>
+        <template x-if="cameras.length === 0">
+          <span style="font-size:11px;color:var(--text-dim);padding:4px">Loading...</span>
+        </template>
+      </div>
+
+      <!-- Live preview (JPEG polling — camera has no HTTP MJPEG endpoint) -->
+      <div class="preview-container">
+        <img :src="previewUrl || ''" alt="Live Preview"
+             style="height:200px;background:#000;width:100%;object-fit:contain;display:block"
+             @error="previewError = true"
+             @load="previewError = false"
+             x-show="previewUrl" />
+        <div x-show="!previewUrl"
+             style="height:200px;display:flex;align-items:center;justify-content:center;background:#000">
+          <span style="font-size:11px;color:var(--text-dim)">Select a camera to start preview</span>
+        </div>
+        <div class="preview-overlay" x-show="previewUrl">
+          <span class="preview-status" x-text="previewError ? 'FRAME ERROR' : 'LIVE'"></span>
+          <span :class="`badge badge-${previewError ? 'red' : 'green'}`" style="font-size:9px"
+                x-text="previewError ? 'ERROR' : 'JPEG POLL'"></span>
+        </div>
+      </div>
+
+      <!-- Camera info -->
+      <div class="cam-info" x-show="activeCamera">
+        <template x-if="activeCamera">
+          <div>
+            <div class="cam-info-row">
+              <span class="key">Model</span>
+              <span class="val" x-text="activeCamera.model"></span>
+            </div>
+            <div class="cam-info-row">
+              <span class="key">IP</span>
+              <span class="val" x-text="activeCamera.ip + ':' + activeCamera.port"></span>
+            </div>
+            <div class="cam-info-row">
+              <span class="key">Status</span>
+              <span :class="`val ${activeCamera.online ? 'badge-green' : ''}`"
+                    :style="activeCamera.online ? 'color:var(--green)' : 'color:var(--red)'"
+                    x-text="activeCamera.online ? 'Online' : 'Offline'"></span>
+            </div>
+            <template x-if="activeCamera.firmware">
+              <div class="cam-info-row">
+                <span class="key">Firmware</span>
+                <span class="val" x-text="activeCamera.firmware"></span>
+              </div>
+            </template>
+            <template x-if="activeCamera.resolution">
+              <div class="cam-info-row">
+                <span class="key">Resolution</span>
+                <span class="val" x-text="activeCamera.resolution"></span>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+
+      <!-- Capture controls -->
+      <div class="capture-controls">
+        <!-- Protocol warning — shown when steps are outstanding and not in debug bypass -->
+        <template x-if="activeSession && completedSteps < totalSteps && !protocolDebugBypass">
+          <div class="capture-protocol-warn" @click="showProtocolGate = true"
+               title="Open protocol checklist">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span><strong x-text="totalSteps - completedSteps"></strong> protocol step<span x-show="(totalSteps - completedSteps) !== 1">s</span> remaining — click to open checklist</span>
+          </div>
+        </template>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <button class="btn-primary" style="flex:1"
+                  @click="triggerCapture()"
+                  :disabled="!activeCameraId || capturing || !activeCamera?.online">
+            <span x-show="!capturing">◉ Capture Frame</span>
+            <span x-show="capturing"><span class="spinner"></span> Capturing...</span>
+          </button>
+          <button class="btn-secondary"
+                  @click="refreshSnapshot()"
+                  :disabled="!activeCameraId || !activeCamera?.online"
+                  title="Refresh preview snapshot">
+            ⟳
+          </button>
+          <button class="btn-icon"
+                  @click="probeCamera()"
+                  :disabled="!activeCameraId"
+                  title="Probe camera — diagnose snapshot paths and auth">
+            🔍
+          </button>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Capture label (optional)</label>
+          <input type="text" x-model="captureLabel" placeholder="e.g. Stop 2 — TE42-LL chart" />
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Session steps -->
+      <div :class="`panel-header ${activeSession ? (completedSteps < totalSteps ? 'steps-header-warning' : 'steps-header-complete') : ''}`"
+           style="flex-shrink:0;border-top:1px solid var(--border)">
+        <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px">
+            <!-- mode icon / status icon -->
+            <template x-if="activeSession && completedSteps < totalSteps && !protocolDebugBypass">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </template>
+            <template x-if="activeSession && (completedSteps === totalSteps || protocolDebugBypass)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </template>
+            <h2 x-text="activeSession ? activeSession.mode + ' Protocol' : 'Protocol Steps'"
+                :style="activeSession && completedSteps < totalSteps && !protocolDebugBypass ? 'color:var(--amber)' : ''"></h2>
+          </div>
+          <!-- mini progress bar when session active -->
+          <template x-if="activeSession && totalSteps > 0">
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="protocol-gate-progress" style="flex:1;margin:0">
+                <div class="protocol-gate-progress-fill"
+                     :style="`width:${totalSteps ? completedSteps/totalSteps*100 : 0}%;background:${completedSteps === totalSteps ? 'var(--green)' : 'var(--amber)'}`"></div>
+              </div>
+              <span style="font-size:10px;font-family:var(--font-mono)"
+                    :style="completedSteps === totalSteps ? 'color:var(--green)' : 'color:var(--amber)'"
+                    x-text="`${completedSteps}/${totalSteps}`"></span>
+            </div>
+          </template>
+        </div>
+        <!-- Reopen checklist button -->
+        <template x-if="activeSession && (completedSteps < totalSteps || protocolDebugBypass)">
+          <button class="btn-icon" style="flex-shrink:0;font-size:10px;padding:4px 8px;margin-left:6px"
+                  @click="showProtocolGate = true" title="Open protocol checklist">
+            Checklist ↗
+          </button>
+        </template>
+      </div>
+
+      <div class="step-list scroll" style="flex:1;overflow-y:auto">
+        <template x-if="!activeSession">
+          <div class="empty-state">
+            <div style="font-size:11px">Start a session to see the protocol checklist</div>
+          </div>
+        </template>
+        <template x-if="activeSession">
+          <div>
+            <template x-for="step in activeSession.steps" :key="step.step_num">
+              <div class="step-item" @click="toggleStep(step)"
+                   :style="!step.completed && !protocolDebugBypass ? 'border-left:3px solid var(--amber);padding-left:9px' : ''">
+                <div :class="`step-check ${step.completed ? 'done' : ''}`">
+                  <template x-if="step.completed">
+                    <svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg>
+                  </template>
+                </div>
+                <span class="step-num" x-text="step.step_num + '.'"></span>
+                <span :class="`step-text ${step.completed ? 'done' : ''}`" x-text="step.step_name"
+                      :style="!step.completed && !protocolDebugBypass ? 'color:var(--text-bright)' : ''"></span>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- ── RIGHT PANEL ────────────────────────────────────────────────────── -->
+    <div class="right-panel">
+
+      <!-- Tab bar -->
+      <div class="tab-bar">
+        <div :class="`tab ${activeTab === 'session' ? 'active' : ''}`" @click="activeTab = 'session'">Session Log</div>
+        <div :class="`tab ${activeTab === 'captures' ? 'active' : ''}`" @click="activeTab = 'captures'; loadCaptures()">
+          Captures
+          <span x-show="captures.length > 0" class="badge badge-blue" style="margin-left:4px;font-size:9px" x-text="captures.length"></span>
+        </div>
+        <div :class="`tab ${activeTab === 'analysis' ? 'active' : ''}`" @click="activeTab = 'analysis'">Analysis</div>
+        <div :class="`tab ${activeTab === 'history' ? 'active' : ''}`" @click="activeTab = 'history'; loadHistory()">History</div>
+        <div :class="`tab ${activeTab === 'iqentry' ? 'active' : ''}`" @click="activeTab = 'iqentry'; iqOnTabOpen()">IQ Manual Entry</div>
+      </div>
+
+      <!-- ── TAB: SESSION LOG ─────────────────────────────────────────── -->
+      <div x-show="activeTab === 'session'" class="scroll" style="flex:1;padding:14px;overflow-y:auto">
+        <template x-if="!activeSession">
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="15" x2="12" y2="15"/></svg>
+            <div>No active session.</div>
+            <div style="margin-top:6px"><button class="btn-primary" @click="showNewSession = true">Start New Session</button></div>
+          </div>
+        </template>
+        <template x-if="activeSession">
+          <div>
+            <!-- Session overview card -->
+            <div class="card" style="margin-bottom:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                <h3 x-text="`${activeSession.mode} Session`"></h3>
+                <span :class="`badge badge-${activeSession.mode === 'QA' ? 'blue' : 'purple'}`" x-text="activeSession.mode"></span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px">
+                <div><span style="color:var(--text-dim)">Camera: </span><span x-text="activeSession.camera_id || '—'"></span></div>
+                <div><span style="color:var(--text-dim)">Rail Stop: </span><span x-text="activeSession.rail_stop ? 'Stop ' + activeSession.rail_stop : '—'"></span></div>
+                <div><span style="color:var(--text-dim)">Chart: </span><span x-text="activeSession.chart_type || '—'"></span></div>
+                <div><span style="color:var(--text-dim)">Started: </span><span x-text="fmtTime(activeSession.started_at)"></span></div>
+              </div>
+            </div>
+
+            <!-- Log entry form -->
+            <div class="card" style="margin-bottom:12px">
+              <h3 style="margin-bottom:8px;font-size:12px">Add Log Entry</h3>
+              <div style="display:flex;gap:6px">
+                <input type="text" x-model="logMessage" placeholder="e.g. Illuminance: 1240 lux (target 1200)" @keydown.enter="addLog()" style="flex:1" />
+                <select x-model="logLevel" style="width:80px">
+                  <option value="info">Info</option>
+                  <option value="warn">Warn</option>
+                  <option value="error">Error</option>
+                </select>
+                <button class="btn-secondary" @click="addLog()" :disabled="!logMessage.trim()">Log</button>
+              </div>
+            </div>
+
+            <!-- Log entries -->
+            <div class="card" style="padding:0">
+              <div class="panel-header"><h3 style="font-size:12px">Session Log</h3></div>
+              <div style="max-height:300px;overflow-y:auto">
+                <template x-if="activeSession.log.length === 0">
+                  <div style="padding:16px;color:var(--text-dim);font-size:11px;text-align:center">No log entries yet</div>
+                </template>
+                <template x-for="entry in [...activeSession.log].reverse()" :key="entry.id">
+                  <div :class="`log-entry ${entry.level}`">
+                    <span class="ts" x-text="fmtTime(entry.timestamp)"></span>
+                    <span class="msg" x-text="entry.message"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- ── TAB: CAPTURES ───────────────────────────────────────────────── -->
+      <div x-show="activeTab === 'captures'" class="tab-panel">
+        <div class="panel-header">
+          <h2>Captured Images</h2>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:11px;color:var(--text-dim)" x-text="`${captures.length} frame${captures.length !== 1 ? 's' : ''}`"></span>
+            <button class="btn-secondary" style="padding:4px 10px;font-size:11px" @click="loadCaptures()">Refresh</button>
+          </div>
+        </div>
+        <div style="flex:1;min-height:0;display:flex;overflow:hidden">
+          <!-- Capture grid -->
+          <div class="scroll" style="flex:1;min-height:0;overflow-y:auto">
+            <template x-if="captures.length === 0">
+              <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21,15 16,10 5,21"/></svg>
+                <div>No captures yet.</div>
+                <div style="font-size:11px;margin-top:4px">Select a camera and click Capture Frame.</div>
+              </div>
+            </template>
+            <div class="capture-grid">
+              <template x-for="cap in captures" :key="cap.id">
+                <div :class="`capture-card ${selectedCapture?.id === cap.id ? 'selected' : ''}`"
+                     @click="selectCapture(cap)">
+                  <img :src="`/captures/${cap.id}/image`" alt="Capture"
+                       @error="$event.target.style.display='none'" />
+                  <div class="capture-card-meta">
+                    <div class="filename" x-text="cap.file_path.split('/').pop().split('\\').pop()"></div>
+                    <div class="dims" x-text="cap.width && cap.height ? `${cap.width}×${cap.height}` : '—'"></div>
+                    <div class="dims" x-text="fmtTime(cap.captured_at)"></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Capture detail panel -->
+          <div x-show="selectedCapture" style="width:260px;border-left:1px solid var(--border);flex-shrink:0;overflow-y:auto">
+            <template x-if="selectedCapture">
+              <div>
+                <div class="panel-header">
+                  <h3 style="font-size:12px">Capture Detail</h3>
+                  <button class="btn-icon" @click="selectedCapture = null">✕</button>
+                </div>
+                <img :src="`/captures/${selectedCapture.id}/image`" style="width:100%;background:#000" />
+                <div style="padding:10px">
+                  <div class="cam-info-row"><span class="key">Camera</span><span class="val" x-text="selectedCapture.camera_id"></span></div>
+                  <div class="cam-info-row"><span class="key">Size</span><span class="val" x-text="selectedCapture.width + '×' + selectedCapture.height"></span></div>
+                  <div class="cam-info-row"><span class="key">File size</span><span class="val" x-text="Math.round(selectedCapture.file_size/1024) + ' KB'"></span></div>
+                  <div class="cam-info-row"><span class="key">Rail stop</span><span class="val" x-text="selectedCapture.rail_stop ? 'Stop ' + selectedCapture.rail_stop : '—'"></span></div>
+                  <div class="cam-info-row"><span class="key">Label</span><span class="val" x-text="selectedCapture.label || '—'"></span></div>
+                  <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px">
+                    <button class="btn-secondary" style="font-size:11px;text-align:left"
+                            @click="activeTab = 'analysis'; analysisCaptureId = selectedCapture.id; chartDetection = null; loadAnalysisRuns()">
+                      → Analyze this capture
+                    </button>
+                    <button class="btn-secondary" style="font-size:11px"
+                            @click="detectChart(selectedCapture.id)"
+                            :disabled="chartDetecting">
+                      <span x-show="!chartDetecting">&#128269; Detect Chart</span>
+                      <span x-show="chartDetecting" style="display:flex;align-items:center;gap:5px;justify-content:center"><span class="spinner"></span> Detecting…</span>
+                    </button>
+                    <!-- Inline detection result (Captures tab) -->
+                    <template x-if="chartDetection && chartDetection._captureId === selectedCapture.id">
+                      <div :class="`card ${chartDetection.present ? (chartDetection.chart_id ? 'detect-present' : 'detect-unknown') : 'detect-none'}`"
+                           style="padding:9px 11px;font-size:11px">
+                        <template x-if="!chartDetection.present">
+                          <div style="color:var(--text-dim)">No chart detected in this frame.</div>
+                        </template>
+                        <template x-if="chartDetection.present">
+                          <div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+                              <span style="font-weight:600;color:var(--text-bright)" x-text="chartDetection.chart_name || 'Unrecognized'"></span>
+                              <span :class="`badge ${chartDetection.confidence >= 0.65 ? 'badge-green' : 'badge-amber'}`"
+                                    x-text="Math.round(chartDetection.confidence * 100) + '%'"></span>
+                            </div>
+                            <template x-if="chartDetection.recommended_tests?.length > 0">
+                              <div>
+                                <div style="font-size:10px;color:var(--text-dim);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Recommended tests</div>
+                                <div style="display:flex;flex-wrap:wrap;gap:4px">
+                                  <template x-for="tid in chartDetection.recommended_tests" :key="tid">
+                                    <span class="badge badge-green" style="cursor:pointer;font-size:10px"
+                                          x-text="testRegistry.find(t => t.id === tid)?.name || tid"
+                                          @click="activeTab = 'analysis'; analysisCaptureId = selectedCapture.id; selectTest(tid); loadAnalysisRuns()">
+                                    </span>
+                                  </template>
+                                </div>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+                    <a :href="`/captures/${selectedCapture.id}/image`" download style="display:block">
+                      <button class="btn-secondary" style="font-size:11px;width:100%">⬇ Download JPEG</button>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TAB: ANALYSIS ──────────────────────────────────────────────── -->
+      <div x-show="activeTab === 'analysis'" class="tab-panel">
+        <div class="panel-header">
+          <h2>Analysis Pipeline</h2>
+        </div>
+        <div class="scroll" style="flex:1;overflow-y:auto;padding:14px">
+
+          <!-- 1. Select capture -->
+          <div class="card" style="margin-bottom:12px;padding:0;overflow:hidden">
+            <div style="padding:10px 12px 8px">
+              <h3 style="margin-bottom:8px;font-size:12px">Select Capture</h3>
+              <select x-model="analysisCaptureId" @change="chartDetection = null; loadAnalysisRuns()">
+                <option value="">— select a capture —</option>
+                <template x-for="cap in captures" :key="cap.id">
+                  <option :value="cap.id" x-text="`${fmtTime(cap.captured_at)} — ${cap.camera_id} (${cap.width}×${cap.height})`"></option>
+                </template>
+              </select>
+            </div>
+            <template x-if="analysisCaptureId">
+              <div style="position:relative;background:#000;border-top:1px solid var(--border)">
+                <img :src="`/captures/${analysisCaptureId}/image`"
+                     style="width:100%;max-height:340px;object-fit:contain;display:block"
+                     @error="$event.target.style.opacity='.3'" />
+                <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 10px;background:linear-gradient(transparent,rgba(0,0,0,.75));display:flex;align-items:center;justify-content:space-between">
+                  <span style="font-size:10px;color:rgba(255,255,255,.7);font-family:var(--font-mono)"
+                        x-text="captures.find(c=>c.id===analysisCaptureId)?.camera_id + ' · ' + (captures.find(c=>c.id===analysisCaptureId)?.width ?? '?') + '×' + (captures.find(c=>c.id===analysisCaptureId)?.height ?? '?')"></span>
+                  <span style="font-size:10px;color:rgba(255,255,255,.5);font-family:var(--font-mono)"
+                        x-text="fmtTime(captures.find(c=>c.id===analysisCaptureId)?.captured_at)"></span>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <template x-if="analysisCaptureId">
+            <div>
+
+              <!-- 2a. Chart Detection -->
+              <div :class="`card ${chartDetection ? (chartDetection.present ? (chartDetection.chart_id ? 'detect-present' : 'detect-unknown') : 'detect-none') : ''}`"
+                   style="margin-bottom:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <h3 style="font-size:12px">Chart Detection</h3>
+                  <button class="btn-secondary" style="padding:3px 9px;font-size:11px"
+                          @click="detectChart(analysisCaptureId)"
+                          :disabled="chartDetecting || !analysisCaptureId">
+                    <span x-show="!chartDetecting">&#128269; Detect</span>
+                    <span x-show="chartDetecting" style="display:flex;align-items:center;gap:4px"><span class="spinner"></span> Detecting…</span>
+                  </button>
+                </div>
+
+                <!-- No result yet -->
+                <template x-if="!chartDetection">
+                  <div style="font-size:11px;color:var(--text-dim)">
+                    Click <strong>Detect</strong> to identify the chart in this capture and get recommended tests.
+                  </div>
+                </template>
+
+                <!-- Result: no chart -->
+                <template x-if="chartDetection && !chartDetection.present">
+                  <div style="font-size:11px;color:var(--text-dim)">
+                    No chart detected — frame appears empty or the chart is not recognized.
+                    <template x-if="chartDetection.features?.reason">
+                      <span x-text="' (' + chartDetection.features.reason + ')'"></span>
+                    </template>
+                  </div>
+                </template>
+
+                <!-- Result: chart present -->
+                <template x-if="chartDetection && chartDetection.present">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+                      <div>
+                        <div style="font-size:13px;font-weight:600;color:var(--text-bright)" x-text="chartDetection.chart_name || 'Unrecognized chart'"></div>
+                        <div style="font-size:10px;color:var(--text-dim);margin-top:2px">
+                          <span x-text="`Chart region: ${chartDetection.features?.chart_area_pct ?? '—'}% of frame`"></span>
+                          <span style="margin-left:8px" x-text="`White ratio: ${chartDetection.features?.white_ratio ?? '—'}`"></span>
+                          <span style="margin-left:8px" x-text="`Grid lines: H=${chartDetection.features?.h_lines ?? '—'} V=${chartDetection.features?.v_lines ?? '—'}`"></span>
+                          <span style="margin-left:8px" x-text="`Fiducials: ${chartDetection.features?.black_square_count ?? '—'}`"></span>
+                        </div>
+                      </div>
+                      <span :class="`badge ${chartDetection.confidence >= 0.65 ? 'badge-green' : 'badge-amber'}`" style="font-size:11px;white-space:nowrap"
+                            x-text="Math.round(chartDetection.confidence * 100) + '% confidence'"></span>
+                    </div>
+                    <template x-if="chartDetection.recommended_tests?.length > 0">
+                      <div>
+                        <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Recommended for this chart</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:5px">
+                          <template x-for="tid in chartDetection.recommended_tests" :key="tid">
+                            <span class="badge badge-green" style="cursor:pointer;font-size:11px;padding:3px 10px"
+                                  @click="selectTest(tid)"
+                                  x-text="testRegistry.find(t => t.id === tid)?.name || tid">
+                            </span>
+                          </template>
+                        </div>
+                      </div>
+                    </template>
+                    <template x-if="!chartDetection.chart_id">
+                      <div style="font-size:11px;color:var(--amber)">Chart present but not matched to a known type — select a test manually below.</div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+
+              <!-- 2b. What are you measuring? -->
+              <div class="card" style="margin-bottom:12px">
+                <h3 style="margin-bottom:10px;font-size:12px">What Are You Measuring?</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <template x-for="test in testRegistry" :key="test.id">
+                    <div @click="selectTest(test.id)"
+                         :class="chartDetection?.recommended_tests?.includes(test.id) && selectedTestId !== test.id ? 'test-tile-recommended' : ''"
+                         :style="`padding:10px 12px;border-radius:var(--radius);border:1px solid ${selectedTestId === test.id ? 'var(--blue)' : (chartDetection?.recommended_tests?.includes(test.id) ? 'var(--green)' : 'var(--border)')};background:${selectedTestId === test.id ? 'rgba(74,127,255,.12)' : (chartDetection?.recommended_tests?.includes(test.id) ? 'rgba(34,201,122,.07)' : 'var(--surface2)')};cursor:pointer;transition:all .15s`">
+                      <div style="font-weight:600;font-size:12px;color:var(--text)" x-text="test.name"></div>
+                      <div style="font-size:10px;color:var(--text-dim);margin-top:3px;line-height:1.4" x-text="test.standards?.join(' · ')"></div>
+                      <template x-if="chartDetection?.recommended_tests?.includes(test.id)">
+                        <div style="margin-top:5px"><span class="badge badge-green" style="font-size:9px">&#10003; recommended</span></div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </div>
+
+              <template x-if="selectedTestId">
+                <div>
+
+                  <!-- 3. Parameter being measured -->
+                  <div class="card" style="margin-bottom:12px;padding:10px 14px;border-color:var(--blue-dim);background:rgba(74,127,255,.04)">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                      <div>
+                        <div style="font-size:11px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Parameter</div>
+                        <div style="font-size:12px;color:var(--text);line-height:1.5" x-text="selectedTest?.parameter"></div>
+                      </div>
+                      <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0">
+                        <template x-for="std in (selectedTest?.standards || [])" :key="std">
+                          <span class="badge badge-blue" style="font-size:9px;white-space:nowrap" x-text="std"></span>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 4. Required chart — always shown regardless of engine -->
+                  <template x-if="chartGuide">
+                    <div class="card" style="margin-bottom:12px;padding:0;border-color:var(--blue-dim)">
+                      <div class="panel-header" style="background:rgba(74,127,255,.07)">
+                        <div>
+                          <h3 style="font-size:12px;color:var(--blue)">Required Chart</h3>
+                          <div style="font-size:10px;color:var(--text-dim);margin-top:1px" x-text="chartGuide.full_name"></div>
+                        </div>
+                        <span class="badge badge-blue" x-text="chartGuide.type"></span>
+                      </div>
+
+                      <div style="display:flex;gap:0;min-height:0">
+                        <!-- Chart photo -->
+                        <div style="width:200px;flex-shrink:0;background:#000;border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center">
+                          <template x-if="chartGuide.has_image">
+                            <img :src="chartGuide.image_url + '?t=1'"
+                                 style="width:200px;height:150px;object-fit:contain;display:block"
+                                 @error="$event.target.style.display='none'" />
+                          </template>
+                          <template x-if="!chartGuide.has_image">
+                            <div style="width:200px;height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-dim);font-size:11px;gap:4px">
+                              <span style="font-size:24px;opacity:.3">&#128247;</span>
+                              <span x-text="chartGuide.name"></span>
+                              <span style="font-size:10px;opacity:.6">No photo on disk</span>
+                            </div>
+                          </template>
+                        </div>
+
+                        <!-- Setup requirements -->
+                        <div style="flex:1;padding:12px;font-size:11px;overflow:auto">
+                          <div style="margin-bottom:10px;line-height:1.5;color:var(--text-dim)" x-text="chartGuide.description"></div>
+
+                          <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:baseline">
+                            <span style="color:var(--text-dim);white-space:nowrap">Lighting</span>
+                            <span :style="`color:${(chartGuide.setup?.lighting_mode||'').includes('Transmissive') ? 'var(--amber)' : 'var(--green)'};font-weight:600`"
+                                  x-text="chartGuide.setup?.lighting_mode"></span>
+
+                            <span style="color:var(--text-dim);white-space:nowrap">Softboxes</span>
+                            <span x-text="chartGuide.setup?.softboxes"
+                                  :style="`color:${(chartGuide.setup?.softboxes||'').startsWith('OFF') ? 'var(--red)' : 'var(--green)'}`"></span>
+
+                            <span style="color:var(--text-dim);white-space:nowrap">TV Cart</span>
+                            <span style="color:var(--text-dim)" x-text="chartGuide.setup?.tv_position"></span>
+
+                            <span style="color:var(--text-dim);white-space:nowrap">Rail Stop</span>
+                            <span>
+                              <span class="badge badge-blue" style="font-size:10px" x-text="`Stop ${chartGuide.setup?.primary_stop} (primary)`"></span>
+                              <span style="color:var(--text-dim);font-size:10px" x-text="' · also valid: Stop ' + (chartGuide.setup?.valid_stops||[]).filter(s => s !== chartGuide.setup?.primary_stop).join(', ')"></span>
+                            </span>
+
+                            <span style="color:var(--text-dim);white-space:nowrap">Standards</span>
+                            <span style="color:var(--text)" x-text="(chartGuide.standards||[]).join(' · ')"></span>
+                          </div>
+
+                          <div style="margin-top:10px;padding:7px 9px;background:rgba(74,127,255,.08);border-radius:var(--radius);border:1px solid var(--blue-dim)">
+                            <div style="font-size:10px;color:var(--text-dim);margin-bottom:2px;text-transform:uppercase;letter-spacing:.6px">Alignment</div>
+                            <div style="font-size:11px;color:var(--text)" x-text="chartGuide.setup?.alignment"></div>
+                          </div>
+
+                          <template x-if="chartGuide.setup?.notes">
+                            <div style="margin-top:8px;padding:7px 9px;background:rgba(245,166,35,.06);border-radius:var(--radius);border:1px solid rgba(245,166,35,.2)">
+                              <div style="font-size:10px;color:var(--amber);margin-bottom:2px;text-transform:uppercase;letter-spacing:.6px">&#9888; Notes</div>
+                              <div style="font-size:11px;color:var(--text-dim)" x-text="chartGuide.setup?.notes"></div>
+                            </div>
+                          </template>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- 5. Engine selector + run -->
+                  <div class="card" style="margin-bottom:12px">
+                    <h3 style="margin-bottom:10px;font-size:12px">Analysis Engine</h3>
+
+                    <div class="engine-tabs" style="padding:0;margin-bottom:12px">
+                      <div :class="`engine-tab ${analysisEngine === 'custom' ? 'active' : ''}`"
+                           @click="analysisEngine = 'custom'">Python</div>
+
+                      <div :class="`engine-tab ${analysisEngine === 'matlab' ? 'active' : ''} ${!selectedTest?.engines?.matlab ? 'disabled' : ''}`"
+                           :title="!selectedTest?.engines?.matlab ? 'No MATLAB script available for this test' : selectedTest?.engines?.matlab?.description"
+                           @click="if (selectedTest?.engines?.matlab) analysisEngine = 'matlab'">
+                        MATLAB
+                        <template x-if="!selectedTest?.engines?.matlab">
+                          <span style="font-size:9px;display:block;opacity:.6;font-weight:400;margin-top:1px">no script</span>
+                        </template>
+                      </div>
+
+                      <div :class="`engine-tab ${analysisEngine === 'iqanalyzer' ? 'active' : ''}`"
+                           @click="analysisEngine = 'iqanalyzer'">IQ-Analyzer X</div>
+                    </div>
+
+                    <!-- Python engine info -->
+                    <template x-if="analysisEngine === 'custom'">
+                      <div style="margin-bottom:12px;padding:8px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);font-size:11px;color:var(--text-dim);line-height:1.55">
+                        <strong style="color:var(--text);display:block;margin-bottom:2px">Built-in Python engine</strong>
+                        <span x-text="pythonEngineDescription(selectedTest?.engines?.custom?.module)"></span>
+                        No external software required.
+                      </div>
+                    </template>
+
+                    <!-- MATLAB engine — script info + ROI preset for SFR -->
+                    <template x-if="analysisEngine === 'matlab' && selectedTest?.engines?.matlab">
+                      <div style="margin-bottom:12px">
+                        <div style="background:#2a1f00;border:1px solid var(--amber);border-radius:var(--radius);padding:8px 11px;margin-bottom:10px;display:flex;gap:8px;align-items:flex-start">
+                          <span style="color:var(--amber);font-size:13px;line-height:1;flex-shrink:0">&#9888;</span>
+                          <div style="font-size:11px;color:#e8c06a;line-height:1.5">
+                            <strong style="display:block;margin-bottom:2px;color:var(--amber)">Run via OLB only.</strong>
+                            OLB automatically supplies <code style="background:#3a2a00;padding:1px 4px;border-radius:3px">roi</code> and <code style="background:#3a2a00;padding:1px 4px;border-radius:3px">exportBaseName</code> arguments. Do not call these scripts manually from MATLAB.
+                          </div>
+                        </div>
+                        <div style="padding:8px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);font-size:11px;color:var(--text-dim);line-height:1.55;margin-bottom:10px">
+                          <strong style="color:var(--text)" x-text="selectedTest?.engines?.matlab?.script"></strong>
+                          <span x-show="selectedTest?.engines?.matlab?.description"> — </span>
+                          <span x-text="selectedTest?.engines?.matlab?.description"></span>
+                        </div>
+
+                        <!-- ROI preset — SFR only -->
+                        <template x-if="selectedTestId === 'sfr_mtf'">
+                          <div>
+                            <label style="display:flex;align-items:center;gap:6px">
+                              ROI Preset
+                              <span style="font-size:10px;color:var(--text-dim);font-weight:400">— standardized slanted-edge positions</span>
+                            </label>
+                            <select x-model="roiPreset" style="margin-top:4px">
+                              <option value="quad4">quad4 — 4 corners (NW / NE / SW / SE)</option>
+                              <option value="quad4c">quad4c — 4 corners, pulled toward center</option>
+                              <option value="center1">center1 — image center only</option>
+                              <option value="cross5">cross5 — center + N / E / W (4 ROIs)</option>
+                            </select>
+                            <div style="margin-top:4px;font-size:10px;color:var(--text-dim)">
+                              Same preset = same ROI positions every session — results are directly comparable run-to-run.
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+                    </template>
+
+                    <!-- IQ-Analyzer X — optional profile override -->
+                    <template x-if="analysisEngine === 'iqanalyzer'">
+                      <div style="margin-bottom:12px">
+                        <div style="padding:8px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);font-size:11px;color:var(--text-dim);margin-bottom:10px">
+                          Default profile: <strong style="color:var(--text)" x-text="selectedTest?.engines?.iqanalyzer?.profile || '—'"></strong>
+                          <span style="display:block;margin-top:2px">Submits image to Hot Folder. IQ-Analyzer X must be running with the correct profile loaded.</span>
+                        </div>
+                        <label>Profile override <span style="font-weight:400;color:var(--text-dim)">(optional — leave blank to use default)</span></label>
+                        <input type="text" x-model="analysisProfile" :placeholder="`Default: ${selectedTest?.engines?.iqanalyzer?.profile || 'none'}`" />
+                      </div>
+                    </template>
+
+                    <button class="btn-primary" style="width:100%"
+                            @click="runAnalysis()"
+                            :disabled="!selectedTestId || analysisRunning || (analysisEngine === 'matlab' && !selectedTest?.engines?.matlab)">
+                      <span x-show="!analysisRunning">&#9654; Run Analysis</span>
+                      <span x-show="analysisRunning"><span class="spinner"></span> Running...</span>
+                    </button>
+                  </div>
+
+                </div>
+              </template>
+
+              <!-- 6. Analysis runs -->
+              <div class="card" style="padding:0">
+                <div class="panel-header">
+                  <h3 style="font-size:12px">Analysis Runs</h3>
+                  <button class="btn-icon" @click="loadAnalysisRuns()">&#8635;</button>
+                </div>
+                <template x-if="analysisRuns.length === 0">
+                  <div style="padding:20px;color:var(--text-dim);text-align:center;font-size:11px">No analysis runs for this capture</div>
+                </template>
+                <template x-for="run in analysisRuns" :key="run.id">
+                  <div style="border-bottom:1px solid var(--border);padding:10px 12px;cursor:pointer"
+                       @click="selectedRun = selectedRun?.id === run.id ? null : run">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                      <div>
+                        <span style="font-size:12px;font-weight:600;color:var(--text)"
+                              x-text="testRegistry.find(t => t.id === run.test_id)?.name || run.engine"></span>
+                        <span style="font-size:10px;color:var(--text-dim);margin-left:6px;text-transform:capitalize"
+                              x-text="run.test_id ? ('· ' + run.engine) : run.engine"></span>
+                      </div>
+                      <span :class="`badge badge-${run.status === 'completed' ? 'green' : run.status === 'failed' ? 'red' : run.status === 'running' ? 'blue' : 'amber'}`"
+                            x-text="run.status"></span>
+                    </div>
+                    <div style="font-size:10px;color:var(--text-dim)">
+                      <span x-text="fmtTime(run.started_at)"></span>
+                      <span x-show="run.completed_at"> · <span x-text="run.completed_at ? fmtDuration(run.started_at, run.completed_at) : ''"></span></span>
+                    </div>
+
+                    <!-- Expanded results -->
+                    <template x-if="selectedRun?.id === run.id && run.status === 'completed' && run.results_json">
+                      <div style="margin-top:10px">
+
+                        <!-- Custom Python — test-specific metric cards -->
+                        <template x-if="run.engine === 'custom'">
+                          <div>
+                            <template x-if="run.results_json.metrics?.mtf">
+                              <div class="metric-grid" style="padding:0;margin-bottom:8px">
+                                <div class="metric-card">
+                                  <div class="metric-label">MTF50</div>
+                                  <div class="metric-value">
+                                    <span x-text="run.results_json.metrics.mtf.mtf50_cy_px ? run.results_json.metrics.mtf.mtf50_cy_px.toFixed(3) : '—'"></span>
+                                    <span class="metric-unit"> cy/px</span>
+                                  </div>
+                                </div>
+                                <div class="metric-card">
+                                  <div class="metric-label">MTF30</div>
+                                  <div class="metric-value">
+                                    <span x-text="run.results_json.metrics.mtf.mtf30_cy_px ? run.results_json.metrics.mtf.mtf30_cy_px.toFixed(3) : '—'"></span>
+                                    <span class="metric-unit"> cy/px</span>
+                                  </div>
+                                </div>
+                                <div class="metric-card">
+                                  <div class="metric-label">Nyquist</div>
+                                  <div class="metric-value"><span>0.500</span><span class="metric-unit"> cy/px</span></div>
+                                </div>
+                              </div>
+                            </template>
+
+                            <template x-if="run.results_json.metrics?.noise">
+                              <div class="metric-grid" style="padding:0;margin-bottom:8px">
+                                <div class="metric-card">
+                                  <div class="metric-label">SNR</div>
+                                  <div class="metric-value">
+                                    <span x-text="run.results_json.metrics.noise.snr_db?.toFixed(1)"></span>
+                                    <span class="metric-unit"> dB</span>
+                                  </div>
+                                </div>
+                                <div class="metric-card">
+                                  <div class="metric-label">Noise σ</div>
+                                  <div class="metric-value">
+                                    <span x-text="run.results_json.metrics.noise.std_dn?.toFixed(2)"></span>
+                                    <span class="metric-unit"> DN</span>
+                                  </div>
+                                </div>
+                                <div class="metric-card">
+                                  <div class="metric-label">Dyn. Range</div>
+                                  <div class="metric-value">
+                                    <span x-text="run.results_json.metrics.noise.dynamic_range_stops?.toFixed(1)"></span>
+                                    <span class="metric-unit"> stops</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </template>
+
+                            <template x-if="run.results_json.metrics?.uniformity">
+                              <div class="metric-grid" style="padding:0;margin-bottom:8px">
+                                <div class="metric-card">
+                                  <div class="metric-label">Corner/Center</div>
+                                  <div class="metric-value">
+                                    <span x-text="run.results_json.metrics.uniformity.uniformity_pct?.toFixed(1)"></span>
+                                    <span class="metric-unit"> %</span>
+                                  </div>
+                                </div>
+                                <div class="metric-card">
+                                  <div class="metric-label">Center DN</div>
+                                  <div class="metric-value">
+                                    <span x-text="run.results_json.metrics.uniformity.zones_mean_dn?.MC?.toFixed(0)"></span>
+                                  </div>
+                                </div>
+                              </div>
+                            </template>
+
+                            <template x-if="run.results_json.metrics?.tonal">
+                              <div class="metric-grid" style="padding:0;margin-bottom:8px">
+                                <div class="metric-card">
+                                  <div class="metric-label">Min DN</div>
+                                  <div class="metric-value"><span x-text="run.results_json.metrics.tonal.min_dn?.toFixed(0)"></span></div>
+                                </div>
+                                <div class="metric-card">
+                                  <div class="metric-label">Max DN</div>
+                                  <div class="metric-value"><span x-text="run.results_json.metrics.tonal.max_dn?.toFixed(0)"></span></div>
+                                </div>
+                                <div class="metric-card">
+                                  <div class="metric-label">Clip High</div>
+                                  <div class="metric-value">
+                                    <span x-text="run.results_json.metrics.tonal.clipped_high_pct?.toFixed(2)"></span>
+                                    <span class="metric-unit"> %</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </template>
+
+                            <template x-if="run.results_json.note || run.results_json.hint">
+                              <div style="padding:8px 10px;background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.2);border-radius:var(--radius);font-size:11px;color:var(--text-dim);margin-bottom:8px;line-height:1.5">
+                                <span x-text="run.results_json.note"></span>
+                                <template x-if="run.results_json.hint">
+                                  <em style="display:block;margin-top:3px" x-text="run.results_json.hint"></em>
+                                </template>
+                              </div>
+                            </template>
+
+                            <pre class="results-json" x-text="JSON.stringify(run.results_json, null, 2)" style="margin:0;font-size:10px;max-height:160px"></pre>
+                          </div>
+                        </template>
+
+                        <!-- MATLAB results — stdout / stderr + exit code -->
+                        <template x-if="run.engine === 'matlab'">
+                          <div>
+                            <template x-if="run.results_json.returncode !== undefined">
+                              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px">
+                                <span :class="`badge badge-${run.results_json.returncode === 0 ? 'green' : 'red'}`"
+                                      x-text="run.results_json.returncode === 0 ? 'Exit 0 — OK' : `Exit ${run.results_json.returncode} — Error`"></span>
+                                <span style="color:var(--text-dim)" x-text="run.results_json.script"></span>
+                                <span x-show="run.results_json.roi_preset" style="color:var(--text-dim)" x-text="`· ${run.results_json.roi_preset}`"></span>
+                              </div>
+                            </template>
+                            <template x-if="run.results_json.stdout">
+                              <div style="margin-bottom:6px">
+                                <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">stdout</div>
+                                <pre class="results-json" x-text="run.results_json.stdout" style="margin:0;font-size:10px;max-height:180px;white-space:pre-wrap"></pre>
+                              </div>
+                            </template>
+                            <template x-if="run.results_json.stderr">
+                              <div>
+                                <div style="font-size:10px;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">stderr</div>
+                                <pre class="results-json" x-text="run.results_json.stderr" style="margin:0;font-size:10px;max-height:120px;white-space:pre-wrap;color:var(--red);opacity:.85"></pre>
+                              </div>
+                            </template>
+                            <template x-if="run.results_json.error">
+                              <div style="margin-top:6px;padding:7px 9px;background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.25);border-radius:var(--radius);font-size:11px;color:var(--red)" x-text="run.results_json.error"></div>
+                            </template>
+                          </div>
+                        </template>
+
+                        <!-- IQ-Analyzer results — metric table -->
+                        <template x-if="run.engine === 'iqanalyzer'">
+                          <div>
+                            <template x-if="run.results_json.metrics && Object.keys(run.results_json.metrics).length > 0">
+                              <div style="margin-bottom:8px">
+                                <table style="width:100%;font-size:11px;border-collapse:collapse">
+                                  <template x-for="[k, v] in Object.entries(run.results_json.metrics).slice(0, 20)" :key="k">
+                                    <tr style="border-bottom:1px solid var(--border)">
+                                      <td style="padding:3px 8px 3px 0;color:var(--text-dim);width:50%" x-text="k"></td>
+                                      <td style="padding:3px 0;color:var(--text);font-family:monospace" x-text="typeof v === 'number' ? v.toFixed(4) : v"></td>
+                                    </tr>
+                                  </template>
+                                </table>
+                              </div>
+                            </template>
+                            <template x-if="run.results_json.error">
+                              <div style="padding:7px 9px;background:rgba(255,80,80,.08);border:1px solid rgba(255,80,80,.25);border-radius:var(--radius);font-size:11px;color:var(--red);margin-bottom:6px" x-text="run.results_json.error"></div>
+                            </template>
+                            <pre class="results-json" x-text="JSON.stringify(run.results_json, null, 2)" style="margin:0;font-size:10px;max-height:160px"></pre>
+                          </div>
+                        </template>
+
+                      </div>
+                    </template>
+
+                    <!-- Error display -->
+                    <template x-if="run.status === 'failed'">
+                      <div style="margin-top:6px;font-size:10px;color:var(--red)" x-text="run.error_msg"></div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+<!-- ── TAB: HISTORY ───────────────────────────────────────────────── -->
+      <div x-show="activeTab === 'history'" class="tab-panel">
+        <div class="panel-header">
+          <h2>Session History</h2>
+          <button class="btn-secondary" style="padding:4px 10px;font-size:11px" @click="loadHistory()">Refresh</button>
+        </div>
+        <div class="scroll" style="flex:1;overflow-y:auto">
+          <template x-if="history.length === 0">
+            <div class="empty-state">No past sessions found.</div>
+          </template>
+          <table x-show="history.length > 0">
+            <thead>
+              <tr>
+                <th>Mode</th>
+                <th>Camera</th>
+                <th>Chart</th>
+                <th>Stop</th>
+                <th>Started</th>
+                <th>Duration</th>
+                <th>Status</th>
+                <th>Steps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="sess in history" :key="sess.id">
+                <tr style="cursor:pointer" @click="expandHistory = expandHistory === sess.id ? null : sess.id">
+                  <td>
+                    <span :class="`badge badge-${sess.mode === 'QA' ? 'blue' : sess.mode === 'PIV' ? 'purple' : 'amber'}`"
+                          x-text="sess.mode"></span>
+                  </td>
+                  <td x-text="sess.camera_id || '—'"></td>
+                  <td x-text="sess.chart_type || '—'"></td>
+                  <td x-text="sess.rail_stop ? 'Stop ' + sess.rail_stop : '—'"></td>
+                  <td x-text="fmtTime(sess.started_at)"></td>
+                  <td x-text="sess.ended_at ? fmtDuration(sess.started_at, sess.ended_at) : '—'"></td>
+                  <td>
+                    <span :class="`badge badge-${sess.status === 'completed' ? 'green' : sess.status === 'active' ? 'blue' : 'red'}`"
+                          x-text="sess.status"></span>
+                  </td>
+                  <td>
+                    <span x-text="sess.steps.filter(s => s.completed).length + '/' + sess.steps.length"></span>
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── TAB: IQ MANUAL ENTRY ──────────────────────────────────────── -->
+      <div x-show="activeTab === 'iqentry'" class="tab-panel">
+
+        <!-- toolbar -->
+        <div class="panel-header" style="flex-wrap:wrap;gap:8px;padding:10px 14px">
+          <h2 style="flex-shrink:0">iQ-Analyzer X — Manual Result Entry</h2>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto">
+            <select x-model="iq.cameraId" style="width:180px;padding:4px 8px;font-size:12px"
+                    @change="iqLoadLatestForCamera()">
+              <option value="">— select camera —</option>
+              <template x-for="cam in cameras" :key="cam.id">
+                <option :value="cam.id" x-text="cam.model"></option>
+              </template>
+              <option value="__custom__">Custom / offline…</option>
+            </select>
+            <input x-show="iq.cameraId === '__custom__'" x-model="iq.customCam"
+                   placeholder="Camera model name" style="width:160px;padding:4px 8px;font-size:12px">
+            <select x-model="iqCurrentId" @change="iqLoadSession($event.target.value)"
+                    style="width:220px;padding:4px 8px;font-size:12px">
+              <option value="">+ New entry</option>
+              <template x-for="s in iqSessionsForCamera" :key="s.id">
+                <option :value="s.id" x-text="s.date + ' — ' + (s.chart||'?') + ' — Stop ' + (s.stop||'?')"></option>
+              </template>
+            </select>
+            <button class="btn-success" style="padding:4px 12px;font-size:12px" @click="iqSave()">Save</button>
+            <button class="btn-danger"  style="padding:4px 10px;font-size:12px" @click="iqDelete()" :disabled="!iqCurrentId">Delete</button>
+            <button class="btn-secondary" style="padding:4px 10px;font-size:12px" @click="iqExportCSV()">CSV</button>
+            <span x-show="iqSaveMsg" x-text="iqSaveMsg"
+                  :style="`font-size:11px;font-weight:600;color:${iqSaveMsg.startsWith('✓')?'var(--green)':'var(--amber)'}`"></span>
+          </div>
+        </div>
+
+        <div style="flex:1;display:flex;overflow:hidden;min-height:0">
+
+          <!-- ── LEFT: FORM ── -->
+          <div style="width:370px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px">
+
+            <!-- Session info -->
+            <div class="card">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Session Info</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div class="form-group" style="margin:0"><label>Test Date</label><input type="date" x-model="iq.date"></div>
+                <div class="form-group" style="margin:0"><label>Rail Stop</label>
+                  <select x-model="iq.stop">
+                    <option value="">—</option>
+                    <option value="1">Stop 1 — 1.0 m</option>
+                    <option value="2">Stop 2 — 2.0 m</option>
+                    <option value="3">Stop 3 — 4.5 m</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0"><label>Chart Used</label>
+                  <select x-model="iq.chart">
+                    <option value="">—</option>
+                    <option>TE251 (ISO 12233)</option>
+                    <option>TE264 (Distortion)</option>
+                    <option>TE42-LL (OECF)</option>
+                    <option>Flat-field</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0"><label>Serial / Firmware</label><input type="text" x-model="iq.serial" placeholder="SN + FW"></div>
+                <div class="form-group" style="margin:0"><label>Illuminance (lux)</label><input type="number" x-model="iq.lux" placeholder="e.g. 1200" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>CCT (K)</label><input type="number" x-model="iq.cct" placeholder="e.g. 5500" @input="iqUpdate()"></div>
+              </div>
+              <div class="form-group" style="margin:8px 0 0"><label>Notes / Deviations</label>
+                <textarea x-model="iq.notes" rows="2" placeholder="Camera settings, WB, sharpening, deviations…"></textarea>
+              </div>
+            </div>
+
+            <!-- MTF / Resolution -->
+            <div class="card">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">MTF — ISO 12233 (eSFR) &nbsp;<span style="font-weight:400;color:var(--text-dim)">cy/px</span></div>
+              <table style="width:100%;border-collapse:collapse;font-size:11px">
+                <thead>
+                  <tr>
+                    <th style="text-align:left;padding:3px 6px 6px 0;color:var(--text-dim);font-weight:600;font-size:10px"></th>
+                    <th style="padding:3px 4px 6px;color:var(--text-dim);font-weight:600;font-size:10px;text-align:center">CENTER</th>
+                    <th style="padding:3px 4px 6px;color:var(--text-dim);font-weight:600;font-size:10px;text-align:center">EDGE avg</th>
+                    <th style="padding:3px 4px 6px;color:var(--text-dim);font-weight:600;font-size:10px;text-align:center">CORNER avg</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="padding:3px 6px 3px 0;color:var(--text-dim);white-space:nowrap">MTF50</td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf50c" step="0.001" min="0" max="0.6" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf50e" step="0.001" min="0" max="0.6" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf50k" step="0.001" min="0" max="0.6" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:3px 6px 3px 0;color:var(--text-dim)">MTF30</td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf30c" step="0.001" min="0" max="0.8" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf30e" step="0.001" min="0" max="0.8" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf30k" step="0.001" min="0" max="0.8" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                  </tr>
+                  <tr>
+                    <td style="padding:3px 6px 3px 0;color:var(--text-dim)">MTF10</td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf10c" step="0.001" min="0" max="0.9" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf10e" step="0.001" min="0" max="0.9" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                    <td style="padding:2px 4px"><input type="number" x-model="iq.mtf10k" step="0.001" min="0" max="0.9" placeholder="0.000" @input="iqUpdate()" style="text-align:right;padding:4px 6px;font-size:11px"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+                <div class="form-group" style="margin:0"><label>Acutance (center)</label><input type="number" x-model="iq.acutance" step="0.01" min="0" max="1" placeholder="0–1" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>Sharpening artifact</label>
+                  <select x-model="iq.alias" @change="iqUpdate()">
+                    <option value="">— not evaluated —</option>
+                    <option>None</option><option>Slight</option><option>Moderate</option><option>Severe</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Distortion -->
+            <div class="card">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Geometric Distortion — ISO 17850</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                <div class="form-group" style="margin:0"><label>TV Dist. (%)</label><input type="number" x-model="iq.tvdist" step="0.01" placeholder="e.g. -2.5" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>Max Dist. (%)</label><input type="number" x-model="iq.maxdist" step="0.01" placeholder="e.g. -3.1" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>Type</label>
+                  <select x-model="iq.disttype">
+                    <option value="">—</option><option>Barrel</option><option>Pincushion</option><option>Mustache</option><option>Negligible</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group" style="margin:8px 0 0"><label>Chr. Aberration — corner (px)</label><input type="number" x-model="iq.ca" step="0.01" min="0" placeholder="e.g. 0.4" @input="iqUpdate()"></div>
+            </div>
+
+            <!-- OECF / Noise -->
+            <div class="card">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">OECF / Noise — ISO 14524 / 15739 / EMVA1288</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div class="form-group" style="margin:0"><label>Gamma (measured)</label><input type="number" x-model="iq.gamma" step="0.01" placeholder="≈ 2.2" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>Dyn. Range (stops)</label><input type="number" x-model="iq.dr" step="0.1" placeholder="e.g. 8.5" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>Black level (DN)</label><input type="number" x-model="iq.black" step="1" min="0" placeholder="e.g. 16"></div>
+                <div class="form-group" style="margin:0"><label>White clip (DN)</label><input type="number" x-model="iq.white" step="1" min="0" max="255" placeholder="e.g. 250"></div>
+                <div class="form-group" style="margin:0"><label>SNR @ ISO 100 (dB)</label><input type="number" x-model="iq.snr100" step="0.1" placeholder="e.g. 42" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>SNR @ ISO 800 (dB)</label><input type="number" x-model="iq.snr800" step="0.1" placeholder="e.g. 35" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>SNR @ ISO 3200 (dB)</label><input type="number" x-model="iq.snr3200" step="0.1" placeholder="e.g. 28" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>PRNU (%)</label><input type="number" x-model="iq.prnu" step="0.01" min="0" placeholder="e.g. 0.8" @input="iqUpdate()"></div>
+                <div class="form-group" style="margin:0"><label>FPN — DN rms</label><input type="number" x-model="iq.fpn" step="0.01" min="0" placeholder="e.g. 1.2"></div>
+                <div class="form-group" style="margin:0"><label>Uniformity / Vignetting</label><input type="number" x-model="iq.vignette" step="0.1" min="0" max="100" placeholder="% corner/ctr" @input="iqUpdate()"></div>
+              </div>
+            </div>
+
+          </div><!-- /left form -->
+
+          <!-- ── RIGHT: KPIs + CHARTS ── -->
+          <div style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px">
+
+            <!-- KPI row -->
+            <div class="card" style="padding:10px 12px">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Key Metrics — Pass / Warn / Fail</div>
+              <div style="display:flex;flex-wrap:wrap;gap:8px" id="iq-kpi-row">
+                <template x-if="!iq.mtf50c && !iq.gamma && !iq.snr100 && !iq.tvdist">
+                  <span style="font-size:11px;color:var(--text-dim)">Enter values on the left to see pass/fail badges here.</span>
+                </template>
+                <template x-for="kpi in iqKPIs" :key="kpi.label">
+                  <div :class="`badge badge-${kpi.cls}`" style="flex-direction:column;align-items:flex-start;padding:6px 10px;border-radius:var(--radius)">
+                    <span style="font-size:15px;font-weight:700;line-height:1" x-text="kpi.value"></span>
+                    <span style="font-size:9px;opacity:.75;line-height:1.3;margin-top:2px" x-text="kpi.label"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- MTF bar chart -->
+            <div class="card" style="padding:10px 12px">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">MTF50 — Center / Edge / Corner (cy/px)</div>
+              <div style="position:relative;height:180px">
+                <canvas id="iq-chart-mtf"></canvas>
+              </div>
+              <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Nyquist limit = 0.5 cy/px · eSFR slanted-edge · ISO 12233</div>
+            </div>
+
+            <!-- MTF field uniformity -->
+            <div class="card" style="padding:10px 12px">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">MTF50 Field Uniformity — Center → Corner</div>
+              <div style="position:relative;height:160px">
+                <canvas id="iq-chart-field"></canvas>
+              </div>
+              <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Relative to center · 70% threshold shown · drops below = field roll-off concern</div>
+            </div>
+
+            <!-- Distortion -->
+            <div class="card" style="padding:10px 12px">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">Distortion Profile (%) — ISO 17850</div>
+              <div style="position:relative;height:160px">
+                <canvas id="iq-chart-dist"></canvas>
+              </div>
+              <div style="font-size:10px;color:var(--text-dim);margin-top:4px">Negative = barrel · positive = pincushion · estimated from TV dist + max dist</div>
+            </div>
+
+            <!-- SNR vs ISO -->
+            <div class="card" style="padding:10px 12px">
+              <div style="font-size:10px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">SNR vs ISO — Noise Floor (dB)</div>
+              <div style="position:relative;height:160px">
+                <canvas id="iq-chart-snr"></canvas>
+              </div>
+              <div style="font-size:10px;color:var(--text-dim);margin-top:4px">ISO 15739 / EMVA1288 · 32 dB minimum threshold · higher = cleaner</div>
+            </div>
+
+          </div><!-- /right -->
+        </div><!-- /body -->
+      </div><!-- /iqentry tab -->
+
+    </div><!-- /right-panel -->
+  </div><!-- /main-area -->
+
+  <!-- ── PROTOCOL GATE OVERLAY ────────────────────────────────────────────── -->
+  <template x-if="showProtocolGate && activeSession">
+    <div class="protocol-gate">
+      <div class="protocol-gate-modal">
+
+        <!-- Header -->
+        <div class="protocol-gate-header">
+          <div class="protocol-gate-title">
+            <span :class="`badge badge-${activeSession.mode === 'QA' ? 'blue' : activeSession.mode === 'PIV' ? 'purple' : 'amber'}`"
+                  style="font-size:12px" x-text="activeSession.mode"></span>
+            <span x-text="activeSession.mode + ' Session — Pre-Measurement Protocol'"></span>
+          </div>
+          <div class="protocol-gate-subtitle" style="margin-top:8px">
+            <span x-show="activeSession.mode === 'QA'">Complete the 13-step QA setup sequence before capturing any measurements. This ensures ISO-compliant, repeatable results.</span>
+            <span x-show="activeSession.mode === 'PIV'">Complete the PIV calibration protocol before beginning display-based scene testing.</span>
+            <span x-show="activeSession.mode === 'Research'">Log all deviations from standard QA setup. Research data must never be labeled as QA-certified.</span>
+          </div>
+          <!-- Progress bar -->
+          <div class="protocol-gate-progress" style="margin-top:14px">
+            <div class="protocol-gate-progress-fill"
+                 :style="`width:${totalSteps ? completedSteps/totalSteps*100 : 0}%;background:${completedSteps === totalSteps ? 'var(--green)' : 'var(--amber)'}`"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-top:5px">
+            <span :style="completedSteps === totalSteps ? 'color:var(--green);font-weight:600' : 'color:var(--amber)'"
+                  x-text="`${completedSteps} of ${totalSteps} steps completed`"></span>
+            <span x-show="completedSteps === totalSteps" style="color:var(--green);font-weight:600">&#10003; All steps complete — ready to proceed</span>
+            <span x-show="completedSteps < totalSteps" style="color:var(--text-dim)" x-text="`${totalSteps - completedSteps} remaining`"></span>
+          </div>
+        </div>
+
+        <!-- Step list -->
+        <div class="protocol-gate-body">
+          <template x-for="step in activeSession.steps" :key="step.step_num">
+            <div :class="`proto-step ${step.completed ? 'done' : ''}`"
+                 @click="!step.completed && gateToggleStep(step)">
+              <div :class="`proto-step-check ${step.completed ? 'done' : ''}`">
+                <template x-if="step.completed">
+                  <svg viewBox="0 0 12 12"><polyline points="1.5,6 4.5,9 10.5,3"/></svg>
+                </template>
+              </div>
+              <span class="proto-step-num" x-text="step.step_num + '.'"></span>
+              <span :class="`proto-step-text ${step.completed ? 'done' : ''}`" x-text="step.step_name"></span>
+              <template x-if="!step.completed">
+                <span style="font-size:10px;color:var(--text-dim);flex-shrink:0;padding-top:3px">tap to complete</span>
+              </template>
+            </div>
+          </template>
+        </div>
+
+        <!-- Footer -->
+        <div class="protocol-gate-footer">
+          <!-- Debug bypass (left side, subtle) -->
+          <div>
+            <template x-if="!protocolDebugBypass">
+              <button class="btn-icon" style="font-size:11px;color:var(--text-dim);padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius)"
+                      @click="protocolDebugBypass = true; showProtocolGate = false"
+                      title="Skip all protocol steps — for testing and debugging only">
+                Skip — Debug / Testing Mode
+              </button>
+            </template>
+          </div>
+          <!-- Proceed button (right side) -->
+          <button class="btn-primary"
+                  style="padding:10px 24px;font-size:13px;font-weight:600"
+                  :disabled="completedSteps < totalSteps"
+                  :style="completedSteps < totalSteps ? 'opacity:.35;cursor:not-allowed' : ''"
+                  @click="showProtocolGate = false">
+            <span x-show="completedSteps < totalSteps">Complete all steps to proceed</span>
+            <span x-show="completedSteps === totalSteps">Begin Measurement &#8594;</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </template>
+
+  <!-- ── NEW SESSION MODAL ──────────────────────────────────────────────── -->
+  <template x-if="showNewSession">
+    <div class="modal-backdrop" @click.self="showNewSession = false">
+      <div class="modal">
+        <h3>Start New Session</h3>
+        <div class="form-group">
+          <label>Mode</label>
+          <select x-model="newSession.mode">
+            <option value="QA">QA — Standardized measurement (ISO)</option>
+            <option value="PIV">PIV — Programmed Image Validation</option>
+            <option value="Research">Research — Experimental / freeform</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Camera</label>
+          <select x-model="newSession.camera_id">
+            <option value="">— none / manual selection later —</option>
+            <template x-for="cam in cameras" :key="cam.id">
+              <option :value="cam.id" x-text="`${cam.name} (${cam.online ? '✓ online' : '✗ offline'})`"></option>
+            </template>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Chart Type</label>
+          <input type="text" x-model="newSession.chart_type" placeholder="e.g. TE42-LL, TE251, TE264" />
+        </div>
+        <div class="form-group">
+          <label>Rail Stop</label>
+          <select x-model="newSession.rail_stop">
+            <option value="">— not set —</option>
+            <option value="1">Stop 1 — 1.0 m (ultra-wide)</option>
+            <option value="2">Stop 2 — 2.0 m (primary)</option>
+            <option value="3">Stop 3 — 4.5 m (telephoto)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Operator</label>
+          <input type="text" x-model="newSession.operator" placeholder="Jack" />
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea x-model="newSession.notes" rows="2" placeholder="Optional session notes..."></textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+          <button class="btn-secondary" @click="showNewSession = false">Cancel</button>
+          <button class="btn-primary" @click="startSession()">Start Session</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+</div><!-- /app -->
+
+<script>
+function olb() {
+  return {
+    // ── State ────────────────────────────────────────────────────────────
+    clock: '',
+    cameras: [],
+    activeCameraId: null,
+    previewUrl: null,
+    previewError: false,
+    capturing: false,
+    captureLabel: '',
+
+    activeSession: null,
+    activeTab: 'session',
+
+    showNewSession: false,
+    newSession: { mode: 'QA', camera_id: '', chart_type: '', rail_stop: '', operator: 'Jack', notes: '' },
+
+    showProtocolGate: false,
+    protocolDebugBypass: false,
+
+    logMessage: '',
+    logLevel: 'info',
+
+    captures: [],
+    selectedCapture: null,
+
+    analysisCaptureId: '',
+    analysisEngine: 'custom',
+    analysisProfile: '',
+    analysisRunning: false,
+    analysisRuns: [],
+    selectedRun: null,
+    selectedTestId: null,
+    testRegistry: [],
+    chartGuide: null,
+    roiPreset: 'quad4',
+
+    history: [],
+    expandHistory: null,
+
+    chartDetection: null,
+    chartDetecting: false,
+
+    // ── IQ Manual Entry ──────────────────────────────────────────────────
+    iq: {
+      cameraId: '', customCam: '', date: '', stop: '', chart: '', serial: '', notes: '',
+      lux: '', cct: '', cri: '',
+      mtf50c: '', mtf50e: '', mtf50k: '',
+      mtf30c: '', mtf30e: '', mtf30k: '',
+      mtf10c: '', mtf10e: '', mtf10k: '',
+      acutance: '', alias: '',
+      tvdist: '', maxdist: '', disttype: '', ca: '',
+      gamma: '', dr: '', black: '', white: '',
+      snr100: '', snr800: '', snr3200: '',
+      prnu: '', fpn: '', vignette: '',
+    },
+    iqSessions: {},     // { [camId]: [{id, ...fields}] }
+    iqCurrentId: null,
+    iqSaveMsg: '',
+    _iqCharts: {},
+
+    // ── Init ─────────────────────────────────────────────────────────────
+    async init() {
+      this.startClock();
+      await this.refreshCameras();
+      await this.refreshActiveSession();
+      await this.loadCaptures();
+      await this.loadTests();
+      // Poll for session + analysis updates every 5s
+      setInterval(() => this.refreshActiveSession(), 5000);
+      setInterval(() => { if (this.activeTab === 'analysis' && this.analysisCaptureId) this.loadAnalysisRuns(); }, 4000);
+    },
+
+    startClock() {
+      const tick = () => {
+        const d = new Date();
+        this.clock = d.toLocaleTimeString('en-US', { hour12: false }) + '  ' +
+          d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+      };
+      tick();
+      setInterval(tick, 1000);
+    },
+
+    // ── Cameras ──────────────────────────────────────────────────────────
+    async refreshCameras() {
+      try {
+        const r = await fetch('/cameras');
+        this.cameras = await r.json();
+        // Auto-select first online camera, otherwise first camera
+        if (!this.activeCameraId && this.cameras.length > 0) {
+          const online = this.cameras.find(c => c.online);
+          this.selectCamera((online || this.cameras[0]).id);
+        } else if (this.activeCameraId && this.activeCamera?.online && !this._previewTimer) {
+          this.startPreviewPolling();
+        }
+      } catch (e) { console.error('Camera refresh failed:', e); }
+    },
+
+    selectCamera(id) {
+      this.stopPreviewPolling();
+      this.activeCameraId = id;
+      this.previewError = false;
+      this.previewUrl = null;
+      const cam = this.cameras.find(c => c.id === id);
+      if (cam?.online) this.startPreviewPolling();
+    },
+
+    get activeCamera() {
+      return this.cameras.find(c => c.id === this.activeCameraId) || null;
+    },
+
+    startPreviewPolling() {
+      this.stopPreviewPolling();
+      const tick = () => {
+        if (this.activeCameraId && this.activeCamera?.online) {
+          this.previewUrl = `/cameras/${this.activeCameraId}/preview?t=${Date.now()}`;
+        }
+      };
+      tick();
+      this._previewTimer = setInterval(tick, 1500);
+    },
+
+    stopPreviewPolling() {
+      if (this._previewTimer) { clearInterval(this._previewTimer); this._previewTimer = null; }
+    },
+
+    refreshSnapshot() {
+      if (!this.activeCameraId) return;
+      this.previewUrl = `/cameras/${this.activeCameraId}/preview?t=${Date.now()}`;
+    },
+
+    async probeCamera() {
+      if (!this.activeCameraId) return;
+      const r = await fetch(`/cameras/${this.activeCameraId}/probe`);
+      const data = await r.json();
+      // Show results in a readable alert (open in new tab for full view)
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    },
+
+    // ── Capture ──────────────────────────────────────────────────────────
+    async triggerCapture() {
+      if (!this.activeCameraId) return;
+      this.capturing = true;
+      try {
+        const body = {
+          session_id: this.activeSession?.id || null,
+          label: this.captureLabel || null,
+          rail_stop: this.activeSession?.rail_stop || null,
+        };
+        const r = await fetch(`/captures/${this.activeCameraId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (r.ok) {
+          const cap = await r.json();
+          this.captures.unshift(cap);
+          this.captureLabel = '';
+          if (this.activeSession) await this.refreshActiveSession();
+        } else {
+          alert('Capture failed: ' + (await r.text()));
+        }
+      } finally {
+        this.capturing = false;
+      }
+    },
+
+    async loadCaptures() {
+      try {
+        const sessionParam = this.activeSession ? `?session_id=${this.activeSession.id}` : '';
+        const r = await fetch(`/captures${sessionParam}`);
+        this.captures = await r.json();
+      } catch (e) { console.error('Load captures failed:', e); }
+    },
+
+    selectCapture(cap) {
+      this.selectedCapture = cap;
+      this.analysisCaptureId = cap.id;
+    },
+
+    // ── Session ──────────────────────────────────────────────────────────
+    async refreshActiveSession() {
+      try {
+        const r = await fetch('/sessions/active');
+        const data = await r.json();
+        this.activeSession = data;
+      } catch (e) { console.error('Session refresh failed:', e); }
+    },
+
+    async startSession() {
+      const body = {
+        mode: this.newSession.mode,
+        camera_id: this.newSession.camera_id || null,
+        chart_type: this.newSession.chart_type || null,
+        rail_stop: this.newSession.rail_stop ? parseInt(this.newSession.rail_stop) : null,
+        operator: this.newSession.operator || 'Jack',
+        notes: this.newSession.notes || null,
+      };
+      const r = await fetch('/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (r.ok) {
+        this.activeSession = await r.json();
+        this.showNewSession = false;
+        this.newSession = { mode: 'QA', camera_id: '', chart_type: '', rail_stop: '', operator: 'Jack', notes: '' };
+        this.activeTab = 'session';
+        // Show protocol gate immediately — operator must clear steps before measuring
+        this.protocolDebugBypass = false;
+        this.showProtocolGate = true;
+        await this.loadCaptures();
+      } else {
+        alert('Failed to start session: ' + (await r.text()));
+      }
+    },
+
+    async endSession() {
+      if (!this.activeSession) return;
+      if (!confirm('End this session?')) return;
+      await fetch(`/sessions/${this.activeSession.id}/end`, { method: 'PUT' });
+      await this.refreshActiveSession();
+      await this.loadCaptures();
+    },
+
+    async toggleStep(step) {
+      if (!this.activeSession || step.completed) return;
+      await fetch(`/sessions/${this.activeSession.id}/steps/${step.step_num}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: null }),
+      });
+      await this.refreshActiveSession();
+    },
+
+    // Same as toggleStep but used inside the protocol gate modal
+    async gateToggleStep(step) {
+      if (!this.activeSession || step.completed) return;
+      await fetch(`/sessions/${this.activeSession.id}/steps/${step.step_num}/complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: null }),
+      });
+      await this.refreshActiveSession();
+      // If all steps now complete, briefly highlight the proceed button
+    },
+
+    async addLog() {
+      if (!this.activeSession || !this.logMessage.trim()) return;
+      await fetch(`/sessions/${this.activeSession.id}/log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: this.logMessage, level: this.logLevel }),
+      });
+      this.logMessage = '';
+      await this.refreshActiveSession();
+    },
+
+    get completedSteps() {
+      return this.activeSession?.steps?.filter(s => s.completed).length || 0;
+    },
+    get totalSteps() {
+      return this.activeSession?.steps?.length || 0;
+    },
+
+    // ── Analysis ─────────────────────────────────────────────────────────
+    get selectedTest() {
+      return this.testRegistry.find(t => t.id === this.selectedTestId) || null;
+    },
+
+    async loadTests() {
+      try {
+        const r = await fetch('/tests');
+        this.testRegistry = await r.json();
+      } catch (e) { console.error('Failed to load test registry:', e); }
+    },
+
+    async selectTest(testId) {
+      this.selectedTestId = testId;
+      this.analysisProfile = '';
+      // If current engine has no script for this test, fall back to Python
+      const test = this.testRegistry.find(t => t.id === testId);
+      if (this.analysisEngine === 'matlab' && !test?.engines?.matlab) {
+        this.analysisEngine = 'custom';
+      }
+      // Load chart guide for the test's required chart
+      const chartId = test?.chart_id;
+      if (chartId) {
+        try {
+          const r = await fetch(`/charts/${chartId}`);
+          this.chartGuide = r.ok ? await r.json() : null;
+        } catch (e) { this.chartGuide = null; }
+      } else {
+        this.chartGuide = null;
+      }
+    },
+
+    pythonEngineDescription(module) {
+      const desc = {
+        sfr:         'Slanted-edge MTF estimation (ISO 12233 simplified) — detects strongest edge, computes ESF/LSF/FFT, returns MTF50 and MTF30. ',
+        noise:       'Single-frame noise estimate — samples flat region near median, reports σ DN, SNR (dB), and dynamic range (stops). ',
+        uniformity:  '3×3 zone luminance map — reports mean DN per zone and corner/center ratio (%). ',
+        tonal:       'Tonal statistics — histogram spread, clipping percentages, min/max DN. ',
+        distortion:  'Dot-grid distortion detection not yet implemented in Python. ',
+      };
+      return desc[module] || 'Runs built-in Python metrics. ';
+    },
+
+    async runAnalysis() {
+      if (!this.analysisCaptureId || !this.selectedTestId) return;
+      this.analysisRunning = true;
+      try {
+        const r = await fetch(`/analysis/${this.analysisCaptureId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            engine:    this.analysisEngine,
+            test_id:   this.selectedTestId,
+            profile:   this.analysisProfile || null,
+            roi_preset: this.roiPreset,
+          }),
+        });
+        if (r.ok) {
+          await this.loadAnalysisRuns();
+          const poll = setInterval(async () => {
+            await this.loadAnalysisRuns();
+            const run = this.analysisRuns[0];
+            if (run && (run.status === 'completed' || run.status === 'failed')) {
+              clearInterval(poll);
+              this.analysisRunning = false;
+            }
+          }, 2000);
+        } else {
+          alert('Analysis submission failed: ' + (await r.text()));
+          this.analysisRunning = false;
+        }
+      } catch (e) {
+        this.analysisRunning = false;
+        console.error(e);
+      }
+    },
+
+    async loadAnalysisRuns() {
+      if (!this.analysisCaptureId) return;
+      try {
+        const r = await fetch(`/analysis/${this.analysisCaptureId}`);
+        this.analysisRuns = await r.json();
+        // Auto-expand the most recent completed run
+        if (this.analysisRuns.length > 0 && !this.selectedRun) {
+          const done = this.analysisRuns.find(r => r.status === 'completed');
+          if (done) this.selectedRun = done;
+        }
+      } catch (e) { console.error('Load analysis runs failed:', e); }
+    },
+
+    // ── Chart detection ──────────────────────────────────────────────────
+    async detectChart(captureId) {
+      if (!captureId || this.chartDetecting) return;
+      this.chartDetecting = true;
+      this.chartDetection = null;
+      try {
+        const r = await fetch(`/analysis/detect-chart/${captureId}`);
+        if (r.ok) {
+          const data = await r.json();
+          data._captureId = captureId;   // tag so templates know which capture this is for
+          this.chartDetection = data;
+          // Auto-select the first recommended test if none is selected yet
+          if (!this.selectedTestId && data.recommended_tests?.length > 0) {
+            await this.selectTest(data.recommended_tests[0]);
+          }
+        } else {
+          this.chartDetection = { present: false, _captureId: captureId,
+                                   features: { reason: 'Server error: ' + r.status } };
+        }
+      } catch (e) {
+        this.chartDetection = { present: false, _captureId: captureId,
+                                 features: { reason: 'Request failed' } };
+        console.error('Chart detection failed:', e);
+      } finally {
+        this.chartDetecting = false;
+      }
+    },
+
+    // ── IQ Manual Entry ──────────────────────────────────────────────────
+    iqOnTabOpen() {
+      if (!this.iq.date) this.iq.date = new Date().toISOString().slice(0, 10);
+      this._iqLoadStore();
+      this.$nextTick(() => { this._iqInitCharts(); this.iqUpdate(); });
+    },
+
+    _iqStoreKey: 'usgs_olb_iq_v1',
+
+    _iqLoadStore() {
+      try { this.iqSessions = JSON.parse(localStorage.getItem(this._iqStoreKey)) || {}; }
+      catch(e) { this.iqSessions = {}; }
+    },
+
+    _iqSaveStore() {
+      localStorage.setItem(this._iqStoreKey, JSON.stringify(this.iqSessions));
+    },
+
+    get iqCamKey() {
+      return this.iq.cameraId === '__custom__' ? (this.iq.customCam || '__custom__') : (this.iq.cameraId || '__none__');
+    },
+
+    get iqSessionsForCamera() {
+      return (this.iqSessions[this.iqCamKey] || []).slice().reverse();
+    },
+
+    iqLoadLatestForCamera() {
+      this._iqLoadStore();
+      const list = this.iqSessions[this.iqCamKey] || [];
+      if (list.length) {
+        this.iqCurrentId = list[list.length - 1].id;
+        this.iqLoadSession(this.iqCurrentId);
+      } else {
+        this.iqCurrentId = null;
+        this._iqResetForm();
+      }
+      this.$nextTick(() => this.iqUpdate());
+    },
+
+    iqLoadSession(id) {
+      if (!id) { this.iqCurrentId = null; this._iqResetForm(); this.$nextTick(() => this.iqUpdate()); return; }
+      const list = this.iqSessions[this.iqCamKey] || [];
+      const s = list.find(x => x.id === id);
+      if (s) {
+        Object.assign(this.iq, s);
+        this.iqCurrentId = id;
+        this.$nextTick(() => this.iqUpdate());
+      }
+    },
+
+    _iqResetForm() {
+      const keep = { cameraId: this.iq.cameraId, customCam: this.iq.customCam };
+      Object.keys(this.iq).forEach(k => { if (k !== 'cameraId' && k !== 'customCam') this.iq[k] = ''; });
+      this.iq.date = new Date().toISOString().slice(0, 10);
+      Object.assign(this.iq, keep);
+    },
+
+    iqSave() {
+      const camKey = this.iqCamKey;
+      if (!camKey || camKey === '__none__') { this.iqSaveMsg = '⚠ Select a camera first'; setTimeout(() => this.iqSaveMsg = '', 3000); return; }
+      if (!this.iqSessions[camKey]) this.iqSessions[camKey] = [];
+      const list = this.iqSessions[camKey];
+      const id = this.iqCurrentId || ('iq_' + Date.now());
+      const entry = { ...this.iq, id };
+      const idx = list.findIndex(x => x.id === id);
+      if (idx >= 0) list[idx] = entry; else list.push(entry);
+      this.iqCurrentId = id;
+      this._iqSaveStore();
+      this.iqSaveMsg = '✓ Saved';
+      setTimeout(() => this.iqSaveMsg = '', 2500);
+    },
+
+    iqDelete() {
+      if (!this.iqCurrentId) return;
+      if (!confirm('Delete this entry?')) return;
+      const camKey = this.iqCamKey;
+      if (this.iqSessions[camKey]) {
+        this.iqSessions[camKey] = this.iqSessions[camKey].filter(x => x.id !== this.iqCurrentId);
+        this._iqSaveStore();
+      }
+      this.iqCurrentId = null;
+      this._iqResetForm();
+      this.$nextTick(() => this.iqUpdate());
+    },
+
+    iqExportCSV() {
+      const camKey = this.iqCamKey;
+      const list = this.iqSessions[camKey] || [];
+      if (!list.length) { alert('No entries saved for this camera yet.'); return; }
+      const keys = Object.keys(list[0]).filter(k => k !== 'id');
+      const rows = [['camera', 'session_id', ...keys].join(',')];
+      list.forEach(s => {
+        rows.push([camKey, s.id, ...keys.map(k => `"${String(s[k]||'').replace(/"/g,'""')}"`  )].join(','));
+      });
+      const blob = new Blob([rows.join('\r\n')], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `IQ_${camKey.replace(/[^a-z0-9]/gi,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    },
+
+    // ── KPIs ─────────────────────────────────────────────────────────────
+    get iqKPIs() {
+      const n = v => { const x = parseFloat(v); return isNaN(x) ? null : x; };
+      const kpis = [];
+      const m50c = n(this.iq.mtf50c);
+      if (m50c !== null) kpis.push({ value: m50c.toFixed(3), label: 'MTF50 Center\ncy/px', cls: m50c >= 0.30 ? 'green' : m50c >= 0.20 ? 'amber' : 'red' });
+      const m50k = n(this.iq.mtf50k);
+      if (m50c && m50k !== null) { const r = Math.round(m50k/m50c*100); kpis.push({ value: r + '%', label: 'MTF50 Corner\nvs Center', cls: r >= 70 ? 'green' : r >= 50 ? 'amber' : 'red' }); }
+      const tvd = n(this.iq.tvdist);
+      if (tvd !== null) kpis.push({ value: (tvd>0?'+':'')+tvd.toFixed(2)+'%', label: 'TV Distortion', cls: Math.abs(tvd) <= 1 ? 'green' : Math.abs(tvd) <= 3 ? 'amber' : 'red' });
+      const gam = n(this.iq.gamma);
+      if (gam !== null) kpis.push({ value: gam.toFixed(2), label: 'Gamma\n(target 2.2)', cls: Math.abs(gam-2.2) <= 0.15 ? 'green' : Math.abs(gam-2.2) <= 0.3 ? 'amber' : 'red' });
+      const dr = n(this.iq.dr);
+      if (dr !== null) kpis.push({ value: dr.toFixed(1), label: 'Dynamic Range\nstops', cls: dr >= 10 ? 'green' : dr >= 8 ? 'amber' : 'red' });
+      const snr = n(this.iq.snr100);
+      if (snr !== null) kpis.push({ value: snr.toFixed(1)+' dB', label: 'SNR ISO 100', cls: snr >= 40 ? 'green' : snr >= 32 ? 'amber' : 'red' });
+      const vig = n(this.iq.vignette);
+      if (vig !== null) kpis.push({ value: vig.toFixed(0)+'%', label: 'Uniformity\ncorner/center', cls: vig >= 85 ? 'green' : vig >= 70 ? 'amber' : 'red' });
+      const al = this.iq.alias;
+      if (al) kpis.push({ value: al === 'None' ? 'None' : al, label: 'Sharpening\nArtifact', cls: al === 'None' ? 'green' : al === 'Slight' ? 'amber' : 'red' });
+      return kpis;
+    },
+
+    // ── Charts ────────────────────────────────────────────────────────────
+    _iqInitCharts() {
+      const dark = '#0b0d14', grid = '#252a3d', dim = '#7a80a0';
+      const base = { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: dim, font: { size: 10 }, boxWidth: 10 } }, tooltip: { titleFont: { size: 10 }, bodyFont: { size: 10 } } },
+        scales: {
+          x: { ticks: { color: dim, font: { size: 10 } }, grid: { color: grid } },
+          y: { ticks: { color: dim, font: { size: 10 } }, grid: { color: grid } }
+        }
+      };
+      const mk = (id, cfg) => {
+        const el = document.getElementById(id); if (!el) return;
+        if (this._iqCharts[id]) { this._iqCharts[id].destroy(); }
+        this._iqCharts[id] = new Chart(el, cfg);
+      };
+
+      // MTF bar
+      mk('iq-chart-mtf', { type: 'bar', data: {
+        labels: ['Center', 'Edge', 'Corner'],
+        datasets: [
+          { label: 'MTF50', data: [0,0,0], backgroundColor: 'rgba(74,127,255,.7)', borderColor: '#4a7fff', borderWidth: 1 },
+          { label: 'MTF30', data: [0,0,0], backgroundColor: 'rgba(34,201,122,.5)', borderColor: '#22c97a', borderWidth: 1 },
+          { label: 'MTF10', data: [0,0,0], backgroundColor: 'rgba(159,122,234,.4)', borderColor: '#9f7aea', borderWidth: 1 },
+        ]
+      }, options: { ...JSON.parse(JSON.stringify(base)),
+        plugins: { ...base.plugins,
+          annotation: {},
+          legend: { ...base.plugins.legend }
+        },
+        scales: { ...base.scales,
+          y: { ...base.scales.y, min: 0, max: 0.55, title: { display: true, text: 'cy/px', color: dim, font: { size: 9 } } }
+        }
+      }});
+
+      // Field uniformity line
+      mk('iq-chart-field', { type: 'line', data: {
+        labels: ['Center (0%)', 'Edge (50%)', 'Corner (100%)'],
+        datasets: [{ label: 'MTF50 relative', data: [null,null,null], borderColor: '#4a7fff', backgroundColor: 'rgba(74,127,255,.1)', tension: 0.3, pointRadius: 5, pointBackgroundColor: '#4a7fff', fill: true }]
+      }, options: { ...JSON.parse(JSON.stringify(base)),
+        scales: { ...base.scales,
+          y: { ...base.scales.y, min: 0, max: 1.1, title: { display: true, text: 'ratio vs center', color: dim, font: { size: 9 } } }
+        }
+      }});
+
+      // Distortion line
+      mk('iq-chart-dist', { type: 'line', data: {
+        labels: ['0%', '25%', '50%', '75%', '100%'],
+        datasets: [{ label: 'Distortion %', data: [null,null,null,null,null], borderColor: '#9f7aea', backgroundColor: 'rgba(159,122,234,.1)', tension: 0.3, pointRadius: 4, fill: true }]
+      }, options: { ...JSON.parse(JSON.stringify(base)),
+        scales: { ...base.scales,
+          y: { ...base.scales.y, title: { display: true, text: 'distortion %', color: dim, font: { size: 9 } } }
+        }
+      }});
+
+      // SNR bar
+      mk('iq-chart-snr', { type: 'bar', data: {
+        labels: ['ISO 100', 'ISO 800', 'ISO 3200'],
+        datasets: [{ label: 'SNR (dB)', data: [null,null,null], backgroundColor: ['rgba(34,201,122,.65)','rgba(245,166,35,.65)','rgba(240,64,96,.65)'], borderColor: ['#22c97a','#f5a623','#f04060'], borderWidth: 1 }]
+      }, options: { ...JSON.parse(JSON.stringify(base)),
+        scales: { ...base.scales,
+          y: { ...base.scales.y, title: { display: true, text: 'dB', color: dim, font: { size: 9 } } }
+        }
+      }});
+    },
+
+    iqUpdate() {
+      const n = v => { const x = parseFloat(v); return isNaN(x) ? null : x; };
+      const ch = this._iqCharts;
+
+      // MTF bar
+      if (ch['iq-chart-mtf']) {
+        ch['iq-chart-mtf'].data.datasets[0].data = [n(this.iq.mtf50c), n(this.iq.mtf50e), n(this.iq.mtf50k)];
+        ch['iq-chart-mtf'].data.datasets[1].data = [n(this.iq.mtf30c), n(this.iq.mtf30e), n(this.iq.mtf30k)];
+        ch['iq-chart-mtf'].data.datasets[2].data = [n(this.iq.mtf10c), n(this.iq.mtf10e), n(this.iq.mtf10k)];
+        ch['iq-chart-mtf'].update('none');
+      }
+
+      // Field uniformity (MTF50 relative)
+      if (ch['iq-chart-field']) {
+        const c = n(this.iq.mtf50c), e = n(this.iq.mtf50e), k = n(this.iq.mtf50k);
+        ch['iq-chart-field'].data.datasets[0].data = [c ? 1.0 : null, (c && e) ? e/c : null, (c && k) ? k/c : null];
+        ch['iq-chart-field'].update('none');
+      }
+
+      // Distortion — synthesize curve from tvdist + maxdist
+      if (ch['iq-chart-dist']) {
+        const tv = n(this.iq.tvdist), mx = n(this.iq.maxdist);
+        let pts = [null,null,null,null,null];
+        if (tv !== null || mx !== null) {
+          pts[0] = 0;
+          pts[2] = tv !== null ? tv * 0.6 : null;
+          pts[4] = mx !== null ? mx : (tv !== null ? tv * 1.2 : null);
+          pts[1] = (pts[0] !== null && pts[2] !== null) ? (pts[0]+pts[2])/2 : null;
+          pts[3] = (pts[2] !== null && pts[4] !== null) ? (pts[2]+pts[4])/2 : null;
+        }
+        ch['iq-chart-dist'].data.datasets[0].data = pts;
+        ch['iq-chart-dist'].update('none');
+      }
+
+      // SNR
+      if (ch['iq-chart-snr']) {
+        ch['iq-chart-snr'].data.datasets[0].data = [n(this.iq.snr100), n(this.iq.snr800), n(this.iq.snr3200)];
+        ch['iq-chart-snr'].update('none');
+      }
+    },
+
+    // ── History ──────────────────────────────────────────────────────────
+    async loadHistory() {
+      try {
+        const r = await fetch('/sessions?limit=100');
+        this.history = await r.json();
+      } catch (e) { console.error('Load history failed:', e); }
+    },
+
+    // ── Formatters ────────────────────────────────────────────────────────
+    fmtTime(iso) {
+      if (!iso) return '—';
+      const d = new Date(iso);
+      return d.toLocaleString('en-US', {
+        month: 'short', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+      });
+    },
+
+    fmtDuration(start, end) {
+      if (!start || !end) return '—';
+      const ms = new Date(end) - new Date(start);
+      const s = Math.floor(ms / 1000);
+      if (s < 60) return `${s}s`;
+      const m = Math.floor(s / 60), rem = s % 60;
+      return `${m}m ${rem}s`;
+    },
+  };
+}
+</script>
+</body>
+</html>

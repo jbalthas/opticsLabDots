@@ -81,6 +81,8 @@
       font-size: 10px; color: #888; white-space: nowrap; width: 108px; flex-shrink: 0;
     }
     .row input[type=range]  { flex: 1; accent-color: #4af; cursor: pointer; }
+    .row input[type=color]  { flex: 1; height: 22px; border: 1px solid #2e2e2e; border-radius: 3px;
+      background: #0d0d0d; cursor: pointer; padding: 1px 2px; }
     .row input[type=number] {
       width: 64px; flex-shrink: 0;
       background: #0d0d0d; border: 1px solid #2e2e2e; color: #4af;
@@ -195,6 +197,173 @@
     body.placing { cursor: crosshair; }
     body.cursor-hidden,
     body.cursor-hidden * { cursor: none !important; }
+
+    /* ── Password modal ─────────────────────────────────────────── */
+    #qaPasswordModal {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.88);
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+    #qaPasswordModal.active { display: flex; }
+    #qaPasswordBox {
+      background: #0a0a0a; border: 1px solid #2a2a2a;
+      border-radius: 6px; padding: 28px 32px; width: 300px;
+      text-align: center;
+    }
+    #qaPasswordBox h3 { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #4af; margin-bottom: 6px; }
+    #qaPasswordBox p  { font-size: 9px; color: #444; letter-spacing: 1px; margin-bottom: 18px; line-height: 1.6; }
+    #qaPasswordInput {
+      width: 100%; background: #0d0d0d; border: 1px solid #2e2e2e; color: #e0e0e0;
+      font-family: inherit; font-size: 14px; padding: 8px 12px;
+      border-radius: 3px; text-align: center; letter-spacing: 4px;
+      transition: border-color 0.15s; margin-bottom: 10px;
+    }
+    #qaPasswordInput:focus { outline: none; border-color: #4af; }
+    #qaPasswordInput.shake { animation: qaShake 0.3s; border-color: #f44; }
+    @keyframes qaShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+    #qaPasswordError { font-size: 9px; color: #f44; min-height: 14px; letter-spacing: 1px; margin-bottom: 10px; }
+    .qa-modal-btn {
+      width: 100%; background: #0d0d0d; border: 1px solid #2e2e2e; color: #888;
+      font-family: inherit; font-size: 10px; letter-spacing: 1.5px;
+      padding: 8px; border-radius: 3px; cursor: pointer;
+      text-transform: uppercase; transition: all 0.15s; margin-top: 4px;
+    }
+    .qa-modal-btn.primary { border-color: #4af; color: #4af; }
+    .qa-modal-btn.primary:hover { background: #0a1a2a; }
+    .qa-modal-btn:not(.primary):hover { border-color: #555; color: #ccc; }
+
+    /* ── QA Panel (left side) ────────────────────────────────────── */
+    #qaPanel {
+      position: fixed; top: 12px; left: 12px;
+      width: 360px; max-height: calc(100vh - 24px);
+      overflow-y: auto;
+      background: rgba(8,8,8,0.93); border: 1px solid #2a2a2a;
+      border-radius: 6px; z-index: 100;
+      backdrop-filter: blur(6px);
+      display: none;
+      scrollbar-width: thin; scrollbar-color: #222 transparent;
+    }
+    #qaPanel::-webkit-scrollbar { width: 4px; }
+    #qaPanel::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+    #qaPanel-header {
+      position: sticky; top: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px 8px; border-bottom: 1px solid #1e1e1e;
+      background: rgba(8,8,8,0.97); z-index: 1;
+    }
+    #qaPanel-header h2 { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #4af; }
+    #qaPanel-close {
+      background: none; border: none; color: #444; font-size: 16px;
+      line-height: 1; cursor: pointer; padding: 0 2px; transition: color 0.15s;
+    }
+    #qaPanel-close:hover { color: #ccc; }
+    #qaPanel-body { padding: 12px 14px 14px; }
+
+    .qa-summary {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 6px;
+      margin-bottom: 12px; padding-bottom: 10px;
+      border-bottom: 1px solid #181818;
+    }
+    .qa-sum-cell { text-align: center; }
+    .qa-sum-cell .val { font-size: 20px; font-weight: bold; }
+    .qa-sum-cell .lbl { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: #333; }
+    .qa-pass .val { color: #3c3; }
+    .qa-fail .val { color: #f44; }
+    .qa-total .val { color: #4af; }
+
+    .qa-test-row {
+      border: 1px solid #1e1e1e; border-radius: 4px;
+      margin-bottom: 7px; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .qa-test-row.is-active { border-color: #4af; }
+    .qa-test-row.is-pass   { border-color: #2a4a2a; }
+    .qa-test-row.is-fail   { border-color: #4a1a1a; }
+
+    .qa-test-hdr {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; background: #080808; cursor: pointer;
+      user-select: none;
+    }
+    .qa-tid  { font-size: 9px; color: #3a3a3a; letter-spacing: 1px; width: 26px; flex-shrink: 0; }
+    .qa-tname { font-size: 10px; color: #aaa; flex: 1; letter-spacing: 0.5px; }
+    .qa-badge {
+      font-size: 8px; letter-spacing: 1px; text-transform: uppercase;
+      padding: 2px 6px; border-radius: 2px; flex-shrink: 0;
+    }
+    .badge-pending { color: #333; }
+    .badge-active  { color: #4af; background: #0a1a2a; border: 1px solid #1a3a5a; }
+    .badge-pass    { color: #3c3; background: #0a1a0a; border: 1px solid #1a3a1a; }
+    .badge-fail    { color: #f44; background: #1a0808; border: 1px solid #3a1a1a; }
+
+    .qa-test-detail {
+      padding: 8px 10px 10px; border-top: 1px solid #111;
+      background: #050505;
+    }
+    .qa-desc      { font-size: 9px; color: #444; margin-bottom: 6px; line-height: 1.6; }
+    .qa-criterion { font-size: 9px; color: #2a5a2a; margin-bottom: 8px; }
+    .qa-result    { font-size: 9px; color: #555; line-height: 1.8; margin-bottom: 8px; }
+    .qa-run-btn {
+      background: #0d0d0d; border: 1px solid #2e2e2e; color: #888;
+      font-family: inherit; font-size: 9px; letter-spacing: 1.5px;
+      padding: 5px 10px; border-radius: 3px; cursor: pointer;
+      text-transform: uppercase; transition: all 0.15s; margin-right: 6px;
+    }
+    .qa-run-btn:hover { border-color: #4af; color: #4af; }
+    .qa-log-btn {
+      background: #0a140a; border: 1px solid #1e3a1e; color: #3c3;
+      font-family: inherit; font-size: 9px; letter-spacing: 1.5px;
+      padding: 5px 10px; border-radius: 3px; cursor: pointer;
+      text-transform: uppercase; transition: all 0.15s;
+    }
+    .qa-log-btn:hover { background: #0a1e0a; }
+
+    #qa-error-msg {
+      font-size: 9px; color: #f44; letter-spacing: 0.5px;
+      min-height: 14px; margin-bottom: 8px; opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .qa-export-btn {
+      width: 100%; background: #0d0d0d; border: 1px solid #1e1e1e; color: #555;
+      font-family: inherit; font-size: 9px; letter-spacing: 1.5px;
+      padding: 7px; border-radius: 3px; cursor: pointer;
+      text-transform: uppercase; transition: all 0.15s; margin-top: 6px;
+    }
+    .qa-export-btn:hover { border-color: #4af; color: #4af; }
+
+    /* ── Cursor velocity probe ───────────────────────────────────── */
+    #cursorProbe {
+      position: fixed; pointer-events: none; z-index: 200;
+      background: rgba(0,0,0,0.88); border: 1px solid #2a2a2a;
+      border-radius: 4px; padding: 7px 11px; font-size: 9px;
+      letter-spacing: 0.5px; line-height: 1.8; color: #888;
+      display: none; white-space: nowrap;
+    }
+    #cursorProbe.visible { display: block; }
+    #cursorProbe .cp-label { color: #3a3a3a; font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; }
+    #cursorProbe .cp-val   { color: #4af; }
+    #cursorProbe .cp-ms    { color: #8cf; font-weight: bold; }
+
+    /* ── Colorbar ────────────────────────────────────────────────── */
+    #colorbar {
+      position: fixed; bottom: 130px; left: 50%; transform: translateX(-50%);
+      display: none; align-items: center; gap: 8px; z-index: 100; pointer-events: none;
+    }
+    #colorbar.visible { display: flex; }
+    #colorbar .cb-label { font-size: 8px; color: #444; letter-spacing: 1px; white-space: nowrap; }
+    #colorbar canvas { border-radius: 2px; }
+
+    /* ── Extended truth bar row3 ─────────────────────────────────── */
+    #truth .row3 {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 0 10px; padding-top: 10px;
+      border-top: 1px solid #181818; margin-top: 10px;
+      display: none;
+    }
+    #truth .row3.visible { display: grid; }
+    .gt-profile .number { color: #fa0; font-size: 13px; }
+    .gt-profile .name   { color: #333; }
   </style>
 </head>
 <body>
@@ -208,6 +377,37 @@
 
 <canvas id="canvas"></canvas>
 <div id="paused">PAUSED</div>
+
+<!-- ── Password Modal ─────────────────────────────────────────── -->
+<div id="qaPasswordModal">
+  <div id="qaPasswordBox">
+    <h3>QA Suite</h3>
+    <p>PIV Ground Truth — Algorithm Validation<br>Enter lab password to unlock.</p>
+    <input type="password" id="qaPasswordInput" placeholder="· · · · · · ·" autocomplete="off">
+    <div id="qaPasswordError"></div>
+    <button class="qa-modal-btn primary" id="qaPasswordSubmit">Unlock</button>
+    <button class="qa-modal-btn" id="qaPasswordCancel" style="margin-top:6px; font-size:9px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ── QA Panel (left) ────────────────────────────────────────── -->
+<div id="qaPanel">
+  <div id="qaPanel-header">
+    <h2>PIV QA Suite</h2>
+    <button id="qaPanel-close">✕</button>
+  </div>
+  <div id="qaPanel-body">
+    <div class="section-label" style="color:#4af; margin-bottom:10px;">Algorithm Validation</div>
+    <div class="qa-summary">
+      <div class="qa-sum-cell qa-pass"><div class="val" id="qa-pass-count">0</div><div class="lbl">Pass</div></div>
+      <div class="qa-sum-cell qa-fail"><div class="val" id="qa-fail-count">0</div><div class="lbl">Fail</div></div>
+      <div class="qa-sum-cell qa-total"><div class="val" id="qa-total-count">0</div><div class="lbl">Logged</div></div>
+    </div>
+    <div id="qa-error-msg"></div>
+    <div id="qa-tests-container"></div>
+    <button class="qa-export-btn" id="qa-export-btn">⬇ Export Results CSV</button>
+  </div>
+</div>
 <div id="pairBadge">FRAME PAIR &nbsp;·&nbsp; <span class="a">■ A</span> &nbsp;·&nbsp; <span class="b">■ B</span> &nbsp;·&nbsp; [C] exit</div>
 
 <!-- ── Control Panel ──────────────────────────────────────────── -->
@@ -335,6 +535,14 @@
       <label>Brightness</label>
       <input type="range" id="brightSlider" min="50" max="255" step="1" value="220">
       <input type="number" id="brightNum" value="220">
+    </div>
+    <div class="row">
+      <label>Background</label>
+      <input type="color" id="bgColorPicker" value="#000000">
+    </div>
+    <div class="row">
+      <label>Dot color</label>
+      <input type="color" id="dotColorPicker" value="#ffffff">
     </div>
     <div class="row" style="margin-top:-2px;">
       <label style="color:#3a3a3a;">Seeding density</label>
@@ -483,6 +691,14 @@
       </div>
     </div>
 
+    <hr class="divider">
+    <!-- ── QA Suite ── -->
+    <div class="section-label">Validation</div>
+    <div class="row">
+      <button class="obs-btn" id="qaSuiteBtn" style="flex:1; border-color:#4af; color:#4af; letter-spacing:2px;">&#9654; QA Suite</button>
+    </div>
+    <div class="info-row">Run standardized algorithm validation tests against known ground truth.</div>
+
   </div><!-- /panel-body -->
 </div><!-- /panel -->
 
@@ -534,9 +750,47 @@
       <div class="unit" id="gtVerdict"></div>
     </div>
   </div>
+  <div class="row3" id="truthRow3">
+    <div class="metric gt-profile">
+      <div class="name" id="profileMinLabel">V min</div>
+      <div class="number" id="gtVMin">—</div>
+      <div class="unit">m / s</div>
+    </div>
+    <div class="metric gt-profile">
+      <div class="name" id="profileCenterLabel">V center</div>
+      <div class="number" id="gtVCenter">—</div>
+      <div class="unit">m / s</div>
+    </div>
+    <div class="metric gt-profile">
+      <div class="name" id="profileMaxLabel">V max</div>
+      <div class="number" id="gtVMax">—</div>
+      <div class="unit">m / s</div>
+    </div>
+    <div class="metric gt-profile">
+      <div class="name">Profile type</div>
+      <div class="number" id="gtProfileType" style="font-size:11px; letter-spacing:1px;">—</div>
+      <div class="unit" id="gtProfileNote"></div>
+    </div>
+  </div>
 </div>
 
-<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed &nbsp;·&nbsp; [C] frame pair</div>
+<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed &nbsp;·&nbsp; [C] frame pair &nbsp;·&nbsp; [V] color by speed</div>
+
+<!-- ── Cursor velocity probe ──────────────────────────────────── -->
+<div id="cursorProbe">
+  <div class="cp-label">True velocity at cursor</div>
+  <div>Vx <span class="cp-val" id="cp-vx">—</span> &nbsp; Vy <span class="cp-val" id="cp-vy">—</span> &nbsp; px/s</div>
+  <div>|V| <span class="cp-ms" id="cp-speed">—</span> m/s &nbsp; θ <span class="cp-val" id="cp-angle">—</span>°</div>
+  <div>Δpx/frame <span class="cp-val" id="cp-disp">—</span></div>
+</div>
+
+<!-- ── Colorbar ──────────────────────────────────────────────── -->
+<div id="colorbar">
+  <div class="cb-label" id="cb-min">0</div>
+  <canvas id="colorbarCanvas" width="160" height="10"></canvas>
+  <div class="cb-label" id="cb-max">1 m/s</div>
+  <div class="cb-label" style="color:#555;">&nbsp;speed</div>
+</div>
 
 <script>
 // ── Seeded PRNG (mulberry32) ─────────────────────────────────────────────
@@ -580,6 +834,9 @@ function resize() {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────
+
+// Color-by-speed mode
+let colorBySpeed = false;
 
 // Flow field
 let flowType = 'uniform';
@@ -732,6 +989,168 @@ function centerFlow() {
   return baseFlow(W/2, H/2);
 }
 
+// ── Color-by-speed ────────────────────────────────────────────────────────
+// Maps normalised speed (0–1) to a blue→cyan→green→yellow→red colormap.
+function speedToRgb(t) {
+  t = Math.max(0, Math.min(1, t));
+  let r, g, b;
+  if      (t < 0.25) { const s=t/0.25;      r=0;               g=Math.round(s*255);   b=255; }
+  else if (t < 0.5)  { const s=(t-0.25)/0.25; r=0;             g=255;                 b=Math.round((1-s)*255); }
+  else if (t < 0.75) { const s=(t-0.5)/0.25;  r=Math.round(s*255); g=255;             b=0; }
+  else               { const s=(t-0.75)/0.25;  r=255;           g=Math.round((1-s)*255); b=0; }
+  return [r, g, b];
+}
+function speedToColor(t, alpha) {
+  const [r,g,b] = speedToRgb(t);
+  return alpha != null ? `rgba(${r},${g},${b},${alpha})` : `rgb(${r},${g},${b})`;
+}
+
+// Returns analytical {vMinMs, vCenterMs, vMaxMs, label, note} for current flow.
+function analyticalVelocityStats() {
+  const psToMs = (ps) => ps / pxPerMm / 1000;
+  switch (flowType) {
+    case 'uniform': {
+      const s = Math.sqrt(vxMs*vxMs + vyMs*vyMs);
+      return { vMinMs: s, vCenterMs: s, vMaxMs: s, label: 'Uniform', note: 'all equal' };
+    }
+    case 'shear': {
+      const vTop    = shearVxMs * (1 - shearRate);
+      const vCenter = shearVxMs;
+      const vBottom = shearVxMs * (1 + shearRate);
+      const vMin = Math.min(vTop, vBottom);
+      const vMax = Math.max(vTop, vBottom);
+      return { vMinMs: vMin, vCenterMs: vCenter, vMaxMs: vMax,
+               label: 'Linear shear',
+               note: `γ=${shearRate.toFixed(2)}` };
+    }
+    case 'poiseuille': {
+      return { vMinMs: 0, vCenterMs: poisVxMaxMs, vMaxMs: poisVxMaxMs,
+               label: 'Poiseuille', note: 'parabolic' };
+    }
+    case 'vortex': {
+      const rMax = Math.sqrt((W/2)**2 + (H/2)**2);
+      const vMaxPs = Math.abs(vortexOmega) * rMax;
+      const bgMs = Math.abs(vortexBgVxMs);
+      return { vMinMs: bgMs, vCenterMs: bgMs, vMaxMs: psToMs(vMaxPs) + bgMs,
+               label: 'Solid vortex', note: `ω=${vortexOmega.toFixed(2)} rad/s` };
+    }
+    case 'rankine': {
+      const rc = rankineRcPct / 100 * Math.min(W, H);
+      const vcPx = msToPs(rankineVcMs);
+      const rMax = Math.sqrt((W/2)**2 + (H/2)**2);
+      const vAtEdge = psToMs(vcPx * rc / rMax);
+      return { vMinMs: 0, vCenterMs: rankineVcMs, vMaxMs: rankineVcMs,
+               label: 'Rankine vortex', note: `rc=${rankineRcPct}%` };
+    }
+    default:
+      return { vMinMs: 0, vCenterMs: 0, vMaxMs: 0, label: '—', note: '' };
+  }
+}
+
+// Draw colored circles at each particle position, colored by local true speed.
+function drawParticlesColored(ptList, speedMaxMs) {
+  if (speedMaxMs <= 0) return;
+  ctx.globalCompositeOperation = 'source-over';
+  for (const p of ptList) {
+    if (p.dimmed) continue;
+    const f = baseFlow(p.x, p.y);
+    const speedPs = Math.sqrt(f.vx*f.vx + f.vy*f.vy);
+    const speedMs = speedPs / pxPerMm / 1000;
+    const t = speedMs / speedMaxMs;
+    const rEff = (p.r * (p.sizeFactor ?? 1)) * 1.8;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(2, rEff), 0, Math.PI*2);
+    ctx.fillStyle = speedToColor(t, Math.max(0.5, p.brightFactor ?? 1) * 0.9);
+    ctx.fill();
+  }
+}
+
+// Draw velocity profile arrows on the left canvas edge for layered flows.
+function drawVelocityProfile() {
+  if (flowType !== 'shear' && flowType !== 'poiseuille') return;
+  const steps = 20;
+  const xBase = 38, arrowMaxLen = 60;
+  const stats = analyticalVelocityStats();
+  const vMax = Math.abs(stats.vMaxMs) || 1;
+
+  ctx.save();
+  ctx.globalAlpha = 0.55;
+  for (let i = 0; i <= steps; i++) {
+    const yNorm = i / steps;
+    const py = yNorm * H;
+    const f = baseFlow(xBase, py);
+    const speedMs = Math.abs(f.vx) / pxPerMm / 1000;
+    const t = speedMs / vMax;
+    const len = t * arrowMaxLen;
+    const [r,g,b] = speedToRgb(t);
+    ctx.strokeStyle = `rgb(${r},${g},${b})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(xBase, py);
+    ctx.lineTo(xBase + len, py);
+    ctx.stroke();
+    // Arrowhead
+    if (len > 6) {
+      ctx.beginPath();
+      ctx.moveTo(xBase + len, py);
+      ctx.lineTo(xBase + len - 5, py - 3);
+      ctx.lineTo(xBase + len - 5, py + 3);
+      ctx.closePath();
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fill();
+    }
+  }
+  // Axis line
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(xBase, 0); ctx.lineTo(xBase, H); ctx.stroke();
+  ctx.restore();
+}
+
+// Update the colorbar canvas gradient and labels.
+function updateColorbar(speedMaxMs) {
+  const cbCanvas = document.getElementById('colorbarCanvas');
+  const cbCtx    = cbCanvas.getContext('2d');
+  const w = cbCanvas.width, h = cbCanvas.height;
+  for (let i = 0; i < w; i++) {
+    const [r,g,b] = speedToRgb(i/w);
+    cbCtx.fillStyle = `rgb(${r},${g},${b})`;
+    cbCtx.fillRect(i, 0, 1, h);
+  }
+  document.getElementById('cb-min').textContent = '0';
+  document.getElementById('cb-max').textContent = speedMaxMs.toFixed(3) + ' m/s';
+}
+
+// Update cursor velocity probe position and values.
+let _mouseX = -1, _mouseY = -1;
+function updateCursorProbe() {
+  const probe = document.getElementById('cursorProbe');
+  if (_mouseX < 0 || document.body.classList.contains('cursor-hidden')) {
+    probe.classList.remove('visible');
+    return;
+  }
+  const f = baseFlow(_mouseX, _mouseY);
+  const speedPs = Math.sqrt(f.vx*f.vx + f.vy*f.vy);
+  const speedMs = speedPs / pxPerMm / 1000;
+  const angle   = Math.atan2(f.vy, f.vx) * 180 / Math.PI;
+  const dispPx  = speedPs / camFps;
+
+  document.getElementById('cp-vx').textContent    = f.vx.toFixed(1);
+  document.getElementById('cp-vy').textContent    = f.vy.toFixed(1);
+  document.getElementById('cp-speed').textContent = speedMs.toFixed(4);
+  document.getElementById('cp-angle').textContent = angle.toFixed(1);
+  document.getElementById('cp-disp').textContent  = dispPx.toFixed(2) + ' px';
+
+  // Position probe offset from cursor, keeping it on-screen
+  const pw = 200, ph = 80;
+  let px = _mouseX + 16, py = _mouseY - ph - 8;
+  if (px + pw > window.innerWidth)  px = _mouseX - pw - 8;
+  if (py < 0)                        py = _mouseY + 16;
+  probe.style.left = px + 'px';
+  probe.style.top  = py + 'px';
+  probe.classList.add('visible');
+}
+
 function distSq(ax, ay, bx, by) {
   return (ax-bx)**2 + (ay-by)**2;
 }
@@ -846,9 +1265,17 @@ function buildColoredSprite(bright, rCh, gCh, bCh) {
 }
 
 let _whiteSpr = null, _redSpr = null, _greenSpr = null, _cachedBright = -1;
+let bgColor  = '#000000';
+let dotColor = '#ffffff';
+
+function hexToRgb01(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255];
+}
 
 function refreshSprites() {
-  _whiteSpr  = buildColoredSprite(brightness, 1, 1, 1);
+  const [r, g, b] = hexToRgb01(dotColor);
+  _whiteSpr  = buildColoredSprite(brightness, r, g, b);
   _redSpr    = buildColoredSprite(brightness, 1, 0, 0);
   _greenSpr  = buildColoredSprite(brightness, 0, 0.85, 0);
   _cachedBright = brightness;
@@ -1024,7 +1451,7 @@ function frame(ts) {
   }
 
   // ── Draw ──
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, W, H);
 
   if (framePairMode && frameAParticles) {
@@ -1040,7 +1467,7 @@ function frame(ts) {
   if (obstacle) {
     ctx.beginPath();
     ctx.arc(obstacle.cx, obstacle.cy, obstacle.r, 0, Math.PI*2);
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = bgColor;
     ctx.fill();
     ctx.strokeStyle = obstacleActive ? '#4af' : '#2a2a2a';
     ctx.lineWidth   = obstacleActive ? 1.5 : 1;
@@ -1054,8 +1481,21 @@ function frame(ts) {
     }
   }
 
+  drawVelocityProfile();
+
+  if (colorBySpeed) {
+    const stats = analyticalVelocityStats();
+    const vMaxMs = Math.abs(stats.vMaxMs) || 1;
+    drawParticlesColored(particles, vMaxMs);
+    updateColorbar(vMaxMs);
+    document.getElementById('colorbar').classList.add('visible');
+  } else {
+    document.getElementById('colorbar').classList.remove('visible');
+  }
+
   applyNoise();
   updateReadout();
+  updateCursorProbe();
 }
 
 // ── Readout ───────────────────────────────────────────────────────────────
@@ -1101,6 +1541,38 @@ function updateReadout() {
       document.getElementById(id).style.color = '#888';
     });
     document.getElementById('gtVerdict').textContent = '';
+  }
+
+  // Row 3 — velocity profile (always shown for non-uniform flows)
+  const row3 = document.getElementById('truthRow3');
+  const stats = analyticalVelocityStats();
+  const isNonUniform = (flowType !== 'uniform');
+  row3.classList.toggle('visible', isNonUniform);
+  if (isNonUniform) {
+    document.getElementById('gtVMin').textContent     = stats.vMinMs.toFixed(4);
+    document.getElementById('gtVCenter').textContent  = stats.vCenterMs.toFixed(4);
+    document.getElementById('gtVMax').textContent     = stats.vMaxMs.toFixed(4);
+    document.getElementById('gtProfileType').textContent = stats.label;
+    document.getElementById('gtProfileNote').textContent = stats.note;
+
+    // Label the min/center/max columns contextually
+    if (flowType === 'shear') {
+      document.getElementById('profileMinLabel').textContent    = 'V top (y=0)';
+      document.getElementById('profileCenterLabel').textContent = 'V center';
+      document.getElementById('profileMaxLabel').textContent    = 'V bottom (y=H)';
+    } else if (flowType === 'poiseuille') {
+      document.getElementById('profileMinLabel').textContent    = 'V wall';
+      document.getElementById('profileCenterLabel').textContent = 'V center';
+      document.getElementById('profileMaxLabel').textContent    = 'V max';
+    } else if (flowType === 'vortex') {
+      document.getElementById('profileMinLabel').textContent    = 'V center';
+      document.getElementById('profileCenterLabel').textContent = 'V center';
+      document.getElementById('profileMaxLabel').textContent    = 'V corner';
+    } else {
+      document.getElementById('profileMinLabel').textContent    = 'V min';
+      document.getElementById('profileCenterLabel').textContent = 'V center';
+      document.getElementById('profileMaxLabel').textContent    = 'V max';
+    }
   }
 }
 
@@ -1254,6 +1726,9 @@ wireSliderNum('maxSizeSlider', 'maxSizeNum', 0.5, 20, 1, v => {
 });
 wireSliderNum('brightSlider', 'brightNum', 50, 255, 0, v => { brightness = Math.max(1, Math.min(255, v)); });
 
+document.getElementById('bgColorPicker').addEventListener('input', e => { bgColor = e.target.value; });
+document.getElementById('dotColorPicker').addEventListener('input', e => { dotColor = e.target.value; _cachedBright = -1; });
+
 // Particle shape
 wireSliderNum('rhoSlider',    'rhoNum',    -0.95, 0.95, 2, v => { rhoBase = v; reseedShapes(); });
 wireSliderNum('rhoVarSlider', 'rhoVarNum',  0,    0.5,  2, v => { rhoVar  = v; reseedShapes(); });
@@ -1343,6 +1818,9 @@ document.addEventListener('keydown', e => {
       if (framePairMode) exitFramePair();
       else captureFramePair();
       break;
+    case 'v':
+      colorBySpeed = !colorBySpeed;
+      break;
     case 'escape':
       if (framePairMode) { exitFramePair(); break; }
       if (obstacleActive) setObstacleActive(false);
@@ -1374,6 +1852,16 @@ document.getElementById('seedRandom').addEventListener('click', () => {
   seedParticles(particles.length);
 });
 
+// ── Cursor velocity probe tracking ───────────────────────────────────────
+canvas.addEventListener('mousemove', e => {
+  _mouseX = e.clientX;
+  _mouseY = e.clientY;
+});
+canvas.addEventListener('mouseleave', () => {
+  _mouseX = -1; _mouseY = -1;
+  document.getElementById('cursorProbe').classList.remove('visible');
+});
+
 // ── Cursor auto-hide ──────────────────────────────────────────────────────
 let cursorTimer = null;
 function showCursor() {
@@ -1384,6 +1872,284 @@ function showCursor() {
 document.addEventListener('mousemove', showCursor);
 document.addEventListener('mousedown', showCursor);
 showCursor();
+
+// ── QA Suite ──────────────────────────────────────────────────────────────
+const QA_PASSWORD = 'pivlab';
+
+const QA_TESTS = [
+  {
+    id: 'T01', name: 'Baseline Bias',
+    desc: 'Uniform horizontal flow, nominal displacement, zero noise. Establishes algorithm bias floor.',
+    criterion: '|% error| < 5%', threshold: 5,
+    config: { flowType:'uniform', vxMs:0.08, vyMs:0, turbMs:0, count:600, minDiam:2, maxDiam:4, brightness:220, noiseRead:0, noiseShot:0, noiseBg:0, camFps:30 }
+  },
+  {
+    id: 'T02', name: '¼-Rule Limit',
+    desc: 'Higher velocity approaching the ¼-window displacement limit. Tests algorithm tracking at upper operating bound.',
+    criterion: '|% error| < 10%', threshold: 10,
+    config: { flowType:'uniform', vxMs:0.30, vyMs:0, turbMs:0, count:600, minDiam:2, maxDiam:4, brightness:220, noiseRead:0, noiseShot:0, noiseBg:0, camFps:30 }
+  },
+  {
+    id: 'T03', name: 'Noise Floor',
+    desc: 'Uniform flow with read noise σ=10DN and background pedestal. Tests SNR tolerance of the algorithm.',
+    criterion: '|% error| < 10%', threshold: 10,
+    config: { flowType:'uniform', vxMs:0.08, vyMs:0, turbMs:0, count:600, minDiam:2, maxDiam:4, brightness:220, noiseRead:10, noiseShot:0, noiseBg:8, camFps:30 }
+  },
+  {
+    id: 'T04', name: 'Gradient Response',
+    desc: 'Linear shear flow with velocity gradient across Y axis. Tests spatial accuracy and gradient bias at screen center.',
+    criterion: '|center % error| < 10%', threshold: 10,
+    config: { flowType:'shear', shearVxMs:0.15, shearRate:0.8, turbMs:0, count:600, minDiam:2, maxDiam:4, brightness:220, noiseRead:0, noiseShot:0, noiseBg:0, camFps:30 }
+  },
+  {
+    id: 'T05', name: 'Vortex Accuracy',
+    desc: 'Rankine vortex with curved streamlines and centripetal acceleration. Tests algorithm on strongly non-linear flow.',
+    criterion: '|% error| < 20%', threshold: 20,
+    config: { flowType:'rankine', rankineVcMs:0.20, rankineRcPct:15, rankineBgVxMs:0, turbMs:0, count:800, minDiam:2, maxDiam:4, brightness:220, noiseRead:0, noiseShot:0, noiseBg:0, camFps:30 }
+  }
+];
+
+let qaResults      = {};
+let qaActiveTestId = null;
+let qaUnlocked     = false;
+
+function _setCtrl(sliderId, numId, value) {
+  const s = document.getElementById(sliderId);
+  const n = document.getElementById(numId);
+  if (s) s.value = value;
+  if (n) n.value = value;
+}
+
+function applyQAConfig(cfg) {
+  // Flow type
+  flowType = cfg.flowType;
+  document.getElementById('flowType').value = flowType;
+  Object.entries(flowParamDivs).forEach(([k, el]) => {
+    el.style.display = k === flowType ? 'block' : 'none';
+  });
+
+  // Uniform
+  if (cfg.vxMs  !== undefined) { vxMs = cfg.vxMs;  vx = msToPs(vxMs);  _setCtrl('vxSlider','vxNum', vxMs); }
+  if (cfg.vyMs  !== undefined) { vyMs = cfg.vyMs;  vy = msToPs(vyMs);  _setCtrl('vySlider','vyNum', vyMs); }
+
+  // Shear
+  if (cfg.shearVxMs  !== undefined) { shearVxMs  = cfg.shearVxMs;  _setCtrl('shearVxSlider','shearVxNum', shearVxMs); }
+  if (cfg.shearRate  !== undefined) { shearRate   = cfg.shearRate;  _setCtrl('shearRateSlider','shearRateNum', shearRate); }
+
+  // Rankine
+  if (cfg.rankineVcMs   !== undefined) { rankineVcMs   = cfg.rankineVcMs;   _setCtrl('rankineVcSlider','rankineVcNum', rankineVcMs); }
+  if (cfg.rankineRcPct  !== undefined) { rankineRcPct  = cfg.rankineRcPct;  _setCtrl('rankineRcSlider','rankineRcNum', rankineRcPct); }
+  if (cfg.rankineBgVxMs !== undefined) { rankineBgVxMs = cfg.rankineBgVxMs; _setCtrl('rankineBgVxSlider','rankineBgVxNum', rankineBgVxMs); }
+
+  // Turbulence
+  turbMs = cfg.turbMs ?? 0; turbulence = msToPs(turbMs);
+  _setCtrl('turbSlider','turbNum', turbMs);
+  document.getElementById('turbInfo').style.display = turbMs > 0 ? 'block' : 'none';
+
+  // Particles
+  const count = cfg.count ?? 600;
+  minRadius = (cfg.minDiam ?? 2) / 2;
+  maxRadius = (cfg.maxDiam ?? 4) / 2;
+  brightness = cfg.brightness ?? 220;
+  _setCtrl('countSlider','countNum', count);
+  _setCtrl('minSizeSlider','minSizeNum', cfg.minDiam ?? 2);
+  _setCtrl('maxSizeSlider','maxSizeNum', cfg.maxDiam ?? 4);
+  _setCtrl('brightSlider','brightNum', brightness);
+
+  // Reset shape / variability
+  rhoBase = 0; rhoVar = 0; alignToFlow = false;
+  intensVar = 0; diamVar = 0; outOfPlanePct = 0;
+  _setCtrl('rhoSlider','rhoNum', 0);
+  _setCtrl('rhoVarSlider','rhoVarNum', 0);
+  _setCtrl('intensVarSlider','intensVarNum', 0);
+  _setCtrl('diamVarSlider','diamVarNum', 0);
+  _setCtrl('outPlaneSlider','outPlaneNum', 0);
+  document.getElementById('alignFlowBtn').textContent = 'Off';
+  document.getElementById('alignFlowBtn').classList.remove('active');
+  document.getElementById('varInfo').style.display = 'none';
+
+  // Noise
+  noiseReadSigma  = cfg.noiseRead ?? 0;
+  noiseShotScale  = cfg.noiseShot ?? 0;
+  noiseBackground = cfg.noiseBg  ?? 0;
+  _setCtrl('readNoiseSlider','readNoiseNum', noiseReadSigma);
+  _setCtrl('shotNoiseSlider','shotNoiseNum', noiseShotScale);
+  _setCtrl('bgNoiseSlider','bgNoiseNum', noiseBackground);
+  noiseActive  = noiseReadSigma > 0 || noiseShotScale > 0 || noiseBackground > 0;
+  _noiseStride = 0;
+  document.getElementById('noiseInfo').style.display = noiseActive ? 'block' : 'none';
+
+  // Timing
+  camFps = cfg.camFps ?? 30;
+  _setCtrl('camFpsSlider','camFpsNum', camFps);
+
+  // Remove obstacle, clear measurement, resume
+  if (obstacleActive) setObstacleActive(false);
+  document.getElementById('measInput').value = '';
+  ['gtErr','gtPct'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+    document.getElementById(id).style.color = '#888';
+  });
+  document.getElementById('gtVerdict').textContent = '';
+  if (framePairMode) exitFramePair();
+  paused = false;
+  document.getElementById('paused').style.display = 'none';
+
+  seedParticles(count);
+}
+
+function runQATest(testId) {
+  const test = QA_TESTS.find(t => t.id === testId);
+  if (!test) return;
+  qaActiveTestId = testId;
+  applyQAConfig(test.config);
+  renderQATests();
+  const detail = document.getElementById('qa-detail-' + testId);
+  if (detail) detail.style.display = 'block';
+}
+
+function logQAResult(testId) {
+  const test = QA_TESTS.find(t => t.id === testId);
+  if (!test) return;
+  const trueMs  = parseFloat(document.getElementById('gtMmTrue').textContent);
+  const measVal = parseFloat(document.getElementById('measInput').value);
+  if (isNaN(trueMs) || trueMs <= 0) { flashQAError('No ground truth — run the test first.'); return; }
+  if (isNaN(measVal))               { flashQAError('Enter your PIV-measured velocity in the bottom readout first.'); return; }
+  const errMs  = measVal - trueMs;
+  const pctErr = (errMs / trueMs) * 100;
+  qaResults[testId] = { trueMs, measVal, errMs, pctErr, pass: Math.abs(pctErr) < test.threshold, ts: new Date().toLocaleTimeString() };
+  renderQATests();
+  updateQASummary();
+}
+
+function flashQAError(msg) {
+  const el = document.getElementById('qa-error-msg');
+  if (!el) return;
+  el.textContent = msg; el.style.opacity = '1';
+  setTimeout(() => { el.style.opacity = '0'; }, 3500);
+}
+
+function toggleQADetail(testId) {
+  const d = document.getElementById('qa-detail-' + testId);
+  if (d) d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+
+function renderQATests() {
+  const container = document.getElementById('qa-tests-container');
+  if (!container) return;
+  container.innerHTML = '';
+  for (const test of QA_TESTS) {
+    const result   = qaResults[test.id];
+    const isActive = qaActiveTestId === test.id;
+    let rowCls = '', badgeCls = 'badge-pending', badgeTxt = '—';
+    if (result) {
+      badgeCls = result.pass ? 'badge-pass' : 'badge-fail';
+      badgeTxt = result.pass ? 'PASS' : 'FAIL';
+      rowCls   = result.pass ? 'is-pass' : 'is-fail';
+    } else if (isActive) {
+      badgeCls = 'badge-active'; badgeTxt = 'ACTIVE'; rowCls = 'is-active';
+    }
+    let resultHtml = '';
+    if (result) {
+      const sign = result.pctErr >= 0 ? '+' : '';
+      const col  = result.pass ? '#3c3' : '#f44';
+      resultHtml = `<div class="qa-result">
+        True: <span style="color:#4af">${result.trueMs.toFixed(4)} m/s</span> &nbsp;·&nbsp;
+        Measured: <span style="color:#e0e0e0">${result.measVal.toFixed(4)} m/s</span><br>
+        Error: <span style="color:${col}">${sign}${result.pctErr.toFixed(2)}%</span>
+        &nbsp;·&nbsp; ${result.ts}
+      </div>`;
+    }
+    const showDetail = isActive || !!result;
+    const div = document.createElement('div');
+    div.className = 'qa-test-row ' + rowCls;
+    div.innerHTML = `
+      <div class="qa-test-hdr" onclick="toggleQADetail('${test.id}')">
+        <span class="qa-tid">${test.id}</span>
+        <span class="qa-tname">${test.name}</span>
+        <span class="qa-badge ${badgeCls}">${badgeTxt}</span>
+      </div>
+      <div class="qa-test-detail" id="qa-detail-${test.id}" style="display:${showDetail?'block':'none'}">
+        <div class="qa-desc">${test.desc}</div>
+        <div class="qa-criterion">Pass criterion: ${test.criterion}</div>
+        ${resultHtml}
+        <button class="qa-run-btn" onclick="runQATest('${test.id}')">&#9654; Run</button>
+        ${isActive ? `<button class="qa-log-btn" onclick="logQAResult('${test.id}')">Log Result</button>` : ''}
+      </div>`;
+    container.appendChild(div);
+  }
+}
+
+function updateQASummary() {
+  const vals  = Object.values(qaResults);
+  document.getElementById('qa-pass-count').textContent  = vals.filter(r => r.pass).length;
+  document.getElementById('qa-fail-count').textContent  = vals.filter(r => !r.pass).length;
+  document.getElementById('qa-total-count').textContent = vals.length;
+}
+
+function openQAPanel() {
+  document.getElementById('qaPanel').style.display = 'block';
+  renderQATests();
+  updateQASummary();
+}
+
+function closeQAPanel() {
+  document.getElementById('qaPanel').style.display = 'none';
+}
+
+function exportQACSV() {
+  const rows = ['Test ID,Test Name,True (m/s),Measured (m/s),Error (m/s),% Error,Result,Timestamp'];
+  for (const t of QA_TESTS) {
+    const r = qaResults[t.id];
+    if (!r) { rows.push(`${t.id},${t.name},,,,, PENDING,`); continue; }
+    const sign = r.pctErr >= 0 ? '+' : '';
+    rows.push(`${t.id},${t.name},${r.trueMs.toFixed(6)},${r.measVal.toFixed(6)},${r.errMs.toFixed(6)},${sign}${r.pctErr.toFixed(3)},${r.pass?'PASS':'FAIL'},${r.ts}`);
+  }
+  const blob = new Blob([rows.join('\n')], { type:'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = new Date().toISOString().slice(0,10).replace(/-/g,'') + '_PIV_QA.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Password modal wiring
+document.getElementById('qaSuiteBtn').addEventListener('click', () => {
+  if (qaUnlocked) { openQAPanel(); return; }
+  document.getElementById('qaPasswordModal').classList.add('active');
+  document.getElementById('qaPasswordInput').value = '';
+  document.getElementById('qaPasswordError').textContent = '';
+  setTimeout(() => document.getElementById('qaPasswordInput').focus(), 50);
+});
+
+function checkQAPassword() {
+  const val   = document.getElementById('qaPasswordInput').value;
+  const input = document.getElementById('qaPasswordInput');
+  const err   = document.getElementById('qaPasswordError');
+  if (val === QA_PASSWORD) {
+    qaUnlocked = true;
+    document.getElementById('qaPasswordModal').classList.remove('active');
+    openQAPanel();
+  } else {
+    input.classList.add('shake');
+    err.textContent = 'Incorrect password.';
+    input.value = '';
+    setTimeout(() => input.classList.remove('shake'), 400);
+  }
+}
+
+document.getElementById('qaPasswordSubmit').addEventListener('click', checkQAPassword);
+document.getElementById('qaPasswordCancel').addEventListener('click', () => {
+  document.getElementById('qaPasswordModal').classList.remove('active');
+});
+document.getElementById('qaPasswordInput').addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter')  checkQAPassword();
+  if (e.key === 'Escape') document.getElementById('qaPasswordModal').classList.remove('active');
+});
+document.getElementById('qaPanel-close').addEventListener('click', closeQAPanel);
+document.getElementById('qa-export-btn').addEventListener('click', exportQACSV);
 
 // ── Init ──────────────────────────────────────────────────────────────────
 resize();

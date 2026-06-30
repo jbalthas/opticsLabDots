@@ -19,3 +19,6 @@ config.yaml
 config.example.yaml
 requirements.txt
 run.bat
+
+# graphify knowledge-graph output (built locally)
+graphify-out/

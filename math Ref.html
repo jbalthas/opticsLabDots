@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PIV Ground Truth — Flow Math Reference</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&family=Source+Code+Pro:wght@400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:   #1a5fa8;
+      --light:  #eef4fb;
+      --border: #c8d8ec;
+      --code:   #f4f7fb;
+      --text:   #1a1a1a;
+      --muted:  #5a6070;
+      --accent: #0d4a8a;
+      --green:  #1a6640;
+      --red:    #8a1a1a;
+      --rule:   #d0d8e4;
+    }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--text);
+      background: #fff;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 48px 80px;
+    }
+
+    /* ── Cover block ── */
+    header {
+      border-bottom: 2px solid var(--blue);
+      padding-bottom: 28px;
+      margin-bottom: 44px;
+    }
+    header .agency {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--accent);
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+    header .subtitle {
+      font-size: 15px;
+      color: var(--muted);
+      font-style: italic;
+    }
+    header .meta {
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      gap: 32px;
+    }
+    header .meta span { white-space: nowrap; }
+
+    /* ── Section headings ── */
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent);
+      margin: 48px 0 6px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid var(--rule);
+    }
+    h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 28px 0 6px;
+    }
+
+    p { margin-bottom: 14px; }
+
+    /* ── Plain-language callout ── */
+    .plain {
+      background: var(--light);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 4px 4px 0;
+      padding: 12px 18px;
+      margin: 18px 0 10px;
+      font-size: 15px;
+      color: #1c2a3a;
+    }
+    .plain strong { color: var(--accent); }
+
+    /* ── Math block ── */
+    .math-block {
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 18px 24px;
+      margin: 12px 0 18px;
+      font-family: 'Source Code Pro', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 2.0;
+      color: var(--text);
+      overflow-x: auto;
+    }
+    .math-block .eq-label {
+      float: right;
+      font-size: 11px;
+      color: #999;
+      font-family: 'Source Serif 4', serif;
+      margin-top: 2px;
+    }
+    .math-block .eq { display: block; }
+
+    /* ── Variable legend table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin: 14px 0 22px;
+    }
+    thead th {
+      background: var(--blue);
+      color: #fff;
+      font-weight: 500;
+      padding: 7px 12px;
+      text-align: left;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+    tbody td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #e8edf4;
+      vertical-align: top;
+    }
+    tbody tr:nth-child(even) td { background: #f9fafc; }
+    tbody td:first-child {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      white-space: nowrap;
+      color: var(--accent);
+    }
+
+    /* ── Verification check ── */
+    .check {
+      background: #f0faf4;
+      border: 1px solid #a8d8b8;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+    .check .check-head {
+      font-weight: 600;
+      color: var(--green);
+      margin-bottom: 4px;
+      font-family: 'Source Serif 4', serif;
+    }
+    .check .math-inline {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      color: #1a1a1a;
+    }
+
+    /* ── Limitation note ── */
+    .note {
+      background: #fdf8f0;
+      border: 1px solid #e0c888;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin: 14px 0;
+      font-size: 14px;
+      color: #3a2a00;
+    }
+    .note strong { color: #6a4400; }
+
+    /* ── Summary box ── */
+    .summary {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px 28px;
+      margin: 40px 0 0;
+    }
+    .summary h3 {
+      color: var(--accent);
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 15px;
+      letter-spacing: 0.3px;
+    }
+    .summary ul {
+      padding-left: 20px;
+      font-size: 14.5px;
+      line-height: 1.9;
+    }
+    .summary ul li { margin-bottom: 3px; }
+
+    /* ── Section divider number ── */
+    .sec-num {
+      display: inline-block;
+      background: var(--blue);
+      color: #fff;
+      font-size: 11px;
+      font-family: 'Source Code Pro', monospace;
+      padding: 1px 8px;
+      border-radius: 3px;
+      margin-right: 8px;
+      vertical-align: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    hr { border: none; border-top: 1px solid var(--rule); margin: 36px 0; }
+
+    footer {
+      margin-top: 60px;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule);
+      font-size: 12px;
+      color: #aaa;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    @media print {
+      body { padding: 30px 36px; font-size: 14px; }
+      h2 { page-break-before: always; margin-top: 0; }
+      h2:first-of-type { page-break-before: avoid; }
+      .math-block { font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ COVER ══════════════════════════════════════════════════════════ -->
+<header>
+  <div class="agency">USGS — Camera &amp; Imaging Systems Evaluation Laboratory</div>
+  <h1>PIV Ground Truth Generator<br>Flow Mathematics Reference</h1>
+  <div class="subtitle">How particles move, why they move that way, and how to verify the math is correct</div>
+  <div class="meta">
+    <span><strong>Prepared by:</strong> Jack (Lab Engineer)</span>
+    <span><strong>Date:</strong> June 2026</span>
+    <span><strong>Version:</strong> 1.0</span>
+  </div>
+</header>
+
+<!-- ══ PURPOSE ════════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">0</span> What This Document Is For</h2>
+
+<p>
+  The PIV Ground Truth Generator is a browser-based tool that displays a synthetic field of moving
+  particles. Its purpose is to act as a calibration reference: because we control exactly how fast
+  every particle moves, a researcher can measure the apparent velocity from the video and compare
+  it to the known correct answer.
+</p>
+<p>
+  This document explains, in plain English and then in precise mathematics, every rule the tool
+  uses to decide where each particle goes each frame. A technically inclined reader can use the
+  formulas to independently verify that the code is doing what it claims.
+</p>
+
+<!-- ══ SECTION 1 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">1</span> From Real-World Speed to Pixels on Screen</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> The tool works in real units (meters per second).
+  Before anything moves, it converts that real speed into "how many pixels per second should
+  each particle travel," using the known physical size of the display screen and its resolution.
+</div>
+
+<h3>Scale Calibration</h3>
+
+<p>
+  The user enters the physical dimensions of the TV screen (in millimetres) and the display
+  resolution (in pixels). From these, the tool calculates a scale factor:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 1</span>
+  <span class="eq">px_per_mm_X  =  resolution_width_px  /  TV_width_mm</span>
+  <span class="eq">px_per_mm_Y  =  resolution_height_px  /  TV_height_mm</span>
+  <span class="eq">px_per_mm    =  ( px_per_mm_X  +  px_per_mm_Y ) / 2    ← average scale</span>
+</div>
+
+<p>
+  With default values (1920 × 1080 px on a 1543.05 × 863.6 mm screen):
+</p>
+
+<div class="math-block">
+  <span class="eq">px_per_mm_X  =  1920 / 1543.05  ≈  1.2443 px/mm</span>
+  <span class="eq">px_per_mm_Y  =  1080 / 863.6   ≈  1.2503 px/mm</span>
+  <span class="eq">px_per_mm    ≈  1.2473 px/mm</span>
+</div>
+
+<h3>Converting m/s to px/s</h3>
+
+<p>
+  The user-facing speed control is in metres per second. Internally, the tool works in pixels
+  per second using:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 2</span>
+  <span class="eq">speed_px_per_s  =  speed_m_per_s  ×  1000  ×  px_per_mm</span>
+</div>
+
+<p>
+  The factor of 1000 converts metres to millimetres (1 m = 1000 mm), and then
+  <code>px_per_mm</code> converts millimetres into pixels.
+</p>
+
+<div class="check">
+  <div class="check-head">Verification example</div>
+  <div class="math-inline">
+    Vx = 0.08 m/s, px_per_mm = 1.2473 px/mm<br>
+    speed_px_per_s  =  0.08 × 1000 × 1.2473  =  99.8 px/s  ✓
+  </div>
+</div>
+
+<!-- ══ SECTION 2 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">2</span> Basic Particle Motion (No Obstacle)</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> Without any obstacle present, every particle moves in a straight
+  line at a constant speed. Each frame, the particle's position is updated by multiplying its
+  velocity by the time that has passed since the last frame. If a particle drifts off the edge
+  of the screen, it reappears on the opposite side.
+</div>
+
+<h3>Position Update</h3>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 3</span>
+  <span class="eq">x_new  =  x_old  +  Vx_total  ×  Δt</span>
+  <span class="eq">y_new  =  y_old  +  Vy_total  ×  Δt</span>
+</div>
+
+<p>
+  where <code>Δt</code> is the elapsed time in seconds since the last animation frame (typically
+  about 1/60 s at 60 Hz display). The total velocity <code>Vx_total</code> includes turbulence,
+  described in Section 4.
+</p>
+
+<h3>Wraparound (Periodic Boundary)</h3>
+
+<p>
+  When a particle exits one edge it enters from the opposite edge, so the screen acts as a
+  seamless, infinite flow field:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 4</span>
+  <span class="eq">x  =  ( x_new  mod  W  +  W )  mod  W</span>
+  <span class="eq">y  =  ( y_new  mod  H  +  H )  mod  H</span>
+</div>
+
+<p>
+  The double <code>mod</code> operation ensures the result is always positive regardless of
+  direction of travel.
+</p>
+
+<!-- ══ SECTION 3 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">3</span> Flow Around an Obstacle</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> When a circular obstacle is placed on the screen, particles must
+  travel around it. The tool uses a well-established physics formula — called
+  <em>potential flow around a cylinder</em> — to calculate exactly how the flow bends near the
+  obstacle. This is not a simulation or approximation; it is the exact mathematical answer for
+  an ideal (smooth, frictionless) fluid flowing around a perfectly round object.
+</div>
+
+<h3>Background: What Is Potential Flow?</h3>
+
+<p>
+  Potential flow is a classical result from fluid mechanics. It describes how an ideal fluid
+  (one with no viscosity — no internal friction) flows past a smooth obstacle. The fluid must
+  go around the object — it cannot pass through it — and the solution satisfies two physical laws:
+</p>
+<ul style="padding-left:22px; margin-bottom:14px;">
+  <li><strong>Conservation of mass</strong> (the fluid doesn't pile up anywhere)</li>
+  <li><strong>Irrotationality</strong> (no spinning eddies or swirls in the flow)</li>
+</ul>
+<p>
+  For a circular cylinder, mathematicians solved this problem exactly over a century ago using
+  a branch of mathematics called complex analysis. The result is a clean, closed-form formula.
+</p>
+
+<h3>Derivation</h3>
+
+<p>
+  The derivation starts with the <em>complex potential</em> for a uniform upstream flow
+  (U, V) past a cylinder of radius R at the origin:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 5</span>
+  <span class="eq">w(z)  =  (U − iV) z  +  (U + iV) R² / z</span>
+</div>
+
+<p>
+  Here <code>z = x + iy</code> is a complex number representing the 2-D position.
+  The first term is the undisturbed background flow; the second term (called a <em>doublet</em>)
+  represents the disturbance caused by the cylinder.
+</p>
+
+<p>Taking the derivative gives the complex velocity <code>dw/dz = u − iv</code>:</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 6</span>
+  <span class="eq">dw/dz  =  (U − iV)  −  (U + iV) R² / z²</span>
+</div>
+
+<p>
+  Substituting <code>z² = (x²−y²) + 2ixy</code> and separating real and imaginary parts
+  yields the final velocity field:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 7</span>
+  <span class="eq">u  =  U  −  R² [ U(x²−y²) + 2Vxy ] / r⁴</span>
+  <span class="eq">v  =  V  +  R² [ V(x²−y²) − 2Uxy ] / r⁴</span>
+</div>
+
+<p>
+  where <code>r² = x² + y²</code> is the squared distance from the obstacle centre,
+  and <code>x, y</code> are measured relative to the obstacle centre.
+</p>
+
+<h3>What the Code Computes</h3>
+
+<p>
+  In the tool, these formulas appear as:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Code (exact)</span>
+  <span class="eq">dx2dy2  =  dx² − dy²          ← same as (x²−y²)</span>
+  <span class="eq">dxy2    =  2 · dx · dy         ← same as  2xy</span>
+  <span class="eq">vx  =  U  −  R² · (U·dx2dy2 + V·dxy2) / r⁴</span>
+  <span class="eq">vy  =  V  +  R² · (V·dx2dy2 − U·dxy2) / r⁴</span>
+</div>
+
+<p>
+  This is identical to Equation 7. The code is a direct, term-for-term implementation
+  of the analytic formula.
+</p>
+
+<h3>Boundary Condition Proof</h3>
+
+<p>
+  A critical requirement is that no fluid passes <em>through</em> the cylinder wall.
+  At the surface (<code>r = R</code>), the velocity component pointing directly toward or
+  away from the centre (the <em>radial</em> component) must equal zero.
+</p>
+
+<p>
+  Converting to polar coordinates at <code>r = R</code>
+  (using <code>x = R cosθ</code>, <code>y = R sinθ</code>):
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 8</span>
+  <span class="eq">v_radial  =  u cosθ + v sinθ</span>
+  <span class="eq">         =  2U cosθ sin²θ − 2V sinθ cos²θ</span>
+  <span class="eq">          + 2V sinθ cos²θ − 2U sin²θ cosθ</span>
+  <span class="eq">         =  0  ✓</span>
+</div>
+
+<p>
+  All four terms cancel. The cylinder wall is, as required, a perfect streamline.
+</p>
+
+<div class="check">
+  <div class="check-head">Verification: stagnation point</div>
+  <div class="math-inline">
+    For pure x-flow (V = 0), the leading stagnation point is directly upstream at (x = −R, y = 0).<br>
+    At that point:  u = U − R²·U·(R²)/R⁴ = U − U = 0  ✓
+  </div>
+</div>
+
+<div class="check">
+  <div class="check-head">Verification: far-field recovery</div>
+  <div class="math-inline">
+    As r → ∞, both correction terms → 0, so u → U and v → V  ✓<br>
+    Far from the obstacle, flow is undisturbed.
+  </div>
+</div>
+
+<h3>Inside the Obstacle</h3>
+
+<p>
+  If a particle somehow ends up inside the cylinder (for example, due to a large timestep or
+  a screen-edge wrap that teleports it), its velocity is set to zero and it is immediately
+  relocated to a random valid position outside the obstacle.
+</p>
+
+<!-- ══ SECTION 4 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">4</span> Turbulence</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> Real flows are never perfectly uniform — individual particles
+  drift slightly faster or slower than the average. The turbulence control adds a small random
+  velocity offset to each particle. The offsets are drawn once at startup (or when the user
+  re-seeds) and stay with each particle for its lifetime.
+</div>
+
+<h3>Per-Particle Velocity Offset</h3>
+
+<p>
+  At initialisation, each particle receives a random velocity perturbation:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 9</span>
+  <span class="eq">θ     ~ Uniform[0, 2π]           ← random direction</span>
+  <span class="eq">speed ~ Uniform[0, T]             ← T = turbulence amplitude (px/s)</span>
+  <span class="eq">dVx   =  speed · cos(θ)</span>
+  <span class="eq">dVy   =  speed · sin(θ)</span>
+</div>
+
+<p>
+  During each frame, the total velocity supplied to the flow field equation is:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 10</span>
+  <span class="eq">Vx_total  =  Vx_mean  +  dVx</span>
+  <span class="eq">Vy_total  =  Vy_mean  +  dVy</span>
+</div>
+
+<p>
+  These totals are then passed into the flow field calculation (Eq. 7 when an obstacle is present,
+  Eq. 3 when not). The ground truth readout always shows the <em>mean</em> flow, not per-particle
+  values. The perturbations are re-drawn only when the user presses <strong>R</strong> (re-seed).
+</p>
+
+<!-- ══ SECTION 5 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">5</span> Particle Appearance (Gaussian Spot)</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> Real camera sensors see out-of-focus particles as blurry discs,
+  not sharp dots. The tool models this correctly: each particle is drawn as a bright spot that
+  fades smoothly from its centre outward, following a bell-curve (Gaussian) brightness profile.
+</div>
+
+<h3>Gaussian Intensity Profile</h3>
+
+<p>
+  For each pixel <code>(px, py)</code> in the particle's sprite, the brightness is:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 11</span>
+  <span class="eq">r²  =  (px − cx)²  +  (py − cy)²     ← squared distance from centre</span>
+  <span class="eq">I   =  B · exp(−r² / 2)               ← σ = 1 unit in sprite space</span>
+</div>
+
+<p>
+  <code>B</code> is the brightness setting (0–255). The sprite is pre-computed once and then
+  scaled to the particle's actual radius when drawn on screen, so a particle with radius 3 px
+  uses a 3× scaled version of the same unit sprite.
+</p>
+
+<p>
+  Particles are composited using <em>additive blending</em>: where two particles overlap, their
+  intensities add together. This is physically correct — more photons arriving at the same sensor
+  pixel produce a brighter reading.
+</p>
+
+<!-- ══ SECTION 6 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">6</span> Image Noise Models</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> Real cameras add three types of random noise to every image.
+  The tool simulates all three, which is important for testing whether a PIV algorithm still
+  measures the right velocity even when the image is imperfect.
+</div>
+
+<table>
+  <thead>
+    <tr><th>Noise type</th><th>Physical origin</th><th>Mathematical model</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Read noise</td>
+      <td>Electronic noise in the sensor readout circuit; present even in total darkness</td>
+      <td>Gaussian: each pixel gets an offset drawn from N(0, σ) where σ = read noise setting (DN)</td>
+    </tr>
+    <tr>
+      <td>Shot noise</td>
+      <td>Quantum nature of light — photon arrival is statistically random (Poisson process)</td>
+      <td>Poisson approximated as Gaussian: σ ≈ √(scale × I) per pixel, where I = brightness</td>
+    </tr>
+    <tr>
+      <td>Background pedestal</td>
+      <td>Dark current, stray light, or sensor offset</td>
+      <td>Flat additive constant added to every pixel before noise is applied</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Combined Noise Formula</h3>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 12</span>
+  <span class="eq">pixel_value  =  clip( background  +  N(0, σ_read)  +  |N(0, σ_shot)| ,  0, 255 )</span>
+  <span class="eq">where:  σ_shot  =  √( shot_scale × B )</span>
+</div>
+
+<p>
+  The absolute value on the shot noise term prevents negative contributions (shot noise is
+  always positive — you cannot have fewer than zero photons arrive). The <code>clip</code>
+  function keeps the output in the valid 0–255 range.
+</p>
+
+<p>
+  The noise texture is regenerated approximately every 4 render frames (~15 Hz at 60 fps)
+  using a pre-computed table of Gaussian samples generated by the Box-Muller transform
+  at startup.
+</p>
+
+<!-- ══ SECTION 7 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">7</span> Timing and Displacement</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> The readout at the bottom of the screen shows how many pixels
+  a particle moves per frame — both at the TV's own refresh rate and at the camera's frame rate.
+  These are different numbers, and understanding the difference is the whole point of the tool.
+</div>
+
+<h3>Per-Frame Displacement</h3>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 13</span>
+  <span class="eq">speed_px_s    =  √( Vx² + Vy² )             ← magnitude in px/s</span>
+  <span class="eq">Δpx_TV_frame  =  speed_px_s / display_fps    ← displacement per TV frame</span>
+  <span class="eq">Δpx_cam_frame =  speed_px_s / camera_fps     ← displacement per camera frame</span>
+</div>
+
+<p>
+  At 0.08 m/s with default scale (~99.8 px/s), 30 fps camera, 60 Hz display:
+</p>
+
+<div class="math-block">
+  <span class="eq">Δpx_TV_frame   =  99.8 / 60  ≈  1.66 px per TV frame</span>
+  <span class="eq">Δpx_cam_frame  =  99.8 / 30  ≈  3.33 px per camera frame</span>
+</div>
+
+<h3>True Speed (Ground Truth)</h3>
+
+<p>
+  The "True Speed" shown in m/s is calculated by inverting the scale:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 14</span>
+  <span class="eq">true_speed_m_s  =  speed_px_s  /  px_per_mm  /  1000</span>
+</div>
+
+<p>
+  This should always equal the Vx setting (when Vy = 0), confirming the round-trip
+  conversion is consistent.
+</p>
+
+<!-- ══ SECTION 8 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">8</span> Ground Truth Error Metric</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> The researcher types in the velocity they measured from the
+  particle video. The tool compares that to the known correct answer and reports the error.
+  A result within 5% is a pass; 5–15% is a warning; over 15% is a fail.
+</div>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 15</span>
+  <span class="eq">error_m_s  =  measured  −  true_speed</span>
+  <span class="eq">% error    =  ( error_m_s / true_speed ) × 100</span>
+</div>
+
+<table>
+  <thead><tr><th>|% error|</th><th>Verdict</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>&lt; 5 %</td><td>PASS</td><td>Measurement is within acceptable PIV accuracy</td></tr>
+    <tr><td>5 – 15 %</td><td>WARN</td><td>Marginal — review image quality, window size, or seeding density</td></tr>
+    <tr><td>&gt; 15 %</td><td>FAIL</td><td>Significant error — likely a calibration or algorithm issue</td></tr>
+  </tbody>
+</table>
+
+<!-- ══ SECTION 9 ═══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">9</span> Random Number Generator (Reproducibility)</h2>
+
+<div class="plain">
+  <strong>Plain English:</strong> For scientific reproducibility, the tool can generate the same
+  particle layout every time from a given "seed" number. The same seed always produces the same
+  result — so two researchers at two different computers can compare measurements on an
+  identical scene.
+</div>
+
+<p>
+  The seeded generator uses the <strong>Mulberry32</strong> algorithm, a well-known
+  and statistically robust pseudo-random number generator (PRNG) for 32-bit integers:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 16</span>
+  <span class="eq">state  +=  0x6D2B79F5</span>
+  <span class="eq">z       =  state</span>
+  <span class="eq">z       =  (z ⊕ (z >> 15))  ×  (z | 1)</span>
+  <span class="eq">z      +=  (z ⊕ (z >> 7))   ×  (z | 61)</span>
+  <span class="eq">output  =  (z ⊕ (z >> 14))  /  2³²</span>
+</div>
+
+<p>
+  Gaussian-distributed noise samples are generated separately using the
+  <strong>Box-Muller transform</strong>, which converts two uniform random numbers into
+  a pair of normally-distributed samples:
+</p>
+
+<div class="math-block">
+  <span class="eq-label">Eq. 17</span>
+  <span class="eq">z₁  =  √(−2 ln u₁) · cos(2π u₂)</span>
+  <span class="eq">z₂  =  √(−2 ln u₁) · sin(2π u₂)</span>
+  <span class="eq">where u₁, u₂ ~ Uniform(0,1)</span>
+</div>
+
+<!-- ══ LIMITATIONS ══════════════════════════════════════════════════════ -->
+<h2><span class="sec-num">10</span> Known Limitations (Not Bugs)</h2>
+
+<p>
+  The following are deliberate simplifications of real-world physics. They do not affect
+  the validity of the tool for PIV ground-truth testing, but are worth understanding:
+</p>
+
+<div class="note">
+  <strong>No viscosity or boundary layer.</strong>
+  Real fluids have friction at the cylinder surface, creating a thin zone of slower-moving
+  fluid (the boundary layer). Potential flow ignores this. In real experiments at typical
+  river flow speeds, a turbulent boundary layer would cause flow separation at roughly 80–90°
+  around the cylinder and a chaotic wake behind it.
+</div>
+
+<div class="note">
+  <strong>No drag force (D'Alembert's Paradox).</strong>
+  Potential flow theory predicts zero drag on the cylinder. This is mathematically correct
+  within the assumptions of the model but does not match real fluid behaviour. It does not
+  affect particle trajectories outside the immediate vicinity of the cylinder.
+</div>
+
+<div class="note">
+  <strong>No vortex shedding.</strong>
+  At Reynolds numbers above about 40, real flow past a cylinder produces alternating vortices
+  (the von Kármán vortex street). The potential flow model is steady and symmetric —
+  no shedding is present.
+</div>
+
+<div class="note">
+  <strong>2-D only.</strong>
+  All flow is computed in the plane of the screen. There is no depth dimension, which is
+  consistent with the intended use case of a 2-D display-based PIV system.
+</div>
+
+<!-- ══ SUMMARY ══════════════════════════════════════════════════════════ -->
+<div class="summary">
+  <h3>Summary — What Has Been Verified</h3>
+  <ul>
+    <li>Scale conversion from m/s to px/s is correct (Eq. 1–2)</li>
+    <li>Position update uses standard explicit Euler integration (Eq. 3)</li>
+    <li>Flow field formula around cylinder matches the classical analytic solution for potential flow (Eq. 7)</li>
+    <li>The no-penetration boundary condition at the cylinder surface is algebraically confirmed to be satisfied (Eq. 8)</li>
+    <li>Far-field recovery (undisturbed flow far from cylinder) is confirmed (Section 3)</li>
+    <li>Stagnation point location is confirmed at the upstream face (Section 3)</li>
+    <li>Turbulence is isotropic with uniform random magnitude (Eq. 9–10)</li>
+    <li>Gaussian particle profile uses σ = 1 unit in sprite space, scaled to physical radius (Eq. 11)</li>
+    <li>Noise models correctly represent read noise (Gaussian), shot noise (Poisson/Gaussian approx.), and background pedestal (Eq. 12)</li>
+    <li>Ground truth error metric uses standard percentage error (Eq. 15)</li>
+  </ul>
+</div>
+
+<hr>
+
+<footer>
+  <span>USGS Camera &amp; Imaging Systems Evaluation Laboratory — Internal Reference</span>
+  <span>PIV Ground Truth Generator v1.0 — June 2026</span>
+</footer>
+
+</body>
+</html>

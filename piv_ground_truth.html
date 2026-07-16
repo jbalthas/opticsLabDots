@@ -604,6 +604,11 @@
       <button class="obs-btn" id="alignFlowBtn">Off</button>
     </div>
     <div class="info-row">ρ=0 circular, ρ→±1 elongated (correlated 2D Gaussian). Align makes particles orient along local velocity — models motion blur.</div>
+    <div class="row">
+      <label>Bubble mode</label>
+      <button class="obs-btn" id="bubbleModeBtn">Off</button>
+    </div>
+    <div class="info-row">Swaps the Gaussian dot sprite for a translucent ring with a specular highlight. Cosmetic only — particle motion/physics is unchanged.</div>
 
     <!-- Particle Variability (SynthPix: intensity_var, diameter_var) -->
     <div class="section-label" style="margin-top:8px;">Particle Variability</div>
@@ -827,6 +832,7 @@
       <tr><td class="kb-key">R</td><td>Re-seed particles (new random layout)</td></tr>
       <tr><td class="kb-key">C</td><td>Capture frame pair A→B / exit pair mode</td></tr>
       <tr><td class="kb-key">V</td><td>Toggle color-by-speed mode</td></tr>
+      <tr><td class="kb-key">B</td><td>Toggle bubble mode (cosmetic)</td></tr>
       <tr><td class="kb-key">Esc</td><td>Exit frame pair / remove obstacle</td></tr>
       <tr><td class="kb-key">?</td><td>Show / hide this reference</td></tr>
     </table>
@@ -894,6 +900,9 @@ function resize() {
 
 // Color-by-speed mode
 let colorBySpeed = false;
+
+// Bubble mode (cosmetic sprite swap only — does not affect particle motion)
+let bubbleMode = false;
 
 // Flow field
 let flowType = 'uniform';
@@ -1322,6 +1331,7 @@ function buildColoredSprite(bright, rCh, gCh, bCh) {
 }
 
 let _whiteSpr = null, _redSpr = null, _greenSpr = null, _cachedBright = -1;
+let _bubbleSpr = null, _bubbleRedSpr = null, _bubbleGreenSpr = null;
 let bgColor  = '#000000';
 let dotColor = '#ffffff';
 
@@ -1330,17 +1340,53 @@ function hexToRgb01(hex) {
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255];
 }
 
+// Bubble sprite: thin bright rim (meniscus) + faint translucent fill + a small
+// offset specular highlight. Same 13×13 grid/scaling convention as the Gaussian
+// sprite so it drops into the existing draw path with no change to particle motion.
+function buildBubbleSprite(bright, rCh, gCh, bCh) {
+  const oc = document.createElement('canvas');
+  oc.width = oc.height = UNIT_SZ;
+  const ox = oc.getContext('2d');
+  const img = ox.createImageData(UNIT_SZ, UNIT_SZ);
+  const R = SPRITE_CENTER;
+  for (let py = 0; py < UNIT_SZ; py++) {
+    for (let px = 0; px < UNIT_SZ; px++) {
+      const dx = px - SPRITE_CENTER, dy = py - SPRITE_CENTER;
+      const rn = Math.sqrt(dx*dx + dy*dy) / R;
+
+      const rim       = Math.exp(-((rn - 0.85) ** 2) / (2 * 0.05 * 0.05));
+      const fill       = rn < 1 ? (1 - rn) * 0.22 : 0;
+      const hx = dx + 0.38 * R, hy = dy + 0.38 * R;
+      const highlight  = Math.exp(-(hx*hx + hy*hy) / (2 * (0.16*R) * (0.16*R)));
+
+      let val = bright * Math.min(1, rim * 0.9 + fill + highlight * 0.85);
+      if (rn > 1.05) val = 0;
+
+      const i = (py*UNIT_SZ + px) * 4;
+      img.data[i]   = val * rCh;
+      img.data[i+1] = val * gCh;
+      img.data[i+2] = val * bCh;
+      img.data[i+3] = Math.round(Math.min(255, val));
+    }
+  }
+  ox.putImageData(img, 0, 0);
+  return oc;
+}
+
 function refreshSprites() {
   const [r, g, b] = hexToRgb01(dotColor);
   _whiteSpr  = buildColoredSprite(brightness, r, g, b);
   _redSpr    = buildColoredSprite(brightness, 1, 0, 0);
   _greenSpr  = buildColoredSprite(brightness, 0, 0.85, 0);
+  _bubbleSpr      = buildBubbleSprite(brightness, r, g, b);
+  _bubbleRedSpr   = buildBubbleSprite(brightness, 1, 0, 0);
+  _bubbleGreenSpr = buildBubbleSprite(brightness, 0, 0.85, 0);
   _cachedBright = brightness;
 }
 
 function getSprite() {
   if (_cachedBright !== brightness) refreshSprites();
-  return _whiteSpr;
+  return bubbleMode ? _bubbleSpr : _whiteSpr;
 }
 
 // Draw a set of particles using a given sprite, with per-particle transform.
@@ -1514,8 +1560,8 @@ function frame(ts) {
   if (framePairMode && frameAParticles) {
     // Frame pair: A in red, B in green, overlap → yellow
     if (_cachedBright !== brightness) refreshSprites();
-    drawParticles(frameAParticles, _redSpr);
-    drawParticles(particles,       _greenSpr);
+    drawParticles(frameAParticles, bubbleMode ? _bubbleRedSpr   : _redSpr);
+    drawParticles(particles,       bubbleMode ? _bubbleGreenSpr : _greenSpr);
   } else {
     drawParticles(particles, getSprite());
   }
@@ -1701,6 +1747,14 @@ alignBtn.addEventListener('click', () => {
   }
 });
 
+// ── Bubble mode toggle ─────────────────────────────────────────────────────
+const bubbleBtn = document.getElementById('bubbleModeBtn');
+bubbleBtn.addEventListener('click', () => {
+  bubbleMode = !bubbleMode;
+  bubbleBtn.textContent = bubbleMode ? 'On' : 'Off';
+  bubbleBtn.classList.toggle('active', bubbleMode);
+});
+
 // ── Frame pair button ─────────────────────────────────────────────────────
 document.getElementById('pairCaptureBtn').addEventListener('click', () => {
   if (framePairMode) exitFramePair();
@@ -1877,6 +1931,9 @@ document.addEventListener('keydown', e => {
       break;
     case 'v':
       colorBySpeed = !colorBySpeed;
+      break;
+    case 'b':
+      bubbleBtn.click();
       break;
     case 'escape':
       if (document.getElementById('keybindsModal').classList.contains('active')) {

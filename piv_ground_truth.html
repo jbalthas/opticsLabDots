@@ -62,7 +62,7 @@
       padding: 10px 14px 8px; border-bottom: 1px solid #1e1e1e;
       background: rgba(8,8,8,0.97); z-index: 1;
     }
-    #panel-header h2 { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #666; }
+    #panel-header h2 { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #b0b0b0; }
     #panel-close {
       background: none; border: none; color: #444; font-size: 16px;
       line-height: 1; cursor: pointer; padding: 0 2px; transition: color 0.15s;
@@ -72,13 +72,13 @@
 
     .section-label {
       font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
-      color: #3a3a3a; margin-bottom: 7px; margin-top: 2px;
+      color: #999; margin-bottom: 7px; margin-top: 2px;
     }
     .row {
       display: flex; align-items: center; margin-bottom: 8px; gap: 8px;
     }
     .row label {
-      font-size: 10px; color: #888; white-space: nowrap; width: 108px; flex-shrink: 0;
+      font-size: 10px; color: #d8d8d8; white-space: nowrap; width: 108px; flex-shrink: 0;
     }
     .row input[type=range]  { flex: 1; accent-color: #4af; cursor: pointer; }
     .row input[type=color]  { flex: 1; height: 22px; border: 1px solid #2e2e2e; border-radius: 3px;
@@ -114,7 +114,7 @@
     .obs-btn:not(.active):not(.active-orange):hover { border-color: #555; color: #ccc; }
 
     .info-row {
-      font-size: 9px; color: #333; letter-spacing: 0.5px;
+      font-size: 9px; color: #999; letter-spacing: 0.5px;
       margin-bottom: 8px; line-height: 1.5;
     }
 
@@ -183,7 +183,7 @@
     #measInput { -moz-appearance: textfield; appearance: textfield; }
 
     /* ── Hint ────────────────────────────────────────────────────── */
-    #hint { position: fixed; bottom: 7px; right: 12px; font-size: 9px; color: #222; z-index: 100; }
+    #hint { position: fixed; bottom: 7px; right: 12px; font-size: 9px; color: #999; z-index: 100; }
 
     /* ── Pause overlay ───────────────────────────────────────────── */
     #paused {
@@ -211,7 +211,7 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 10px 14px 8px; border-bottom: 1px solid #1e1e1e;
       background: rgba(8,8,8,0.97);
-      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #666;
+      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #b0b0b0;
     }
     #keybinds-close {
       background: none; border: none; color: #444; font-size: 16px;
@@ -224,7 +224,7 @@
     }
     #keybindsTable tr { border-bottom: 1px solid #111; }
     #keybindsTable tr:last-child { border-bottom: none; }
-    #keybindsTable td { padding: 7px 14px; font-size: 11px; color: #888; }
+    #keybindsTable td { padding: 7px 14px; font-size: 11px; color: #d8d8d8; }
     .kb-key {
       font-family: 'Courier New', monospace;
       color: #4af !important; width: 48px;
@@ -304,7 +304,7 @@
     }
     .qa-sum-cell { text-align: center; }
     .qa-sum-cell .val { font-size: 20px; font-weight: bold; }
-    .qa-sum-cell .lbl { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: #333; }
+    .qa-sum-cell .lbl { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; color: #999; }
     .qa-pass .val { color: #3c3; }
     .qa-fail .val { color: #f44; }
     .qa-total .val { color: #4af; }
@@ -323,8 +323,8 @@
       padding: 8px 10px; background: #080808; cursor: pointer;
       user-select: none;
     }
-    .qa-tid  { font-size: 9px; color: #3a3a3a; letter-spacing: 1px; width: 26px; flex-shrink: 0; }
-    .qa-tname { font-size: 10px; color: #aaa; flex: 1; letter-spacing: 0.5px; }
+    .qa-tid  { font-size: 9px; color: #999; letter-spacing: 1px; width: 26px; flex-shrink: 0; }
+    .qa-tname { font-size: 10px; color: #ddd; flex: 1; letter-spacing: 0.5px; }
     .qa-badge {
       font-size: 8px; letter-spacing: 1px; text-transform: uppercase;
       padding: 2px 6px; border-radius: 2px; flex-shrink: 0;
@@ -338,9 +338,9 @@
       padding: 8px 10px 10px; border-top: 1px solid #111;
       background: #050505;
     }
-    .qa-desc      { font-size: 9px; color: #444; margin-bottom: 6px; line-height: 1.6; }
+    .qa-desc      { font-size: 9px; color: #aaa; margin-bottom: 6px; line-height: 1.6; }
     .qa-criterion { font-size: 9px; color: #2a5a2a; margin-bottom: 8px; }
-    .qa-result    { font-size: 9px; color: #555; line-height: 1.8; margin-bottom: 8px; }
+    .qa-result    { font-size: 9px; color: #b0b0b0; line-height: 1.8; margin-bottom: 8px; }
     .qa-run-btn {
       background: #0d0d0d; border: 1px solid #2e2e2e; color: #888;
       font-family: inherit; font-size: 9px; letter-spacing: 1.5px;
@@ -384,8 +384,9 @@
 
     /* ── Colorbar ────────────────────────────────────────────────── */
     #colorbar {
-      position: fixed; bottom: 130px; left: 50%; transform: translateX(-50%);
+      position: fixed; top: 46px; left: 50%; transform: translateX(-50%);
       display: none; align-items: center; gap: 8px; z-index: 100; pointer-events: none;
+      background: rgba(0,0,0,0.72); padding: 5px 10px; border-radius: 4px;
     }
     #colorbar.visible { display: flex; }
     #colorbar .cb-label { font-size: 8px; color: #444; letter-spacing: 1px; white-space: nowrap; }
@@ -401,6 +402,16 @@
     #truth .row3.visible { display: grid; }
     .gt-profile .number { color: #fa0; font-size: 13px; }
     .gt-profile .name   { color: #333; }
+
+    /* ── Truth bar row4 — flume hydraulics ───────────────────────── */
+    #truth .row4 {
+      display: none; grid-template-columns: repeat(5,1fr);
+      gap: 0 10px; padding-top: 10px;
+      border-top: 1px solid #181818; margin-top: 10px;
+    }
+    #truth .row4.visible { display: grid; }
+    .gt-flume .number { color: #0cb; font-size: 13px; }
+    .gt-flume .name   { color: #333; }
   </style>
 </head>
 <body>
@@ -457,6 +468,7 @@
 
     <!-- ── Flow Field ── -->
     <div class="section-label">Flow Field</div>
+    <div class="info-row" id="velFrameInfo" style="display:none; color:#0cb;">Velocities below are <b>flume (world) m/s</b> — real water speed in the simulated channel.</div>
     <div class="row">
       <label>Type</label>
       <select class="flow-select" id="flowType">
@@ -708,6 +720,103 @@
     </div>
 
     <hr class="divider">
+    <!-- ── Flume Geometry ── -->
+    <div class="section-label">Flume Geometry</div>
+    <div class="row">
+      <label>Simulate flume</label>
+      <button class="obs-btn" id="flumeToggle">Off</button>
+    </div>
+    <div id="flumeControls" style="display:none;">
+      <div class="row">
+        <label>Preset</label>
+        <select class="flow-select" id="flumePreset">
+          <option value="custom">Custom</option>
+          <option value="d1">Large flume (D1) — 6 × 4 ft</option>
+          <option value="lab1m">Lab flume — 1.0 m × 0.30 m</option>
+          <option value="field10">Field reach — 10 m × 1.5 m</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Units</label>
+        <select class="flow-select" id="flumeUnitSel">
+          <option value="ft">feet</option>
+          <option value="m">metres</option>
+          <option value="in">inches</option>
+          <option value="cm">centimetres</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Width B (across)</label>
+        <input type="number" id="flumeWNum" step="0.01" value="6" style="flex:1; width:auto;">
+      </div>
+      <div class="row">
+        <label>Reach L (along)</label>
+        <input type="number" id="flumeLNum" step="0.01" value="20" style="flex:1; width:auto;">
+      </div>
+      <div class="row">
+        <label>Flow depth h</label>
+        <input type="number" id="flumeDNum" step="0.01" value="4" style="flex:1; width:auto;">
+      </div>
+      <div class="info-row">B is across-channel (screen Y), L is the streamwise reach in view (screen X). Depth is not imaged — it only feeds the derived hydraulics.</div>
+      <div class="row">
+        <label>Fit to screen</label>
+        <select class="flow-select" id="flumeFitSel">
+          <option value="all">Whole flume (letterbox)</option>
+          <option value="width">Width fills screen</option>
+          <option value="length">Reach fills screen</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>Surface coeff α</label>
+        <input type="range" id="flumeAlphaSlider" min="0.7" max="1" step="0.01" value="0.85">
+        <input type="number" id="flumeAlphaNum" step="0.01" value="0.85">
+      </div>
+      <div class="row">
+        <label>Time scale ×</label>
+        <input type="range" id="timeScaleSlider" min="0.05" max="10" step="0.05" value="1">
+        <input type="number" id="timeScaleNum" step="0.05" value="1">
+      </div>
+      <div class="info-row">α converts surface velocity to depth-mean for Q (LSPIV index coefficient, typically 0.85). Time scale = world seconds per display second: &lt;1 slows a fast channel so Δpx/frame stays inside the ¼-window rule; 1.0 = real time.</div>
+      <div class="row">
+        <label>Overlay</label>
+        <button class="obs-btn" id="flumeBanksBtn">Banks</button>
+        <button class="obs-btn" id="flumeGridBtn">Stations</button>
+      </div>
+      <div class="row">
+        <label>&nbsp;</label>
+        <button class="obs-btn" id="flumeScaleBtn">Scale bar</button>
+        <button class="obs-btn" id="flumeConfineBtn">Confine</button>
+      </div>
+      <div class="info-row">Banks mask everything outside the wetted channel. Turn all overlays off for radiometric tests so only particles are on screen. Confine seeds particles inside the banks only.</div>
+
+      <div class="row" style="margin-top:6px;">
+        <label style="color:#3a3a3a;">World scale</label>
+        <span style="flex:1;"></span>
+        <span id="flumeScaleDisp" style="font-size:10px; color:#0cb; width:150px; text-align:right;">—</span>
+      </div>
+      <div class="row" style="margin-top:-4px;">
+        <label style="color:#3a3a3a;">Geometric scale</label>
+        <span style="flex:1;"></span>
+        <span id="flumeMagDisp" style="font-size:10px; color:#3a3a3a; width:150px; text-align:right;">—</span>
+      </div>
+      <div class="row" style="margin-top:-4px;">
+        <label style="color:#3a3a3a;">Visible reach</label>
+        <span style="flex:1;"></span>
+        <span id="flumeReachDisp" style="font-size:10px; color:#3a3a3a; width:150px; text-align:right;">—</span>
+      </div>
+      <div class="row" style="margin-top:-4px;">
+        <label style="color:#3a3a3a;">A / R<sub>h</sub></label>
+        <span style="flex:1;"></span>
+        <span id="flumeAreaDisp" style="font-size:10px; color:#3a3a3a; width:150px; text-align:right;">—</span>
+      </div>
+      <div class="row" style="margin-top:-4px;">
+        <label style="color:#3a3a3a;">Seeding</label>
+        <span style="flex:1;"></span>
+        <span id="flumeSeedDisp" style="font-size:10px; color:#3a3a3a; width:150px; text-align:right;">—</span>
+      </div>
+    </div>
+
+    <hr class="divider">
     <!-- ── Seed ── -->
     <div class="section-label">Particle Seed</div>
     <div class="row">
@@ -814,9 +923,36 @@
       <div class="unit" id="gtProfileNote"></div>
     </div>
   </div>
+  <div class="row4" id="truthRow4">
+    <div class="metric gt-flume">
+      <div class="name">TV-plane Speed</div>
+      <div class="number" id="gtTvMs">—</div>
+      <div class="unit">m / s on screen</div>
+    </div>
+    <div class="metric gt-flume">
+      <div class="name">Discharge Q</div>
+      <div class="number" id="gtQsi">—</div>
+      <div class="unit">m³ / s</div>
+    </div>
+    <div class="metric gt-flume">
+      <div class="name">Discharge Q</div>
+      <div class="number" id="gtQcfs">—</div>
+      <div class="unit">ft³ / s</div>
+    </div>
+    <div class="metric gt-flume">
+      <div class="name">Froude</div>
+      <div class="number" id="gtFroude">—</div>
+      <div class="unit" id="gtFroudeNote">—</div>
+    </div>
+    <div class="metric gt-flume">
+      <div class="name">Reynolds</div>
+      <div class="number" id="gtReynolds">—</div>
+      <div class="unit">R<sub>h</sub> based</div>
+    </div>
+  </div>
 </div>
 
-<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed &nbsp;·&nbsp; [C] frame pair &nbsp;·&nbsp; [V] color by speed &nbsp;·&nbsp; [?] keys</div>
+<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed &nbsp;·&nbsp; [C] frame pair &nbsp;·&nbsp; [V] color by speed &nbsp;·&nbsp; [L] flume &nbsp;·&nbsp; [?] keys</div>
 
 <!-- ── Keybinds modal ─────────────────────────────────────────── -->
 <div id="keybindsModal">
@@ -833,6 +969,7 @@
       <tr><td class="kb-key">C</td><td>Capture frame pair A→B / exit pair mode</td></tr>
       <tr><td class="kb-key">V</td><td>Toggle color-by-speed mode</td></tr>
       <tr><td class="kb-key">B</td><td>Toggle bubble mode (cosmetic)</td></tr>
+      <tr><td class="kb-key">L</td><td>Toggle flume geometry simulation</td></tr>
       <tr><td class="kb-key">Esc</td><td>Exit frame pair / remove obstacle</td></tr>
       <tr><td class="kb-key">?</td><td>Show / hide this reference</td></tr>
     </table>
@@ -844,6 +981,7 @@
   <div class="cp-label">True velocity at cursor</div>
   <div>Vx <span class="cp-val" id="cp-vx">—</span> &nbsp; Vy <span class="cp-val" id="cp-vy">—</span> &nbsp; px/s</div>
   <div>|V| <span class="cp-ms" id="cp-speed">—</span> m/s &nbsp; θ <span class="cp-val" id="cp-angle">—</span>°</div>
+  <div id="cp-flume-row" style="display:none;">Flume <span class="cp-ms" id="cp-world" style="color:#0cb;">—</span> m/s &nbsp; station <span class="cp-val" id="cp-station">—</span></div>
   <div>Δpx/frame <span class="cp-val" id="cp-disp">—</span></div>
 </div>
 
@@ -894,6 +1032,7 @@ let W = 0, H = 0;
 function resize() {
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
+  recomputeFlume();
 }
 
 // ── State ─────────────────────────────────────────────────────────────────
@@ -984,7 +1123,100 @@ let particles = [];
 // Per-camera-frame out-of-plane refresh counter
 let _camFrameAcc = 0; // accumulated time in seconds
 
-function msToPs(ms) { return ms * 1000 * pxPerMm; }
+// ── Flume geometry (world scale) ─────────────────────────────────────────
+// The TV shows a scene that REPRESENTS a physical channel. Two scales coexist:
+//   pxPerMm       — canvas px per mm of TV glass   (display plane, existing)
+//   pxPerWorldMm  — canvas px per mm of real water (world plane, this section)
+// A PIV package calibrated off the channel banks reports world velocity, so
+// while flume mode is on every velocity control and the headline ground truth
+// are expressed in world m/s. The display-plane speed stays available in row 4.
+let flumeOn        = false;
+let flumeUnit      = 'ft';   // ft | m | in | cm
+let flumeWidthU    = 6;      // across-channel B, in flumeUnit
+let flumeLengthU   = 20;     // streamwise reach L in view, in flumeUnit
+let flumeDepthU    = 4;      // flow depth h, in flumeUnit
+let flumeFit       = 'all';  // all | width | length
+let flumeAlpha     = 0.85;   // surface → depth-mean velocity coefficient
+let timeScale      = 1.0;    // world seconds per display second
+let flumeShowBanks = true;
+let flumeShowGrid  = true;
+let flumeShowScale = true;
+let flumeConfine   = true;
+
+const UNIT_MM    = { ft: 304.8, m: 1000, in: 25.4, cm: 10 };
+const UNIT_LABEL = { ft: 'ft',  m: 'm',  in: 'in', cm: 'cm' };
+const G_ACCEL    = 9.80665;    // m/s²
+const NU_WATER   = 1.004e-6;   // kinematic viscosity of water at 20 °C, m²/s
+
+// Channel rect in canvas px — may extend beyond the canvas in width/length fit.
+let chX0 = 0, chY0 = 0, chX1 = 0, chY1 = 0;
+// Particle domain in canvas px — channel clipped to canvas, or the whole canvas.
+let domX0 = 0, domY0 = 0, domX1 = 0, domY1 = 0;
+let pxPerWorldMm = 1;
+
+function flumeUnitMm() { return UNIT_MM[flumeUnit] || 1000; }
+
+// Recompute the world→canvas mapping and the particle domain. Called on resize
+// and whenever any flume geometry control changes.
+function recomputeFlume() {
+  if (!flumeOn) {
+    pxPerWorldMm = 1;
+    chX0 = domX0 = 0;  chY0 = domY0 = 0;
+    chX1 = domX1 = W;  chY1 = domY1 = H;
+  } else {
+    const u   = flumeUnitMm();
+    const Bmm = Math.max(1, flumeWidthU  * u);
+    const Lmm = Math.max(1, flumeLengthU * u);
+
+    let s;
+    if      (flumeFit === 'width')  s = H / Bmm;
+    else if (flumeFit === 'length') s = W / Lmm;
+    else                            s = Math.min(W / Lmm, H / Bmm);
+    pxPerWorldMm = s;
+
+    const lenPx = Lmm * s, widPx = Bmm * s;
+    chX0 = (W - lenPx) / 2;  chX1 = chX0 + lenPx;
+    chY0 = (H - widPx) / 2;  chY1 = chY0 + widPx;
+
+    if (flumeConfine) {
+      domX0 = Math.max(0, chX0);  domX1 = Math.min(W, chX1);
+      domY0 = Math.max(0, chY0);  domY1 = Math.min(H, chY1);
+    } else {
+      domX0 = 0; domY0 = 0; domX1 = W; domY1 = H;
+    }
+  }
+  // Degenerate domain (channel entirely off-canvas) — fall back to full canvas.
+  if (domX1 - domX0 < 4) { domX0 = 0; domX1 = W; }
+  if (domY1 - domY0 < 4) { domY0 = 0; domY1 = H; }
+
+  recomputeScale();
+  updateFlumeReadouts();
+  updateDensityDisplay();
+}
+
+// ── Frame-aware velocity conversion ──────────────────────────────────────
+// Flume mode: the m/s controls mean real water speed, mapped through the world
+// scale and the playback time scale. Otherwise: TV display-plane speed.
+function msToPs(ms) {
+  return flumeOn ? ms * 1000 * pxPerWorldMm * timeScale
+                 : ms * 1000 * pxPerMm;
+}
+function psToTvMs(ps)    { return ps / pxPerMm / 1000; }
+function psToWorldMs(ps) { return ps / (1000 * pxPerWorldMm * timeScale); }
+function psToActiveMs(ps) { return flumeOn ? psToWorldMs(ps) : psToTvMs(ps); }
+
+// Angular velocity is per-time, so it takes the playback scale too.
+function omegaEff() { return flumeOn ? vortexOmega * timeScale : vortexOmega; }
+
+// Cross-channel normalised coordinate, 0 at the top bank, 1 at the bottom bank.
+function yNormCh(py) {
+  const span = chY1 - chY0;
+  if (span <= 0) return 0.5;
+  const t = (py - chY0) / span;
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+}
+function chCenterX() { return (chX0 + chX1) / 2; }
+function chCenterY() { return (chY0 + chY1) / 2; }
 
 // ── Flow Field ──────────────────────────────────────────────────────────
 
@@ -1015,29 +1247,30 @@ function flowVelocity(px, py, dvx, dvy) {
 function baseFlow(px, py) {
   switch (flowType) {
     case 'shear': {
-      const yNorm = py / H;
+      const yNorm = yNormCh(py);
       const shearFactor = 1 + shearRate * (yNorm*2 - 1);
       return { vx: msToPs(shearVxMs) * shearFactor, vy };
     }
     case 'vortex': {
-      const cx = W/2, cy = H/2;
+      const cx = chCenterX(), cy = chCenterY();
       const dx = px - cx, dy = py - cy;
+      const om = omegaEff();
       // Solid-body rotation: v_tangential = ω × r → vx = -ω·dy, vy = ω·dx
       return {
-        vx: -vortexOmega * dy + msToPs(vortexBgVxMs),
-        vy:  vortexOmega * dx,
+        vx: -om * dy + msToPs(vortexBgVxMs),
+        vy:  om * dx,
       };
     }
     case 'poiseuille': {
-      const yNorm = py / H;
+      const yNorm = yNormCh(py);
       const profile = 4 * yNorm * (1 - yNorm);
       return { vx: msToPs(poisVxMaxMs) * profile, vy: 0 };
     }
     case 'rankine': {
-      const cx = W/2, cy = H/2;
+      const cx = chCenterX(), cy = chCenterY();
       const dx = px - cx, dy = py - cy;
       const r  = Math.sqrt(dx*dx + dy*dy) + 0.01;
-      const rc = rankineRcPct / 100 * Math.min(W, H);
+      const rc = rankineRcPct / 100 * Math.min(chX1 - chX0, chY1 - chY0);
       const vcPx = msToPs(rankineVcMs);
       const speed = r <= rc ? vcPx * r / rc : vcPx * rc / r;
       return {
@@ -1050,9 +1283,9 @@ function baseFlow(px, py) {
   }
 }
 
-// Reference flow at screen center (for readout)
+// Reference flow at channel center (screen center when flume mode is off)
 function centerFlow() {
-  return baseFlow(W/2, H/2);
+  return baseFlow(chCenterX(), chCenterY());
 }
 
 // ── Color-by-speed ────────────────────────────────────────────────────────
@@ -1073,7 +1306,7 @@ function speedToColor(t, alpha) {
 
 // Returns analytical {vMinMs, vCenterMs, vMaxMs, label, note} for current flow.
 function analyticalVelocityStats() {
-  const psToMs = (ps) => ps / pxPerMm / 1000;
+  const psToMs = psToActiveMs;
   switch (flowType) {
     case 'uniform': {
       const s = Math.sqrt(vxMs*vxMs + vyMs*vyMs);
@@ -1094,17 +1327,16 @@ function analyticalVelocityStats() {
                label: 'Poiseuille', note: 'parabolic' };
     }
     case 'vortex': {
-      const rMax = Math.sqrt((W/2)**2 + (H/2)**2);
-      const vMaxPs = Math.abs(vortexOmega) * rMax;
+      // Largest radius still in view — the corner of the visible domain.
+      const cx = chCenterX(), cy = chCenterY();
+      const rMax = Math.hypot(Math.max(cx - domX0, domX1 - cx),
+                              Math.max(cy - domY0, domY1 - cy));
+      const vMaxPs = Math.abs(omegaEff()) * rMax;
       const bgMs = Math.abs(vortexBgVxMs);
       return { vMinMs: bgMs, vCenterMs: bgMs, vMaxMs: psToMs(vMaxPs) + bgMs,
                label: 'Solid vortex', note: `ω=${vortexOmega.toFixed(2)} rad/s` };
     }
     case 'rankine': {
-      const rc = rankineRcPct / 100 * Math.min(W, H);
-      const vcPx = msToPs(rankineVcMs);
-      const rMax = Math.sqrt((W/2)**2 + (H/2)**2);
-      const vAtEdge = psToMs(vcPx * rc / rMax);
       return { vMinMs: 0, vCenterMs: rankineVcMs, vMaxMs: rankineVcMs,
                label: 'Rankine vortex', note: `rc=${rankineRcPct}%` };
     }
@@ -1121,7 +1353,7 @@ function drawParticlesColored(ptList, speedMaxMs) {
     if (p.dimmed) continue;
     const f = baseFlow(p.x, p.y);
     const speedPs = Math.sqrt(f.vx*f.vx + f.vy*f.vy);
-    const speedMs = speedPs / pxPerMm / 1000;
+    const speedMs = psToActiveMs(speedPs);
     const t = speedMs / speedMaxMs;
     const rEff = (p.r * (p.sizeFactor ?? 1)) * 1.8;
     ctx.beginPath();
@@ -1135,17 +1367,20 @@ function drawParticlesColored(ptList, speedMaxMs) {
 function drawVelocityProfile() {
   if (flowType !== 'shear' && flowType !== 'poiseuille') return;
   const steps = 20;
-  const xBase = 38, arrowMaxLen = 60;
+  const arrowMaxLen = 60;
+  // Anchor the profile axis just inside the upstream end of the visible channel.
+  const xBase = Math.max(38, domX0 + 30);
+  const yTop = Math.max(domY0, Math.min(chY0, chY1));
+  const yBot = Math.min(domY1, Math.max(chY0, chY1));
   const stats = analyticalVelocityStats();
   const vMax = Math.abs(stats.vMaxMs) || 1;
 
   ctx.save();
   ctx.globalAlpha = 0.55;
   for (let i = 0; i <= steps; i++) {
-    const yNorm = i / steps;
-    const py = yNorm * H;
+    const py = yTop + (i / steps) * (yBot - yTop);
     const f = baseFlow(xBase, py);
-    const speedMs = Math.abs(f.vx) / pxPerMm / 1000;
+    const speedMs = psToActiveMs(Math.abs(f.vx));
     const t = speedMs / vMax;
     const len = t * arrowMaxLen;
     const [r,g,b] = speedToRgb(t);
@@ -1169,7 +1404,7 @@ function drawVelocityProfile() {
   // Axis line
   ctx.strokeStyle = '#1a1a1a';
   ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(xBase, 0); ctx.lineTo(xBase, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xBase, yTop); ctx.lineTo(xBase, yBot); ctx.stroke();
   ctx.restore();
 }
 
@@ -1197,7 +1432,7 @@ function updateCursorProbe() {
   }
   const f = baseFlow(_mouseX, _mouseY);
   const speedPs = Math.sqrt(f.vx*f.vx + f.vy*f.vy);
-  const speedMs = speedPs / pxPerMm / 1000;
+  const speedMs = psToTvMs(speedPs);
   const angle   = Math.atan2(f.vy, f.vx) * 180 / Math.PI;
   const dispPx  = speedPs / camFps;
 
@@ -1207,8 +1442,19 @@ function updateCursorProbe() {
   document.getElementById('cp-angle').textContent = angle.toFixed(1);
   document.getElementById('cp-disp').textContent  = dispPx.toFixed(2) + ' px';
 
+  // Flume row: world velocity and streamwise station at the cursor
+  const flumeRow = document.getElementById('cp-flume-row');
+  flumeRow.style.display = flumeOn ? 'block' : 'none';
+  if (flumeOn) {
+    const u = flumeUnitMm();
+    const stationU = (_mouseX - chX0) / pxPerWorldMm / u;
+    document.getElementById('cp-world').textContent   = psToWorldMs(speedPs).toFixed(4);
+    document.getElementById('cp-station').textContent =
+      (stationU >= 0 ? '+' : '') + stationU.toFixed(2) + ' ' + UNIT_LABEL[flumeUnit];
+  }
+
   // Position probe offset from cursor, keeping it on-screen
-  const pw = 200, ph = 80;
+  const pw = 210, ph = flumeOn ? 96 : 80;
   let px = _mouseX + 16, py = _mouseY - ph - 8;
   if (px + pw > window.innerWidth)  px = _mouseX - pw - 8;
   if (py < 0)                        py = _mouseY + 16;
@@ -1228,8 +1474,8 @@ function makeParticle() {
   const tSpeed = rand() * turbulence;
   let px, py;
   do {
-    px = rand() * W;
-    py = rand() * H;
+    px = domX0 + rand() * (domX1 - domX0);
+    py = domY0 + rand() * (domY1 - domY0);
   } while (obstacle && distSq(px, py, obstacle.cx, obstacle.cy) < obstacle.r * obstacle.r);
 
   // Per-particle elongation (SynthPix rho)
@@ -1242,6 +1488,8 @@ function makeParticle() {
 
   return {
     x:   px, y:   py,
+    origX: px, origY: py, // original deployment position — saved before spawn
+    cumX: 0,   cumY: 0,   // cumulative displacement since last return-to-origin
     dvx: Math.cos(tAngle) * tSpeed,
     dvy: Math.sin(tAngle) * tSpeed,
     r:   minRadius + rand() * (maxRadius - minRadius),
@@ -1296,9 +1544,81 @@ function refreshOutOfPlane() {
 }
 
 function updateDensityDisplay() {
-  if (W && H) {
-    const ppp = (particles.length / (W * H)).toExponential(2);
+  const areaPx = (domX1 - domX0) * (domY1 - domY0);
+  if (areaPx > 0) {
+    const ppp = (particles.length / areaPx).toExponential(2);
     document.getElementById('seedDensDisplay').textContent = ppp + ' ppp';
+  }
+  updateFlumeSeedDisplay();
+}
+
+// Seeding density expressed in the world frame (particles per m² of water surface).
+function updateFlumeSeedDisplay() {
+  const el = document.getElementById('flumeSeedDisp');
+  if (!el) return;
+  if (!flumeOn || pxPerWorldMm <= 0) { el.textContent = '—'; return; }
+  const areaM2 = ((domX1 - domX0) / pxPerWorldMm / 1000) *
+                 ((domY1 - domY0) / pxPerWorldMm / 1000);
+  el.textContent = areaM2 > 0
+    ? (particles.length / areaM2).toFixed(1) + ' particles/m²'
+    : '—';
+}
+
+// Advance one particle by dt seconds through the flow field.
+//
+// The domain is the whole canvas normally, or the wetted channel when flume mode
+// is on with Confine enabled — wrapping then recirculates the particle from the
+// downstream end back to the upstream end without it ever crossing a bank.
+//
+// The particle streams through with the flow, wrapping at the domain edges so the
+// seeding density stays uniform. Once it has travelled one full field-span of
+// displacement (a complete transit) it snaps back to its saved ORIGINAL position.
+// That clears whatever the flow/obstacle did to it on the way through — the
+// distortion is never wrapped back to the front and never accumulates — while
+// every dot keeps returning to exactly where it was first deployed. For straight
+// flows a full transit already lands the dot on its origin, so the snap is
+// seamless; the obstacle deflection recovers downstream, so it stays a small,
+// staggered correction and the field remains clean and even.
+function advanceParticle(p, dt) {
+  const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, p.dvx, p.dvy);
+
+  // Cumulative displacement tells us when a full transit has elapsed.
+  p.cumX += pvx * dt;
+  p.cumY += pvy * dt;
+
+  const spanX = domX1 - domX0, spanY = domY1 - domY0;
+  let nx = domX0 + ((((p.x - domX0 + pvx*dt) % spanX) + spanX) % spanX);
+  let ny = domY0 + ((((p.y - domY0 + pvy*dt) % spanY) + spanY) % spanY);
+
+  // Keep particles out of the obstacle interior (zero-velocity solid): a fast step
+  // can overshoot the thin surface, so push any such particle radially back out.
+  if (obstacle) {
+    const dx = nx - obstacle.cx, dy = ny - obstacle.cy;
+    const d2 = dx*dx + dy*dy;
+    if (d2 < obstacle.r*obstacle.r) {
+      const d = Math.sqrt(d2) || 1e-6;
+      const k = (obstacle.r + 1) / d;
+      nx = obstacle.cx + dx*k;
+      ny = obstacle.cy + dy*k;
+    }
+  }
+
+  p.x = nx; p.y = ny;
+
+  // Full transit completed → return to the original deployment position, unless
+  // that spot is currently occluded by the obstacle (then keep streaming instead
+  // of snapping onto the solid).
+  if (Math.abs(p.cumX) >= spanX || Math.abs(p.cumY) >= spanY) {
+    p.cumX = 0; p.cumY = 0;
+    if (!(obstacle && distSq(p.origX, p.origY, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r)) {
+      p.x = p.origX;
+      p.y = p.origY;
+    }
+  }
+
+  if (alignToFlow) {
+    const f = baseFlow(p.x, p.y);
+    p._flowAngle = Math.atan2(f.vy, f.vx);
   }
 }
 
@@ -1465,6 +1785,165 @@ function applyNoise() {
   ctx.globalCompositeOperation = 'source-over';
 }
 
+// ── Flume overlay & hydraulics ───────────────────────────────────────────
+
+// Cross-section mean of the streamwise surface velocity, in the active frame.
+// Sampled across the full channel width at mid-reach.
+function meanSurfaceVxMs() {
+  const n = 64;
+  const xMid = (domX0 + domX1) / 2;
+  let sum = 0;
+  for (let i = 0; i < n; i++) {
+    const py = chY0 + ((i + 0.5) / n) * (chY1 - chY0);
+    sum += Math.abs(baseFlow(xMid, py).vx);
+  }
+  return psToActiveMs(sum / n);
+}
+
+// Derived open-channel quantities for the configured flume geometry.
+// vSurf is the cross-section mean SURFACE velocity; vMean is the depth-mean
+// estimate vSurf × α (the LSPIV index-velocity coefficient).
+function flumeHydraulics() {
+  const u = flumeUnitMm();
+  const B = flumeWidthU * u / 1000;   // m
+  const h = flumeDepthU * u / 1000;   // m
+  const A = B * h;
+  const P = B + 2*h;                  // rectangular section, wetted perimeter
+  const Rh = P > 0 ? A / P : 0;
+  const vSurf = meanSurfaceVxMs();
+  const vMean = flumeAlpha * vSurf;
+  return {
+    B, h, A, P, Rh, vSurf, vMean,
+    Q:  vMean * A,
+    Fr: h  > 0 ? vMean / Math.sqrt(G_ACCEL * h) : 0,
+    Re: Rh > 0 ? vMean * Rh / NU_WATER : 0,
+  };
+}
+
+// Pick a station/scale-bar interval that is a round number in the display unit.
+const STATION_STEPS = [0.01,0.02,0.05,0.1,0.2,0.25,0.5,1,2,2.5,5,10,20,25,50,100,200,500];
+function niceStepU(targetPx) {
+  const targetU = targetPx / pxPerWorldMm / flumeUnitMm();
+  for (const c of STATION_STEPS) if (c >= targetU) return c;
+  return STATION_STEPS[STATION_STEPS.length - 1];
+}
+function fmtU(v, step) {
+  const dec = step < 0.1 ? 2 : step < 1 ? 2 : step < 10 ? 1 : 0;
+  return v.toFixed(dec);
+}
+
+// Draw the channel banks, station grid and scale bar. Runs after the particles
+// so the bank mask occludes anything outside the wetted area.
+function drawFlume() {
+  if (!flumeOn) return;
+
+  const unitLbl = UNIT_LABEL[flumeUnit];
+  const uMm     = flumeUnitMm();
+  const cx0 = Math.max(0, chX0), cx1 = Math.min(W, chX1);
+  const cy0 = Math.max(0, chY0), cy1 = Math.min(H, chY1);
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+
+  // Mask everything outside the wetted channel.
+  if (flumeShowBanks) {
+    ctx.fillStyle = bgColor;
+    if (cy0 > 0) ctx.fillRect(0, 0, W, cy0);
+    if (cy1 < H) ctx.fillRect(0, cy1, W, H - cy1);
+    if (cx0 > 0) ctx.fillRect(0, cy0, cx0, cy1 - cy0);
+    if (cx1 < W) ctx.fillRect(cx1, cy0, W - cx1, cy1 - cy0);
+
+    // Bank lines (solid, cross-stream limits) and end sections (dashed).
+    ctx.strokeStyle = '#2f5f70';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    if (chY0 >= 0 && chY0 <= H) { ctx.moveTo(cx0, chY0); ctx.lineTo(cx1, chY0); }
+    if (chY1 >= 0 && chY1 <= H) { ctx.moveTo(cx0, chY1); ctx.lineTo(cx1, chY1); }
+    ctx.stroke();
+
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = '#24404a';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (chX0 >= 0 && chX0 <= W) { ctx.moveTo(chX0, cy0); ctx.lineTo(chX0, cy1); }
+    if (chX1 >= 0 && chX1 <= W) { ctx.moveTo(chX1, cy0); ctx.lineTo(chX1, cy1); }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.font = '9px Courier New';
+  ctx.textBaseline = 'top';
+
+  // Station ticks along the top bank, labelled from the upstream end.
+  if (flumeShowGrid) {
+    const stepU  = niceStepU(120);
+    const stepPx = stepU * uMm * pxPerWorldMm;
+    const yRef   = Math.max(cy0, 0);
+    ctx.strokeStyle = '#1d3a44';
+    ctx.fillStyle   = '#2f5f70';
+    ctx.textAlign   = 'center';
+    ctx.lineWidth   = 1;
+    const nSteps = Math.floor((chX1 - chX0) / stepPx) + 1;
+    for (let i = 0; i < nSteps; i++) {
+      const sx = chX0 + i * stepPx;
+      if (sx < -1 || sx > W + 1) continue;
+      ctx.beginPath();
+      ctx.moveTo(sx, yRef);
+      ctx.lineTo(sx, Math.min(cy1, yRef + 10));
+      ctx.stroke();
+      ctx.fillText(fmtU(i * stepU, stepU), sx, yRef + 13);
+    }
+
+    // Cross-channel width dimension at the downstream end.
+    if (cy1 - cy0 > 40) {
+      const dx = Math.min(cx1 - 46, W - 46);
+      if (dx > cx0 + 10) {
+        ctx.strokeStyle = '#24404a';
+        ctx.beginPath();
+        ctx.moveTo(dx, cy0 + 2); ctx.lineTo(dx, cy1 - 2);
+        ctx.moveTo(dx - 4, cy0 + 6); ctx.lineTo(dx, cy0 + 2); ctx.lineTo(dx + 4, cy0 + 6);
+        ctx.moveTo(dx - 4, cy1 - 6); ctx.lineTo(dx, cy1 - 2); ctx.lineTo(dx + 4, cy1 - 6);
+        ctx.stroke();
+        ctx.save();
+        ctx.translate(dx - 5, (cy0 + cy1) / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillStyle = '#2f5f70';
+        ctx.fillText(`B = ${flumeWidthU} ${unitLbl}`, 0, 0);
+        ctx.restore();
+        ctx.textBaseline = 'top';
+      }
+    }
+  }
+
+  // Scale bar + caption, upper-left — the one region that stays clear of the
+  // truth bar, the control panel and the velocity-profile arrows at any size.
+  if (flumeShowScale) {
+    const maxBar = Math.min(W * 0.35, 260);
+    const stepU  = niceStepU(Math.min(150, maxBar));
+    const barPx  = stepU * uMm * pxPerWorldMm;
+    const bx0 = 24, bx1 = bx0 + barPx, by = 70;
+    if (barPx > 12 && bx1 < W - 12) {
+      ctx.strokeStyle = '#2f5f70';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(bx0, by);     ctx.lineTo(bx1, by);
+      ctx.moveTo(bx0, by - 4); ctx.lineTo(bx0, by + 4);
+      ctx.moveTo(bx1, by - 4); ctx.lineTo(bx1, by + 4);
+      ctx.stroke();
+      ctx.fillStyle = '#2f5f70';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${fmtU(stepU, stepU)} ${unitLbl}`, bx0, by + 7);
+      ctx.fillStyle = '#25454f';
+      ctx.fillText(`${flumeWidthU} × ${flumeDepthU} ${unitLbl} channel · 1 px = ` +
+                   `${(1 / pxPerWorldMm).toFixed(2)} mm`, bx0, by + 19);
+    }
+  }
+
+  ctx.restore();
+}
+
 // ── Frame pair ───────────────────────────────────────────────────────────
 
 function captureFramePair() {
@@ -1473,26 +1952,7 @@ function captureFramePair() {
 
   // Advance exactly one camera frame
   const dt = 1 / camFps;
-  for (const p of particles) {
-    const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, p.dvx, p.dvy);
-    const nx = p.x + pvx*dt;
-    const ny = p.y + pvy*dt;
-    if (obstacle && (nx < 0 || nx >= W || ny < 0 || ny >= H)) {
-      do { p.x = Math.random()*W; p.y = Math.random()*H; }
-      while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
-    } else {
-      p.x = ((nx % W) + W) % W;
-      p.y = ((ny % H) + H) % H;
-      if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r) {
-        do { p.x = Math.random()*W; p.y = Math.random()*H; }
-        while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
-      }
-    }
-    if (alignToFlow) {
-      const f = baseFlow(p.x, p.y);
-      p._flowAngle = Math.atan2(f.vy, f.vx);
-    }
-  }
+  for (const p of particles) advanceParticle(p, dt);
 
   framePairMode = true;
   paused = true;
@@ -1518,30 +1978,7 @@ function frame(ts) {
 
   if (!paused && !framePairMode) {
     // Advance particles
-    for (const p of particles) {
-      const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, p.dvx, p.dvy);
-      const nx = p.x + pvx*dt;
-      const ny = p.y + pvy*dt;
-      // With an obstacle, wrapping preserves coordinates and locks particles onto
-      // stagnation streamlines — they re-approach the stagnation points indefinitely.
-      // Respawn at a random position instead to maintain uniform seeding density.
-      if (obstacle && (nx < 0 || nx >= W || ny < 0 || ny >= H)) {
-        do { p.x = Math.random()*W; p.y = Math.random()*H; }
-        while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
-      } else {
-        p.x = ((nx % W) + W) % W;
-        p.y = ((ny % H) + H) % H;
-        if (obstacle && distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r) {
-          do { p.x = Math.random()*W; p.y = Math.random()*H; }
-          while (distSq(p.x, p.y, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r);
-        }
-      }
-      // Update flow-alignment angle
-      if (alignToFlow) {
-        const f = baseFlow(p.x, p.y);
-        p._flowAngle = Math.atan2(f.vy, f.vx);
-      }
-    }
+    for (const p of particles) advanceParticle(p, dt);
 
     // Per-camera-frame out-of-plane refresh
     if (outOfPlanePct > 0) {
@@ -1580,7 +2017,12 @@ function frame(ts) {
       ctx.font = '10px Courier New';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(`r = ${obstacle.r}px`, obstacle.cx, obstacle.cy);
+      let obsLbl = `r = ${obstacle.r}px`;
+      if (flumeOn && pxPerWorldMm > 0) {
+        const rU = obstacle.r / pxPerWorldMm / flumeUnitMm();
+        obsLbl += ` · ${rU.toFixed(2)} ${UNIT_LABEL[flumeUnit]}`;
+      }
+      ctx.fillText(obsLbl, obstacle.cx, obstacle.cy);
     }
   }
 
@@ -1596,6 +2038,8 @@ function frame(ts) {
     document.getElementById('colorbar').classList.remove('visible');
   }
 
+  drawFlume();
+
   applyNoise();
   updateReadout();
   updateCursorProbe();
@@ -1609,11 +2053,15 @@ function updateReadout() {
 
   const tvDisp  = speed / dispFps;
   const camDisp = speed / camFps;
-  const trueMs  = speed / pxPerMm / 1000;
+  // Headline ground truth is in the active frame: flume (world) m/s when flume
+  // mode is on — that is what a bank-calibrated PIV package reports — otherwise
+  // the TV display-plane m/s.
+  const trueMs  = psToActiveMs(speed);
 
   const isUniform = (flowType === 'uniform');
   document.getElementById('refSpeedLabel').textContent  = isUniform ? 'Mean Speed' : 'Center Speed';
-  document.getElementById('trueSpeedLabel').textContent = isUniform ? 'True Speed' : 'Ref Speed';
+  document.getElementById('trueSpeedLabel').textContent =
+    (isUniform ? 'True Speed' : 'Ref Speed') + (flumeOn ? ' (flume)' : '');
 
   document.getElementById('gtSpeed').textContent    = speed.toFixed(1);
   document.getElementById('gtAngle').textContent    = angle.toFixed(1) + '°';
@@ -1677,6 +2125,25 @@ function updateReadout() {
       document.getElementById('profileMaxLabel').textContent    = 'V max';
     }
   }
+
+  // Row 4 — flume hydraulics (live, from the configured channel geometry)
+  const row4 = document.getElementById('truthRow4');
+  row4.classList.toggle('visible', flumeOn);
+  if (flumeOn) {
+    const hy = flumeHydraulics();
+    document.getElementById('gtTvMs').textContent     = psToTvMs(speed).toFixed(4);
+    document.getElementById('gtQsi').textContent      = hy.Q.toFixed(4);
+    document.getElementById('gtQcfs').textContent     = (hy.Q * 35.3147).toFixed(3);
+    document.getElementById('gtFroude').textContent   = hy.Fr.toFixed(3);
+    document.getElementById('gtReynolds').textContent =
+      hy.Re >= 10000 ? (hy.Re / 1000).toFixed(0) + 'k' : hy.Re.toFixed(0);
+
+    const fnote = document.getElementById('gtFroudeNote');
+    if      (hy.Fr === 0)   { fnote.textContent = '—';           fnote.style.color = '#383838'; }
+    else if (hy.Fr < 0.95)  { fnote.textContent = 'subcritical';  fnote.style.color = '#383838'; }
+    else if (hy.Fr <= 1.05) { fnote.textContent = 'critical';     fnote.style.color = '#fa0'; }
+    else                    { fnote.textContent = 'supercritical';fnote.style.color = '#fa0'; }
+  }
 }
 
 // ── Scale recompute ───────────────────────────────────────────────────────
@@ -1693,6 +2160,148 @@ function recomputeScale() {
   turbulence = msToPs(turbMs);
 }
 recomputeScale();
+
+// ── Flume geometry controls ───────────────────────────────────────────────
+const FLUME_PRESETS = {
+  d1:      { unit: 'ft', width: 6,  length: 20,  depth: 4    },
+  lab1m:   { unit: 'm',  width: 1,  length: 3,   depth: 0.30 },
+  field10: { unit: 'm',  width: 10, length: 25,  depth: 1.5  },
+};
+
+function updateFlumeReadouts() {
+  const on = flumeOn;
+  document.getElementById('velFrameInfo').style.display = on ? 'block' : 'none';
+
+  const scaleEl = document.getElementById('flumeScaleDisp');
+  const magEl   = document.getElementById('flumeMagDisp');
+  const reachEl = document.getElementById('flumeReachDisp');
+  const areaEl  = document.getElementById('flumeAreaDisp');
+  if (!scaleEl) return;
+
+  if (!on) {
+    [scaleEl, magEl, reachEl, areaEl].forEach(el => el.textContent = '—');
+    updateFlumeSeedDisplay();
+    return;
+  }
+
+  const u       = flumeUnitMm();
+  const unitLbl = UNIT_LABEL[flumeUnit];
+  const mmPerPx = 1 / pxPerWorldMm;
+
+  scaleEl.textContent = mmPerPx.toFixed(3) + ' mm/px · ' +
+                        (pxPerWorldMm * 1000).toFixed(1) + ' px/m';
+
+  // Geometric scale — how much bigger the real channel is than its TV image.
+  // pxPerMm is the TV display scale, so the ratio is display mm : world mm.
+  const ratio = pxPerWorldMm > 0 ? pxPerMm / pxPerWorldMm : 0;
+  magEl.textContent = ratio > 0 ? '1 : ' + ratio.toFixed(2) + ' (display : world)' : '—';
+
+  // Reach actually in view along the flow, and how much of B is on screen.
+  const visLenU = (Math.min(W, chX1) - Math.max(0, chX0)) / pxPerWorldMm / u;
+  const visWidU = (Math.min(H, chY1) - Math.max(0, chY0)) / pxPerWorldMm / u;
+  reachEl.textContent = visLenU.toFixed(2) + ' × ' + visWidU.toFixed(2) + ' ' + unitLbl +
+                        (visWidU < flumeWidthU * 0.999 ? ' ⚠ B cropped' : '');
+
+  const hy = flumeHydraulics();
+  areaEl.textContent = hy.A.toFixed(3) + ' m² · ' + hy.Rh.toFixed(3) + ' m';
+
+  updateFlumeSeedDisplay();
+}
+
+// Toggle flume mode. Velocity conversions and the particle domain both change,
+// so the field is reseeded to keep the layout clean inside the new domain.
+function setFlumeOn(on) {
+  flumeOn = on;
+  const btn = document.getElementById('flumeToggle');
+  btn.textContent = on ? 'On' : 'Off';
+  btn.classList.toggle('active', on);
+  document.getElementById('flumeControls').style.display = on ? 'block' : 'none';
+  recomputeFlume();
+  seedParticles(particles.length);
+}
+
+// Geometry changed → remap and reseed inside the new domain.
+function flumeGeometryChanged() {
+  recomputeFlume();
+  if (flumeOn) seedParticles(particles.length);
+}
+
+function syncFlumeDimInputs() {
+  document.getElementById('flumeWNum').value = flumeWidthU;
+  document.getElementById('flumeLNum').value = flumeLengthU;
+  document.getElementById('flumeDNum').value = flumeDepthU;
+  document.getElementById('flumeUnitSel').value = flumeUnit;
+}
+
+document.getElementById('flumeToggle').addEventListener('click', () => setFlumeOn(!flumeOn));
+
+document.getElementById('flumePreset').addEventListener('change', e => {
+  const p = FLUME_PRESETS[e.target.value];
+  if (!p) return;
+  flumeUnit    = p.unit;
+  flumeWidthU  = p.width;
+  flumeLengthU = p.length;
+  flumeDepthU  = p.depth;
+  syncFlumeDimInputs();
+  flumeGeometryChanged();
+});
+
+// Changing units re-labels the dimensions without converting the numbers —
+// the entered values are read in the newly selected unit.
+document.getElementById('flumeUnitSel').addEventListener('change', e => {
+  flumeUnit = e.target.value;
+  document.getElementById('flumePreset').value = 'custom';
+  flumeGeometryChanged();
+});
+
+function wireFlumeDim(inputId, setter) {
+  const el = document.getElementById(inputId);
+  const commit = () => {
+    const v = parseFloat(el.value);
+    if (isNaN(v) || v <= 0) return;
+    setter(v);
+    document.getElementById('flumePreset').value = 'custom';
+    flumeGeometryChanged();
+  };
+  el.addEventListener('input', commit);
+  el.addEventListener('blur',  commit);
+  el.addEventListener('keydown', ev => {
+    ev.stopPropagation();
+    if (ev.key === 'Enter') el.blur();
+  });
+}
+wireFlumeDim('flumeWNum', v => { flumeWidthU  = v; });
+wireFlumeDim('flumeLNum', v => { flumeLengthU = v; });
+wireFlumeDim('flumeDNum', v => { flumeDepthU  = v; });
+
+document.getElementById('flumeFitSel').addEventListener('change', e => {
+  flumeFit = e.target.value;
+  flumeGeometryChanged();
+});
+
+wireSliderNum('flumeAlphaSlider', 'flumeAlphaNum', 0.7, 1, 2, v => {
+  flumeAlpha = Math.max(0.01, v);
+});
+wireSliderNum('timeScaleSlider', 'timeScaleNum', 0.05, 10, 2, v => {
+  timeScale = Math.max(0.001, v);
+  recomputeScale();       // px/s conversions depend on the playback scale
+  updateFlumeReadouts();
+});
+
+function wireFlumeToggle(btnId, get, set, reseed) {
+  const btn = document.getElementById(btnId);
+  const paint = () => btn.classList.toggle('active', get());
+  btn.addEventListener('click', () => {
+    set(!get());
+    paint();
+    if (reseed) flumeGeometryChanged(); else updateFlumeReadouts();
+  });
+  paint();
+}
+wireFlumeToggle('flumeBanksBtn',   () => flumeShowBanks, v => flumeShowBanks = v, false);
+wireFlumeToggle('flumeGridBtn',    () => flumeShowGrid,  v => flumeShowGrid  = v, false);
+wireFlumeToggle('flumeScaleBtn',   () => flumeShowScale, v => flumeShowScale = v, false);
+wireFlumeToggle('flumeConfineBtn', () => flumeConfine,   v => flumeConfine   = v, true);
 
 // ── Obstacle controls ─────────────────────────────────────────────────────
 function setObstacleActive(on) {
@@ -1935,6 +2544,9 @@ document.addEventListener('keydown', e => {
     case 'b':
       bubbleBtn.click();
       break;
+    case 'l':
+      setFlumeOn(!flumeOn);
+      break;
     case 'escape':
       if (document.getElementById('keybindsModal').classList.contains('active')) {
         document.getElementById('keybindsModal').classList.remove('active'); break;
@@ -2049,6 +2661,10 @@ function _setCtrl(sliderId, numId, value) {
 }
 
 function applyQAConfig(cfg) {
+  // QA tests are display-plane validations against the TV scale calibration —
+  // flume mode would reinterpret every velocity in the world frame, so drop it.
+  if (flumeOn) setFlumeOn(false);
+
   // Flow type
   flowType = cfg.flowType;
   document.getElementById('flowType').value = flowType;

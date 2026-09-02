@@ -334,6 +334,13 @@
     .badge-pass    { color: #3c3; background: #0a1a0a; border: 1px solid #1a3a1a; }
     .badge-fail    { color: #f44; background: #1a0808; border: 1px solid #3a1a1a; }
 
+    .qa-thr {
+      background: #0d0d0d; border: 1px solid #1e1e1e; color: #ccc;
+      font-family: inherit; font-size: 9px; padding: 1px 4px;
+      border-radius: 2px; width: 46px;
+    }
+    .qa-thr:focus { outline: none; border-color: #4af; }
+    .qa-thr-note { display: block; margin-top: 3px; font-size: 8px; color: #555; letter-spacing: 0.5px; }
     .qa-test-detail {
       padding: 8px 10px 10px; border-top: 1px solid #111;
       background: #050505;
@@ -394,14 +401,13 @@
 
     /* ── Extended truth bar row3 ─────────────────────────────────── */
     #truth .row3 {
-      display: grid; grid-template-columns: repeat(4,1fr);
+      display: grid; grid-template-columns: repeat(5,1fr);
       gap: 0 10px; padding-top: 10px;
       border-top: 1px solid #181818; margin-top: 10px;
       display: none;
     }
     #truth .row3.visible { display: grid; }
-    .gt-profile .number { color: #fa0; font-size: 13px; }
-    .gt-profile .name   { color: #333; }
+    .gt-profile .number { color: #fff; font-size: 13px; }
 
     /* ── Truth bar row4 — flume hydraulics ───────────────────────── */
     #truth .row4 {
@@ -410,8 +416,143 @@
       border-top: 1px solid #181818; margin-top: 10px;
     }
     #truth .row4.visible { display: grid; }
-    .gt-flume .number { color: #0cb; font-size: 13px; }
-    .gt-flume .name   { color: #333; }
+    .gt-flume .number { color: #fff; font-size: 13px; }
+
+    /* ── Metrology panel (deterministic sync + timing telemetry) ─── */
+    #metro {
+      position: fixed; bottom: 12px; left: 12px;
+      width: 320px; max-height: calc(100vh - 24px); overflow-y: auto;
+      background: rgba(8,8,8,0.93);
+      border: 1px solid #2a2a2a; border-radius: 6px;
+      z-index: 100; display: none; backdrop-filter: blur(6px);
+      scrollbar-width: thin; scrollbar-color: #222 transparent;
+    }
+    #metro::-webkit-scrollbar { width: 4px; }
+    #metro::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+    #metro.visible { display: block; }
+    #metro-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 12px 7px; border-bottom: 1px solid #1e1e1e;
+      font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; color: #b0b0b0;
+    }
+    #metro-close {
+      background: none; border: none; color: #444; font-size: 14px;
+      line-height: 1; cursor: pointer; padding: 0 2px; transition: color 0.15s;
+    }
+    #metro-close:hover { color: #ccc; }
+    #metro-body { padding: 9px 12px 11px; }
+
+    .m-row { display: flex; justify-content: space-between; gap: 10px; font-size: 9px; line-height: 1.75; }
+    .m-row .k { color: #666; letter-spacing: 0.5px; white-space: nowrap; }
+    .m-row .v { color: #e0e0e0; text-align: right; white-space: nowrap; }
+    .m-head {
+      font-size: 8px; letter-spacing: 2px; text-transform: uppercase;
+      color: #999; margin: 9px 0 3px;
+    }
+    .m-hero { text-align: center; padding: 2px 0 6px; border-bottom: 1px solid #181818; }
+    .m-hero .num { font-size: 22px; font-weight: bold; }
+    .m-hero .lbl { font-size: 8px; letter-spacing: 1px; text-transform: uppercase; color: #444; }
+    .m-warn {
+      font-size: 9px; line-height: 1.55; margin-top: 7px;
+      padding: 5px 7px; border-radius: 3px; display: none;
+    }
+    .m-warn.on { display: block; }
+    /* Device-pixel-ratio gate. Deliberately loud and deliberately not
+       dismissible: at DPR ≠ 1 every recorded frame is wrong and the operator
+       may be running with both panels hidden. */
+    #dprBanner {
+      display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 9000;
+      background: #2a0606; border-bottom: 2px solid #f44; color: #f88;
+      font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.6;
+      padding: 9px 16px; text-align: center; letter-spacing: 0.4px;
+    }
+    #dprBanner.on { display: block; }
+    #dprBanner b { color: #f44; letter-spacing: 2px; }
+    .m-warn.amber { color: #fa0; background: #1a1200; border: 1px solid #3a2a00; }
+    .m-warn.red   { color: #f44; background: #1a0808; border: 1px solid #3a1a1a; }
+    .m-ok { color: #3c3; } .m-amber { color: #fa0; } .m-red { color: #f44; } .m-dim { color: #555; }
+    #metro-reset {
+      width: 100%; background: #0d0d0d; border: 1px solid #1e1e1e; color: #555;
+      font-family: inherit; font-size: 9px; letter-spacing: 1.5px;
+      padding: 6px; border-radius: 3px; cursor: pointer;
+      text-transform: uppercase; margin-top: 9px; transition: all 0.15s;
+    }
+    #metro-reset:hover { border-color: #4af; color: #4af; }
+
+    /* ── Step-pair phase badge ──────────────────────────────────── */
+    #stepPhaseBadge {
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+      z-index: 100; display: none; pointer-events: none; text-align: center;
+      background: rgba(0,0,0,0.88); border: 1px solid #2a2a2a;
+      border-radius: 6px; padding: 0 28px 7px;
+    }
+    #stepPhaseBadge.visible { display: block; }
+    #stepPhaseBadge .ph  { font-size: 62px; font-weight: bold; line-height: 1.12; }
+    #stepPhaseBadge .sub { font-size: 8px; letter-spacing: 2px; text-transform: uppercase; color: #444; }
+    #stepPhaseBadge.pa .ph { color: #ececec; }
+    #stepPhaseBadge.pb .ph { color: #8cf; }
+
+    /* ── Sub-pixel sweep panel ───────────────────────────────────── */
+    #sweepPanel {
+      position: fixed; top: 12px; left: 12px;
+      width: 372px; max-height: calc(100vh - 24px); overflow-y: auto;
+      background: rgba(8,8,8,0.93); border: 1px solid #2a2a2a;
+      border-radius: 6px; z-index: 100; backdrop-filter: blur(6px);
+      display: none; scrollbar-width: thin; scrollbar-color: #222 transparent;
+    }
+    #sweepPanel::-webkit-scrollbar { width: 4px; }
+    #sweepPanel::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+    #sweepPanel-header {
+      position: sticky; top: 0; display: flex; align-items: center;
+      justify-content: space-between; padding: 10px 14px 8px;
+      border-bottom: 1px solid #1e1e1e; background: rgba(8,8,8,0.97); z-index: 1;
+    }
+    #sweepPanel-header h2 { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #4af; }
+    #sweepPanel-close {
+      background: none; border: none; color: #444; font-size: 16px;
+      line-height: 1; cursor: pointer; padding: 0 2px; transition: color 0.15s;
+    }
+    #sweepPanel-close:hover { color: #ccc; }
+    #sweepPanel-body { padding: 12px 14px 14px; }
+    .sweep-cfg { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; margin-bottom: 9px; }
+    .sweep-cfg label { font-size: 9px; color: #666; letter-spacing: 0.5px; align-self: center; }
+    .sweep-cfg input {
+      background: #0d0d0d; border: 1px solid #1e1e1e; color: #ccc;
+      font-family: inherit; font-size: 10px; padding: 4px 6px; border-radius: 3px; width: 100%;
+    }
+    .sweep-cfg input:focus { outline: none; border-color: #4af; }
+    .sweep-status {
+      font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+      color: #444; padding: 5px 0 8px;
+    }
+    .sweep-status.on { color: #4af; }
+    #sweepPlot { width: 100%; display: block; border: 1px solid #161616; border-radius: 3px; margin-bottom: 9px; }
+    .sweep-sum { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin-bottom: 10px; }
+    .sweep-sum .cell { text-align: center; }
+    .sweep-sum .val { font-size: 14px; font-weight: bold; color: #ccc; }
+    .sweep-sum .lbl { font-size: 8px; letter-spacing: 1.2px; text-transform: uppercase; color: #666; margin-top: 2px; }
+    .val.qa-pass-val { color: #3c3; } .val.qa-warn-val { color: #fa0; } .val.qa-fail-val { color: #f44; }
+    .sweep-hdr, .sweep-row {
+      display: grid; grid-template-columns: 22px 52px 66px 1fr 54px;
+      gap: 5px; align-items: center; font-size: 9px; padding: 3px 4px;
+    }
+    .sweep-hdr { color: #555; letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #1a1a1a; padding-bottom: 5px; }
+    .sweep-row { border-bottom: 1px solid #0f0f0f; color: #999; }
+    .sweep-row.live { background: #0a1520; color: #cfe6ff; }
+    .sweep-row .sw-i { color: #555; }
+    .sweep-row input.sw-meas {
+      background: #0d0d0d; border: 1px solid #1e1e1e; color: #ccc;
+      font-family: inherit; font-size: 9px; padding: 2px 4px; border-radius: 2px; width: 100%;
+    }
+    .sweep-row input.sw-meas:focus { outline: none; border-color: #4af; }
+    .sw-bias.ok { color: #3c3; } .sw-bias.warn { color: #fa0; } .sw-bias.bad { color: #f44; }
+    .sweep-btn {
+      width: 100%; background: #0d0d0d; border: 1px solid #1e1e1e; color: #4af;
+      font-family: inherit; font-size: 9px; letter-spacing: 1.5px; padding: 7px;
+      border-radius: 3px; cursor: pointer; text-transform: uppercase;
+      margin-top: 9px; transition: all 0.15s;
+    }
+    .sweep-btn:hover { border-color: #4af; }
   </style>
 </head>
 <body>
@@ -424,6 +565,9 @@
 </div>
 
 <canvas id="canvas"></canvas>
+
+<!-- ── Device-pixel-ratio gate ───────────────────────────────── -->
+<div id="dprBanner"></div>
 <div id="paused">PAUSED</div>
 
 <!-- ── Password Modal ─────────────────────────────────────────── -->
@@ -556,11 +700,11 @@
 
     <!-- Turbulence (all modes) -->
     <div class="row">
-      <label>Turbulence (±m/s)</label>
+      <label>Vel. dispersion (±m/s)</label>
       <input type="range" id="turbSlider" min="0" max="1" step="0.001" value="0">
       <input type="number" id="turbNum" step="0.001" value="0">
     </div>
-    <div class="info-row" id="turbInfo" style="display:none;">Random velocity offset per particle, drawn from [−T, +T]. Reseed [R] to draw new offsets.</div>
+    <div class="info-row" id="turbInfo" style="display:none;">A <b>frozen random velocity offset per particle</b>, drawn once from a disk of radius T and carried unchanged for the particle's life. It is <b>not turbulence</b> — there is no spatial correlation, no temporal evolution and no energy cascade. It models tracer-to-tracer velocity scatter. Do not call it turbulence in a paper. Reseed [R] to draw new offsets.</div>
 
     <hr class="divider">
     <!-- ── Particles ── -->
@@ -598,6 +742,11 @@
       <span style="flex:1;"></span>
       <span id="seedDensDisplay" style="font-size:10px; color:#3a3a3a; width:112px; text-align:right;">— ppp</span>
     </div>
+    <div class="row">
+      <label style="color:#3a3a3a;">Particle image d<sub>τ</sub></label>
+      <span id="dTauDisplay" style="font-size:10px; color:#3a3a3a; width:112px; text-align:right;">— px</span>
+    </div>
+    <div class="info-row">The diameter controls set 2σ of the rendered Gaussian, so the 1/e² particle image diameter is <b>d<sub>τ</sub> = 2 × diameter</b>. d<sub>τ</sub> — not the slider value — is the figure that governs sub-pixel (peak-locking) bias and the one to quote in a methods section. FWHM = 1.177 × d<sub>τ</sub> / 2.</div>
 
     <!-- Particle Shape (SynthPix: correlated 2D Gaussian) -->
     <div class="section-label" style="margin-top:8px;">Particle Shape</div>
@@ -639,7 +788,45 @@
       <input type="range" id="outPlaneSlider" min="0" max="80" step="1" value="0">
       <input type="number" id="outPlaneNum" value="0">
     </div>
-    <div class="info-row" id="varInfo" style="display:none;">Intensity/diameter drawn from N(1, σ) per particle. Out-of-plane: fraction of particles dimmed each camera frame (models light-sheet loss).</div>
+    <div class="info-row" id="varInfo" style="display:none;">Intensity/diameter drawn from N(1, σ) per particle. Out-of-plane: fraction of particles <b>dropped from the frame entirely</b> (not dimmed), re-drawn each camera frame — models light-sheet loss.</div>
+
+    <div class="row" style="margin-top:6px;">
+      <label>Return to origin</label>
+      <button class="obs-btn" id="returnOriginBtn">Off</button>
+    </div>
+    <div class="row">
+      <label style="color:#3a3a3a;">Pair loss / cam frame</label>
+      <span id="pairLossDisplay" style="font-size:10px; color:#3a3a3a; width:112px; text-align:right;">—</span>
+    </div>
+    <div class="info-row">A particle that crosses the periodic boundary between Frame A and Frame B is <b>unpaired</b> — it adds noise to the correlation instead of signal. Unavoidable at the edges of any periodic synthetic field and normally small, but it is part of the stimulus, so it is measured and stated here rather than left to be discovered. <b>Return to origin</b> is the old recycling behaviour, now off by default: every flow here is incompressible so the field cannot clump, which made the extra teleport redundant while it injected unpaired particles at an unreported rate.</div>
+
+    <hr class="divider">
+    <!-- ── Interrogation window ── -->
+    <div class="section-label">Interrogation Window</div>
+    <div class="row">
+      <label>IW size (cam px)</label>
+      <input type="range" id="iwSlider" min="8" max="256" step="8" value="32">
+      <input type="number" id="iwNum" step="8" value="32">
+    </div>
+    <div class="row">
+      <label>cam px / disp px</label>
+      <input type="range" id="camMagSlider" min="0.1" max="8" step="0.05" value="1">
+      <input type="number" id="camMagNum" step="0.05" value="1">
+    </div>
+    <div class="row">
+      <label style="color:#3a3a3a;">IW in display px</label>
+      <span id="iwDispDisplay" style="font-size:10px; color:#3a3a3a; width:112px; text-align:right;">—</span>
+    </div>
+    <div class="row">
+      <label style="color:#3a3a3a;">N<sub>I</sub> per window</label>
+      <span id="iwNiDisplay" style="font-size:10px; color:#3a3a3a; width:112px; text-align:right;">—</span>
+    </div>
+    <div class="row">
+      <label style="color:#3a3a3a;">Δ / IW (¼-rule)</label>
+      <span id="iwQuarterDisplay" style="font-size:10px; color:#3a3a3a; width:112px; text-align:right;">—</span>
+    </div>
+    <div class="info-row">Enter the window your PIV package uses, in <b>camera</b> pixels, and the imaging scale. A 32 px camera window on a camera resolving the screen at 0.5 cam-px per display-px covers 64 display pixels — twice the field, four times the particles and a different gradient bias, so this conversion is not optional.</div>
+    <div class="info-row">A PIV correlation returns a <b>window-averaged</b> displacement, not the velocity at a point. For any flow with curvature the two differ, and comparing a window-averaged measurement against a point-valued truth books that difference as algorithm error when it is nothing of the kind. Set this to your package's final-pass window and read the window-averaged truth in the bottom bar. N<sub>I</sub> ≳ 8 and Δ ≲ IW/4 are the usual working limits.</div>
 
     <hr class="divider">
     <!-- ── Noise ── -->
@@ -659,14 +846,24 @@
       <input type="range" id="bgNoiseSlider" min="0" max="40" step="1" value="0">
       <input type="number" id="bgNoiseNum" step="1" value="0">
     </div>
-    <div class="info-row" id="noiseInfo" style="display:none;">Read noise: Gaussian σ in DN. Shot: Poisson-approx, σ∝√(scale·I). Background: uniform pedestal added before noise.</div>
+    <div class="info-row" id="noiseInfo" style="display:none;">Read noise: zero-mean Gaussian σ in DN, added after display encode. Shot: zero-mean, <b>signal-dependent</b> — σ = √(scale · I<sub>local</sub>), drawn per pixel from the accumulated intensity. Background: uniform DN pedestal. A fresh realisation is drawn every rendered frame, so Frame A and Frame B of a step-pair never share one.</div>
+    <div class="row">
+      <label>Linear light</label>
+      <button class="obs-btn" id="linearLightBtn">Off</button>
+    </div>
+    <div class="row">
+      <label>Display γ</label>
+      <input type="range" id="gammaSlider" min="1" max="3" step="0.05" value="2.2">
+      <input type="number" id="gammaNum" step="0.05" value="2.2">
+    </div>
+    <div class="info-row">Off (default) renders intensities directly as DN, so the <i>light</i> leaving the panel carries the Gaussian raised to the panel's gamma — the emitted particle image is narrower than the one specified. On, the particle field is composed in linear light and encoded with the inverse EOTF, so the emitted profile is the intended Gaussian. Set γ from the measured display gamma in the calibration protocol, not from the nameplate.</div>
 
     <hr class="divider">
     <!-- ── Timing ── -->
     <div class="section-label">Timing</div>
     <div class="row">
       <label>Camera fps</label>
-      <input type="range" id="camFpsSlider" min="1" max="240" step="1" value="30">
+      <input type="range" id="camFpsSlider" min="1" max="480" step="0.001" value="30">
       <input type="number" id="camFpsNum" value="30">
     </div>
     <div class="row">
@@ -674,11 +871,110 @@
       <input type="range" id="dispFpsSlider" min="24" max="240" step="1" value="60">
       <input type="number" id="dispFpsNum" value="60">
     </div>
+    <div class="info-row" id="dispFpsWarn" style="display:none; color:#fa0;"></div>
+
+    <div class="row" style="margin-top:4px;">
+      <label>Deterministic step</label>
+      <button class="obs-btn" id="detBtn">[D] Off</button>
+    </div>
+    <div class="row" id="stepFpsRow" style="display:none;">
+      <label>Step rate (fps)</label>
+      <input type="range" id="stepFpsSlider" min="1" max="480" step="0.01" value="30">
+      <input type="number" id="stepFpsNum" value="30">
+    </div>
+    <div class="row" id="autoLockRow" style="display:none;">
+      <label>Auto-lock timing</label>
+      <button class="obs-btn" id="autoLockBtn">[A] Off</button>
+    </div>
+    <div class="row" id="autoLockStatusRow" style="display:none;">
+      <label style="color:#3a3a3a;">Lock state</label>
+      <span id="autoLockStatus" style="font-size:10px; width:112px; text-align:right;">off</span>
+    </div>
+    <div class="row" id="autoLockCamRow" style="display:none;">
+      <label style="color:#3a3a3a;">Camera rate</label>
+      <button class="obs-btn" id="autoLockCamBtn" style="font-size:9px;">—</button>
+    </div>
+    <div class="info-row" id="autoLockInfo" style="display:none;">Sets the <b>step rate</b> to the measured refresh exactly, so the sim-time scale is 1.000 — but only once the interval measurement is good enough to be worth trusting. While the panel is unstable it <b>refuses to lock</b> and says why in the metrology panel; locking to a refresh measured through heavy jitter would bake a wrong number into the stimulus and then print a reassuring ×1.000 beside it. Camera fps is <b>never</b> set for you: it describes your physical camera, and writing a rate the camera is not actually at is the exact failure this tool exists to remove. It computes the correct rate and you apply it once the camera really is there.</div>
+    <div class="row" id="matchRefreshRow" style="display:none;">
+      <label>&nbsp;</label>
+      <button class="obs-btn" id="matchRefreshBtn">Match refresh (—)</button>
+    </div>
+    <div class="info-row">Advances the sim by exactly 1/step-rate every <b>rendered</b> frame, decoupled from the wall clock — so the quoted displacement stops being an assertion. Set camera fps to the measured panel refresh, or an integer divisor of it. Open the metrology panel [T] for the live sync arithmetic.</div>
+
     <div class="row" style="margin-top:4px;">
       <label>Frame pair</label>
       <button class="obs-btn" id="pairCaptureBtn">[C] Capture A→B</button>
     </div>
-    <div class="info-row">Captures Frame A (red), advances 1 camera frame, shows Frame B (green). Overlap = yellow. Measures actual Δpx.</div>
+    <div class="info-row">Composites Frame A (red) and Frame B (green) into <b>one</b> displayed image — read Δpx by eye. A camera photographing this captures both in a single exposure, so it cannot produce a real PIV pair; use step-pair for that.</div>
+
+    <div class="section-label" style="margin-top:10px;">Step-Pair Capture</div>
+    <div class="row">
+      <label>Step pair</label>
+      <button class="obs-btn" id="stepPairBtn">[S] Start A/B</button>
+    </div>
+    <div class="row">
+      <label>Hold frames</label>
+      <input type="range" id="holdFramesSlider" min="1" max="120" step="1" value="10">
+      <input type="number" id="holdFramesNum" value="10">
+    </div>
+    <div class="row">
+      <label>Loop A→B→A</label>
+      <button class="obs-btn" id="stepPairLoopBtn">Off</button>
+    </div>
+    <div class="row" style="margin-top:6px;">
+      <label>Sub-pixel sweep</label>
+      <button class="obs-btn" id="sweepBtn">[W] Start sweep</button>
+    </div>
+    <div class="row">
+      <label>Sweep panel</label>
+      <button class="obs-btn" id="sweepPanelBtn">Open</button>
+    </div>
+    <div class="info-row">Steps a <b>commanded</b> displacement through a pixel as a sequence of pure-translation A/B pairs, so the measured-minus-commanded curve traces your package's peak-locking bias directly. This is the one measurement here that is about the algorithm rather than the display.</div>
+    <div class="row">
+      <label>Phase badge</label>
+      <button class="obs-btn active" id="phaseBadgeBtn">On</button>
+    </div>
+    <div class="info-row">Shows <b>only</b> Frame A for the hold, then advances exactly 1/step-rate and shows <b>only</b> Frame B — temporally distinct, separately capturable frames. The frame-code top bit carries the phase (0 = A, 1 = B).</div>
+
+    <div class="section-label" style="margin-top:10px;">Frame Code</div>
+    <div class="row">
+      <label>Frame code</label>
+      <button class="obs-btn active" id="frameCodeBtn">[G] On</button>
+    </div>
+    <div class="row">
+      <label>Position</label>
+      <select class="flow-select" id="frameCodePosSel">
+        <option value="tlbr">Top-left + bottom-right</option>
+        <option value="trbl">Top-right + bottom-left</option>
+        <option value="all">All four corners</option>
+      </select>
+    </div>
+    <div class="row">
+      <label>Block size (px)</label>
+      <input type="range" id="fcBlockSlider" min="8" max="48" step="1" value="24">
+      <input type="number" id="fcBlockNum" value="24">
+    </div>
+    <div class="info-row">Clock block + 12 data blocks, LSB leftmost, pure #000 / #fff. Data encodes the rendered-frame index mod 4096; the clock block flips every rendered frame. Both copies encode the same index — if they disagree inside one captured image, the panel tore mid-refresh.</div>
+
+    <div class="section-label" style="margin-top:10px;">Timing Telemetry</div>
+    <div class="row">
+      <label>Metrology panel</label>
+      <button class="obs-btn" id="metroBtn">[T] Off</button>
+    </div>
+    <div class="row">
+      <label>&nbsp;</label>
+      <button class="obs-btn" id="metroResetBtn">Reset telemetry</button>
+    </div>
+    <div class="info-row">Rolling 600-frame window of real requestAnimationFrame intervals: measured refresh, jitter σ, dropped frames, longest stall, and u<sub>Δt</sub>/Δt — the relative velocity uncertainty implied by timing alone.</div>
+
+    <div class="section-label" style="margin-top:10px;">Run Manifest</div>
+    <div class="row">
+      <button class="obs-btn" id="manifestExportBtn">&#8681; Export</button>
+      <button class="obs-btn" id="manifestImportBtn">&#8679; Import</button>
+    </div>
+    <input type="file" id="manifestFile" accept="application/json,.json" style="display:none;">
+    <div class="info-row" id="manifestMsg" style="display:none;"></div>
+    <div class="info-row">Writes every flow, particle, shape, variability, noise, timing, flume and obstacle parameter plus the seed, scale calibration and telemetry summary to JSON (schema v1). Importing restores the run — match the window size for a bit-identical field.</div>
 
     <hr class="divider">
     <!-- ── Scale ── -->
@@ -688,6 +984,12 @@
       <input type="range" id="tvWSlider" min="200" max="3000" step="0.01" value="1543.05">
       <input type="number" id="tvWNum" step="0.01" value="1543.05">
     </div>
+    <div class="row">
+      <label>u(TV dim) (mm)</label>
+      <input type="range" id="tvUncertSlider" min="0" max="20" step="0.1" value="1">
+      <input type="number" id="tvUncertNum" step="0.1" value="1">
+    </div>
+    <div class="info-row">Your standard uncertainty on the panel's measured active-area dimension. This is the only part of the px&rarr;mm chain the tool cannot measure for itself, and it sets the spatial term in the stimulus uncertainty shown in the metrology panel.</div>
     <div class="row">
       <label>TV height (mm)</label>
       <input type="range" id="tvHSlider" min="100" max="2000" step="0.01" value="863.6">
@@ -731,7 +1033,7 @@
         <label>Preset</label>
         <select class="flow-select" id="flumePreset">
           <option value="custom">Custom</option>
-          <option value="d1">Large flume (D1) — 6 × 4 ft</option>
+          <option value="d1">Large flume (D1) — 6 × 3 ft (20 ft reach)</option>
           <option value="lab1m">Lab flume — 1.0 m × 0.30 m</option>
           <option value="field10">Field reach — 10 m × 1.5 m</option>
         </select>
@@ -792,27 +1094,27 @@
       <div class="row" style="margin-top:6px;">
         <label style="color:#3a3a3a;">World scale</label>
         <span style="flex:1;"></span>
-        <span id="flumeScaleDisp" style="font-size:10px; color:#0cb; width:150px; text-align:right;">—</span>
+        <span id="flumeScaleDisp" style="font-size:10px; color:#fff; width:150px; text-align:right;">—</span>
       </div>
       <div class="row" style="margin-top:-4px;">
         <label style="color:#3a3a3a;">Geometric scale</label>
         <span style="flex:1;"></span>
-        <span id="flumeMagDisp" style="font-size:10px; color:#3a3a3a; width:150px; text-align:right;">—</span>
+        <span id="flumeMagDisp" style="font-size:10px; color:#fff; width:150px; text-align:right;">—</span>
       </div>
       <div class="row" style="margin-top:-4px;">
         <label style="color:#3a3a3a;">Visible reach</label>
         <span style="flex:1;"></span>
-        <span id="flumeReachDisp" style="font-size:10px; color:#3a3a3a; width:150px; text-align:right;">—</span>
+        <span id="flumeReachDisp" style="font-size:10px; color:#fff; width:150px; text-align:right;">—</span>
       </div>
       <div class="row" style="margin-top:-4px;">
         <label style="color:#3a3a3a;">A / R<sub>h</sub></label>
         <span style="flex:1;"></span>
-        <span id="flumeAreaDisp" style="font-size:10px; color:#3a3a3a; width:150px; text-align:right;">—</span>
+        <span id="flumeAreaDisp" style="font-size:10px; color:#fff; width:150px; text-align:right;">—</span>
       </div>
       <div class="row" style="margin-top:-4px;">
         <label style="color:#3a3a3a;">Seeding</label>
         <span style="flex:1;"></span>
-        <span id="flumeSeedDisp" style="font-size:10px; color:#3a3a3a; width:150px; text-align:right;">—</span>
+        <span id="flumeSeedDisp" style="font-size:10px; color:#fff; width:150px; text-align:right;">—</span>
       </div>
     </div>
 
@@ -918,6 +1220,11 @@
       <div class="unit">m / s</div>
     </div>
     <div class="metric gt-profile">
+      <div class="name">V window-avg</div>
+      <div class="number" id="gtVWindow">—</div>
+      <div class="unit" id="gtVWindowNote">m / s</div>
+    </div>
+    <div class="metric gt-profile">
       <div class="name">Profile type</div>
       <div class="number" id="gtProfileType" style="font-size:11px; letter-spacing:1px;">—</div>
       <div class="unit" id="gtProfileNote"></div>
@@ -952,7 +1259,7 @@
   </div>
 </div>
 
-<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [F] fullscreen &nbsp;·&nbsp; [R] re-seed &nbsp;·&nbsp; [C] frame pair &nbsp;·&nbsp; [V] color by speed &nbsp;·&nbsp; [L] flume &nbsp;·&nbsp; [?] keys</div>
+<div id="hint">[H] panel &nbsp;·&nbsp; [P] pause &nbsp;·&nbsp; [D] step mode &nbsp;·&nbsp; [S] step pair &nbsp;·&nbsp; [G] frame code &nbsp;·&nbsp; [T] metrology &nbsp;·&nbsp; [W] sweep &nbsp;·&nbsp; [?] keys</div>
 
 <!-- ── Keybinds modal ─────────────────────────────────────────── -->
 <div id="keybindsModal">
@@ -970,7 +1277,13 @@
       <tr><td class="kb-key">V</td><td>Toggle color-by-speed mode</td></tr>
       <tr><td class="kb-key">B</td><td>Toggle bubble mode (cosmetic)</td></tr>
       <tr><td class="kb-key">L</td><td>Toggle flume geometry simulation</td></tr>
-      <tr><td class="kb-key">Esc</td><td>Exit frame pair / remove obstacle</td></tr>
+      <tr><td class="kb-key">D</td><td>Toggle deterministic step mode</td></tr>
+      <tr><td class="kb-key">S</td><td>Start / stop step-pair (true A→B) capture</td></tr>
+      <tr><td class="kb-key">G</td><td>Toggle optical frame-code strips</td></tr>
+      <tr><td class="kb-key">T</td><td>Toggle metrology / timing telemetry panel</td></tr>
+      <tr><td class="kb-key">A</td><td>Toggle auto-lock timing (enables deterministic mode)</td></tr>
+      <tr><td class="kb-key">W</td><td>Start / stop the sub-pixel displacement sweep</td></tr>
+      <tr><td class="kb-key">Esc</td><td>Exit sweep / frame pair / step pair / remove obstacle</td></tr>
       <tr><td class="kb-key">?</td><td>Show / hide this reference</td></tr>
     </table>
   </div>
@@ -991,6 +1304,86 @@
   <canvas id="colorbarCanvas" width="160" height="10"></canvas>
   <div class="cb-label" id="cb-max">1 m/s</div>
   <div class="cb-label" style="color:#555;">&nbsp;speed</div>
+</div>
+
+<!-- ── Step-pair phase badge ─────────────────────────────────── -->
+<div id="stepPhaseBadge">
+  <div class="ph"  id="stepPhaseChar">A</div>
+  <div class="sub" id="stepPhaseSub">step pair</div>
+</div>
+
+<!-- ── Sub-pixel sweep panel ─────────────────────────────────── -->
+<div id="sweepPanel">
+  <div id="sweepPanel-header">
+    <h2>Sub-pixel Sweep</h2>
+    <button id="sweepPanel-close">&#10005;</button>
+  </div>
+  <div id="sweepPanel-body">
+    <div class="info-row" style="margin-bottom:9px;">Each point is a <b>pure translation</b> of one identical particle layout by an exactly commanded &Delta;. The flow field is not used. Every point restarts from the same snapshot, so nothing accumulates and the only variable across the sweep is the sub-pixel phase &mdash; which makes the structure in (measured &minus; commanded) the algorithm's, with nothing else to blame it on.</div>
+    <div class="sweep-cfg">
+      <label>Start (px)</label><input type="number" id="sweepStartNum" step="0.05" value="0">
+      <label>End (px)</label><input type="number" id="sweepEndNum" step="0.05" value="1">
+      <label>Step (px)</label><input type="number" id="sweepStepNum" step="0.01" value="0.1">
+      <label>Angle (deg)</label><input type="number" id="sweepAngleNum" step="1" value="0">
+    </div>
+    <div class="info-row" style="margin-bottom:6px;">Hold frames and step rate come from the Step-Pair section. An angle of 0 sweeps along x only, so y stays integer; <b>26.57&deg;</b> (atan &frac12;) drives both axes off-lattice at once and is the more searching test.</div>
+    <button class="sweep-btn" id="sweep-run-btn">&#9654; Run sweep</button>
+    <button class="sweep-btn" id="sweep-restage-btn" style="color:#666;">Re-stage points</button>
+    <div class="sweep-status" id="sweep-status">idle</div>
+    <canvas id="sweepPlot" width="344" height="170"></canvas>
+    <div class="sweep-sum">
+      <div class="cell"><div class="val" id="sweep-rms">&mdash;</div><div class="lbl">bias RMS</div></div>
+      <div class="cell"><div class="val" id="sweep-p2p">&mdash;</div><div class="lbl">peak-to-peak</div></div>
+      <div class="cell"><div class="val" id="sweep-mean">&mdash;</div><div class="lbl">mean bias</div></div>
+    </div>
+    <div class="sweep-hdr">
+      <span>#</span><span>&Delta; cmd</span><span>frame A/B</span><span>&Delta; measured</span><span>bias</span>
+    </div>
+    <div id="sweep-rows"></div>
+    <button class="sweep-btn" id="sweep-export-btn">&#11015; Export sweep CSV</button>
+  </div>
+</div>
+
+<!-- ── Metrology panel ───────────────────────────────────────── -->
+<div id="metro">
+  <div id="metro-header">
+    <span>Metrology</span>
+    <button id="metro-close" title="Hide (T)">✕</button>
+  </div>
+  <div id="metro-body">
+    <div class="m-hero">
+      <div class="num" id="m-urel">—</div>
+      <div class="lbl">u<sub>Δt</sub> / Δt &nbsp;·&nbsp; timing-implied velocity uncertainty</div>
+    </div>
+
+    <div class="m-head">Deterministic Sync</div>
+    <div class="m-row"><span class="k">Mode</span><span class="v" id="m-mode">—</span></div>
+    <div class="m-row"><span class="k">Δpx / rendered frame</span><span class="v" id="m-dpxrend">—</span></div>
+    <div class="m-row"><span class="k">Measured refresh</span><span class="v" id="m-refresh">—</span></div>
+    <div class="m-row"><span class="k">refresh / cam fps → k</span><span class="v" id="m-k">—</span></div>
+    <div class="m-row"><span class="k">Δpx / camera frame</span><span class="v" id="m-dpxcam">—</span></div>
+    <div class="m-row"><span class="k">Sim-time scale</span><span class="v" id="m-tscale">—</span></div>
+    <div class="m-row"><span class="k">Device pixel ratio</span><span class="v" id="m-dpr">—</span></div>
+    <div class="m-row"><span class="k">Render cost / frame</span><span class="v" id="m-render">—</span></div>
+    <div class="m-row"><span class="k">Stimulus u<sub>c</sub> (k=1)</span><span class="v" id="m-ustim">—</span></div>
+    <div class="m-warn amber" id="m-warn-render"></div>
+    <div class="m-row"><span class="k">Auto-lock</span><span class="v" id="m-autolock">off</span></div>
+    <div class="m-warn amber" id="m-warn-autolock"></div>
+    <div class="m-warn red"   id="m-warn-dpr"></div>
+    <div class="m-warn amber" id="m-warn-scale"></div>
+    <div class="m-warn amber" id="m-warn-k"></div>
+    <div class="m-warn red"   id="m-warn-stab"></div>
+
+    <div class="m-head">Frame Interval · last 600 rendered</div>
+    <div class="m-row"><span class="k">min / median / max</span><span class="v" id="m-mmm">—</span></div>
+    <div class="m-row"><span class="k">mean</span><span class="v" id="m-mean">—</span></div>
+    <div class="m-row"><span class="k">σ (jitter)</span><span class="v" id="m-sd">—</span></div>
+    <div class="m-row"><span class="k">dropped (missed refreshes)</span><span class="v" id="m-drop">—</span></div>
+    <div class="m-row"><span class="k">longest stall</span><span class="v" id="m-stall">—</span></div>
+    <div class="m-row"><span class="k">frames since reset</span><span class="v" id="m-frames">—</span></div>
+    <div class="m-row"><span class="k">suspends (&gt; 5 s gap)</span><span class="v" id="m-susp">—</span></div>
+    <button id="metro-reset">Reset telemetry</button>
+  </div>
 </div>
 
 <script>
@@ -1033,6 +1426,36 @@ function resize() {
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
   recomputeFlume();
+  updateDprBanner();
+}
+
+// ── Device-pixel-ratio gate ──────────────────────────────────────────────
+//
+// The canvas backing store is sized in CSS pixels. When devicePixelRatio ≠ 1
+// the compositor resamples the whole canvas on its way to the panel, which
+// (a) puts a second, unmodelled interpolation stage on top of the rendered
+// PSF and (b) makes the px/mm scale calibration wrong by exactly that factor.
+// Neither is visible in the image, and both invalidate the ground truth.
+//
+// devicePixelRatio also tracks browser zoom, so this catches an accidental
+// Ctrl+scroll as well as an OS display-scaling setting — the more likely of
+// the two failures in a lab.
+const DPR_TOL = 0.001;
+
+function dprValue() { return window.devicePixelRatio || 1; }
+function dprOK()    { return Math.abs(dprValue() - 1) <= DPR_TOL; }
+
+function updateDprBanner() {
+  const el = document.getElementById('dprBanner');
+  if (!el) return;
+  if (dprOK()) { el.classList.remove('on'); return; }
+  el.innerHTML =
+    '<b>DEVICE PIXEL RATIO ' + dprValue().toFixed(3) + ' — NOT 1:1.</b> ' +
+    'The canvas is sized in CSS pixels, so the browser is resampling every frame: ' +
+    'the particle image is interpolated a second time and the px/mm calibration is ' +
+    'wrong by this factor. Set browser zoom to 100 % (Ctrl+0) and OS display scaling ' +
+    'to 100 %, then reload. Do not record while this is showing.';
+  el.classList.add('on');
 }
 
 // ── State ─────────────────────────────────────────────────────────────────
@@ -1089,6 +1512,39 @@ let outOfPlanePct = 0.0; // fraction of particles dimmed (0-1)
 let camFps  = 30;
 let dispFps = 60;
 
+// Deterministic step mode. Normally the sim advances by the real elapsed wall
+// time between rAF callbacks while the readout quotes the IDEAL 1/camFps step —
+// two different clocks, diverging silently whenever the browser hiccups. With
+// this on, every rendered frame advances the sim by exactly 1/stepFps, so the
+// commanded displacement per rendered frame is a number that can be measured off
+// a recording rather than asserted. See the metrology panel for the camera-sync
+// arithmetic that follows from it.
+let deterministic = false;
+let stepFps       = 30;
+
+// Rendered-frame counter. Increments on EVERY rAF callback, paused or not,
+// because it counts display refreshes rather than sim steps — that is what the
+// optical frame code encodes and what stalls are indexed against.
+let frameIndex = 0;
+
+// Optical frame code (see drawFrameCode)
+let frameCodeOn    = true;
+let frameCodePos   = 'tlbr';   // tlbr | trbl | all
+let frameCodeBlock = 24;       // px per block, 8–48
+
+// Step-pair capture — a real, temporally separated A/B image pair
+let stepPairMode       = false;
+let stepPairPhase      = 0;    // 0 = A, 1 = B
+let stepPairAParticles = null; // frozen Frame A; `particles` is always Frame B
+let stepPairHold       = 10;   // rendered frames held per phase
+let stepPairLoop       = false;
+let stepPairHeld       = 0;
+let stepPairDone       = false;
+let phaseBadgeOn       = true;
+
+// Metrology panel
+let metroVisible = false;
+
 // Scale
 let pxPerMmX = 1920 / 1543.05;
 let pxPerMmY = 1080 / 863.6;
@@ -1119,6 +1575,14 @@ let hudVisible = true;
 
 // Particles
 let particles = [];
+
+// True while the live field is exactly what seedParticles() produces for the
+// current seed and parameters — i.e. reconstructable from the manifest.
+// The in-place reseed helpers (sizes, shapes, turbulence, variability factors)
+// draw from the PRNG in a different order than makeParticle does, so after any
+// of them the live field is self-consistent but NO LONGER derivable from the
+// seed alone. The manifest reports this rather than quietly claiming otherwise.
+let fieldCanonical = true;
 
 // Per-camera-frame out-of-plane refresh counter
 let _camFrameAcc = 0; // accumulated time in seconds
@@ -1302,6 +1766,137 @@ function speedToRgb(t) {
 function speedToColor(t, alpha) {
   const [r,g,b] = speedToRgb(t);
   return alpha != null ? `rgba(${r},${g},${b},${alpha})` : `rgb(${r},${g},${b})`;
+}
+
+// ── Interrogation window ─────────────────────────────────────────────────
+//
+// A PIV cross-correlation returns the displacement that best matches the whole
+// interrogation window, which to first order is the SPATIAL AVERAGE of the
+// displacement field over that window — not the velocity at its centre. For a
+// flow with curvature those differ, and the difference is a property of the
+// measurement, not an error in the algorithm.
+//
+// Booking it as algorithm error is the standard way to make a good package look
+// biased on a parabolic profile. For Poiseuille the leading term is analytic,
+//
+//     <v> ≈ v_c + (L² / 24) · v''
+//
+// but rather than special-case each flow this samples the analytic field over
+// the window and averages, which is uniform across every flow type and exact to
+// the quadrature.
+//
+// One conversion the operator must not get wrong: `iwPx` is the window size in
+// CAMERA pixels, because that is what a PIV package is configured with. The
+// maths needs it in DISPLAY pixels. If the camera images the screen at m camera
+// pixels per display pixel, then
+//
+//     IW_display = IW_camera / m
+//
+// A 32 px window on a camera that resolves the screen at 0.5 camera-px per
+// display-px covers 64 display pixels — twice the field, four times the
+// particles, and a different gradient bias. Defaulting m to 1 is the 1:1 case.
+let iwPx = 32;
+let camPxPerDisplayPx = 1;
+
+function iwDisplayPx() {
+  const m = camPxPerDisplayPx > 1e-6 ? camPxPerDisplayPx : 1;
+  return iwPx / m;
+}
+
+function windowAveragedFlowPs(cx, cy, L) {
+  const n = 16;                       // 16×16 quadrature over the window
+  let sx = 0, sy = 0;
+  for (let j = 0; j < n; j++) {
+    const py = cy + (-0.5 + (j + 0.5) / n) * L;
+    for (let i = 0; i < n; i++) {
+      const px = cx + (-0.5 + (i + 0.5) / n) * L;
+      const f = baseFlow(px, py);
+      sx += f.vx; sy += f.vy;
+    }
+  }
+  const k = 1 / (n * n);
+  return { vx: sx * k, vy: sy * k };
+}
+
+// Particles per interrogation window — the seeding figure PIV practice actually
+// uses. N_I ≳ 8 is the usual floor for a reliable correlation peak.
+function particlesPerWindow() {
+  const areaPx = (domX1 - domX0) * (domY1 - domY0);
+  if (areaPx <= 0) return 0;
+  const L = iwDisplayPx();
+  return particles.length * (L * L) / areaPx;
+}
+
+// ── Stimulus uncertainty ─────────────────────────────────────────────────
+//
+// What the tool can say about its OWN uncertainty, so a pass criterion can be
+// judged against something instead of asserted. Two random terms combine in
+// quadrature:
+//
+//   u_Δt/Δt   timing — measured, straight off the telemetry window
+//   u_L/L     spatial scale — from the operator's stated uncertainty on the
+//             panel's active-area dimension, which is the only part of the
+//             px→mm chain the tool cannot measure for itself
+//
+// Systematic departures are listed separately and NOT folded in, because they
+// are corrections to apply, not uncertainties to carry: a sim-time scale of
+// 1.996 does not mean "±100 %", it means "divide by 1.996".
+//
+// This is a floor, not a budget. It does not include display response, spatial
+// non-uniformity, or anything else MVE-1 is meant to measure. Quote it as what
+// it is.
+let tvDimUncertMm = 1.0;
+
+function stimulusUncertainty() {
+  const terms = [], syst = [];
+  const uT = teleStats.valid ? teleStats.uRel : 0;
+  if (uT > 0) terms.push({ name: 'timing u_Δt/Δt', pct: uT });
+  const uL = tvWidthMm > 0 ? (tvDimUncertMm / tvWidthMm) * 100 : 0;
+  if (uL > 0) terms.push({ name: 'spatial scale u_L/L', pct: uL });
+  const uc = Math.sqrt(terms.reduce((a, t) => a + t.pct * t.pct, 0));
+
+  const hz = measuredRefreshHz();
+  if (deterministic && hz > 0 && stepFps > 0) {
+    const sc = hz / stepFps;
+    if (Math.abs(sc - 1) > 0.02) syst.push({ name: 'sim-time scale', pct: (sc - 1) * 100 });
+  }
+  if (hz > 0 && camFps > 0) {
+    const k = Math.max(1, Math.round(hz / camFps));
+    const dev = Math.abs(hz / camFps - k) / k;
+    if (dev > 0.02) syst.push({ name: 'camera not an integer divisor', pct: dev * 100 });
+  }
+  return { uc, terms, syst };
+}
+
+function updatePairLossDisplay() {
+  const el = document.getElementById('pairLossDisplay');
+  if (!el) return;
+  // Per camera frame, not per sim step: k sim steps elapse per camera frame.
+  const hz = measuredRefreshHz();
+  const k  = (deterministic && hz > 0 && camFps > 0) ? Math.max(1, Math.round(hz / camFps)) : 1;
+  const pct = _pairLossEMA * k * 100;
+  el.textContent = pct < 0.005 && pct > 0 ? '< 0.01 %' : pct.toFixed(2) + ' %';
+  el.style.color = pct < 0.5 ? '#3c3' : pct < 2 ? '#fa0' : '#f44';
+}
+
+function updateInterrogationDisplay() {
+  updatePairLossDisplay();
+  const ni = particlesPerWindow();
+  const niEl = document.getElementById('iwNiDisplay');
+  if (niEl) {
+    niEl.textContent = ni.toFixed(1);
+    niEl.style.color = ni >= 8 ? '#3c3' : ni >= 4 ? '#fa0' : '#f44';
+  }
+  const iwdEl = document.getElementById('iwDispDisplay');
+  if (iwdEl) iwdEl.textContent = iwDisplayPx().toFixed(1) + ' px';
+
+  const qEl = document.getElementById('iwQuarterDisplay');
+  if (qEl) {
+    const dispPx = centerSpeedPs() / Math.max(1, camFps);
+    const ratio  = dispPx / iwDisplayPx();
+    qEl.textContent = dispPx.toFixed(2) + ' px · ' + (ratio * 100).toFixed(0) + ' %';
+    qEl.style.color = ratio <= 0.25 ? '#3c3' : ratio <= 0.33 ? '#fa0' : '#f44';
+  }
 }
 
 // Returns analytical {vMinMs, vCenterMs, vMaxMs, label, note} for current flow.
@@ -1501,16 +2096,25 @@ function makeParticle() {
   };
 }
 
+// Rebuilding the field invalidates any held Frame A — it was snapshotted from
+// the OLD particles, so the A/B pair would silently become a meaningless
+// displacement. Drop out of step-pair rather than show a garbage pair.
 function seedParticles(n) {
+  if (stepPairMode) exitStepPair();
+  if (sweepMode) exitSweep();
   applySeededRandom();
   particles = Array.from({ length: n }, makeParticle);
   _camFrameAcc = 0;
+  fieldCanonical = true;      // this IS the canonical layout for the seed
   updateDensityDisplay();
 }
 
 function resizeParticles(n) {
+  if (stepPairMode) exitStepPair();
+  if (sweepMode) exitSweep();
   while (particles.length < n) particles.push(makeParticle());
   particles.length = n;
+  fieldCanonical = false;     // appended particles continue the PRNG stream
   updateDensityDisplay();
 }
 
@@ -1521,12 +2125,15 @@ function reseedTurbulence() {
     p.dvx = Math.cos(a) * s;
     p.dvy = Math.sin(a) * s;
   }
+  fieldCanonical = false;
 }
 
 function reseedSizes() {
   for (const p of particles) {
     p.r = minRadius + rand() * (maxRadius - minRadius);
   }
+  fieldCanonical = false;
+  updateDTauDisplay();
 }
 
 function reseedShapes() {
@@ -1535,6 +2142,7 @@ function reseedShapes() {
     p.rho = Math.max(-0.95, Math.min(0.95, rhoRaw));
     if (!alignToFlow) p.angle = rand() * Math.PI;
   }
+  fieldCanonical = false;
 }
 
 function refreshOutOfPlane() {
@@ -1549,7 +2157,20 @@ function updateDensityDisplay() {
     const ppp = (particles.length / areaPx).toExponential(2);
     document.getElementById('seedDensDisplay').textContent = ppp + ' ppp';
   }
+  updateDTauDisplay();
+  updateInterrogationDisplay();
   updateFlumeSeedDisplay();
+}
+
+// 1/e² particle image diameter of the rendered PSF, which is 4σ, and σ is the
+// radius parameter — so d_τ is twice the "Diameter (px)" control.
+function updateDTauDisplay() {
+  const el = document.getElementById('dTauDisplay');
+  if (!el) return;
+  const [lo, hi] = dTauRangePx();
+  el.textContent = (Math.abs(hi - lo) < 1e-9)
+    ? lo.toFixed(1) + ' px'
+    : lo.toFixed(1) + '–' + hi.toFixed(1) + ' px';
 }
 
 // Seeding density expressed in the world frame (particles per m² of water surface).
@@ -1579,16 +2200,109 @@ function updateFlumeSeedDisplay() {
 // flows a full transit already lands the dot on its origin, so the snap is
 // seamless; the obstacle deflection recovers downstream, so it stays a small,
 // staggered correction and the field remains clean and even.
-function advanceParticle(p, dt) {
-  const { vx: pvx, vy: pvy } = flowVelocity(p.x, p.y, p.dvx, p.dvy);
+// ── Integrator ───────────────────────────────────────────────────────────
+//
+// Advances one particle by dt and returns its new position. Each flow type
+// gets the cheapest scheme that is CORRECT for it, because the trajectory is
+// the ground truth — an integrator that drifts makes the quoted velocity an
+// assertion again, which is the whole thing this tool exists to avoid.
+function integrateStep(p, dt) {
+  const dvx = p.dvx, dvy = p.dvy;
 
-  // Cumulative displacement tells us when a full transit has elapsed.
-  p.cumX += pvx * dt;
-  p.cumY += pvy * dt;
+  // Uniform, linear shear and Poiseuille: vy ≡ 0 and vx depends only on y, so
+  // y is constant along a trajectory and the velocity a particle sees never
+  // changes. The explicit update is the EXACT solution; nothing is gained by
+  // spending more on it.
+  if (!obstacle && (flowType === 'uniform' || flowType === 'shear' || flowType === 'poiseuille')) {
+    const v = flowVelocity(p.x, p.y, dvx, dvy);
+    return { x: p.x + v.vx * dt, y: p.y + v.vy * dt };
+  }
+
+  // Solid vortex: ẋ = A·x + b with A = [[0,−ω],[ω,0]]. Closed form — the
+  // trajectory is a circle about the fixed point x* = −A⁻¹b and the particle
+  // rotates about it by exactly ω·dt. Background drift and this particle's
+  // frozen turbulence offset are both carried in b, so they stay exact too.
+  //
+  // Explicit Euler on this field is unconditionally unstable in radius: it
+  // scales r by √(1+(ω·dt)²) every step. At ω = 0.5 rad/s and 60 Hz that is
+  // +13.3 % in radius over a 60 s recording — and therefore +13.3 % in speed,
+  // since v = ωr — silently drifting the field away from the analytical ground
+  // truth printed in the readout. This removes that error rather than bounding
+  // it.
+  if (!obstacle && flowType === 'vortex') {
+    const om = omegaEff();
+    const cx = chCenterX(), cy = chCenterY();
+    const bx = msToPs(vortexBgVxMs) + dvx;
+    const by = dvy;
+    if (Math.abs(om) < 1e-12) {
+      return { x: p.x + bx * dt, y: p.y + by * dt };
+    }
+    const fx = -by / om, fy = bx / om;              // fixed point, centre-relative
+    const rx = (p.x - cx) - fx, ry = (p.y - cy) - fy;
+    const th = om * dt, c = Math.cos(th), sn = Math.sin(th);
+    return {
+      x: cx + fx + (c * rx - sn * ry),
+      y: cy + fy + (sn * rx + c * ry),
+    };
+  }
+
+  // Rankine vortex, and anything with an obstacle in it: the field varies along
+  // the trajectory and has no convenient closed form, so integrate with
+  // classical RK4. Fourth order takes the truncation error from O(dt) to
+  // O(dt⁴), which at these step sizes is below any displacement the camera can
+  // resolve.
+  const h = dt / 2;
+  const k1 = flowVelocity(p.x,             p.y,             dvx, dvy);
+  const k2 = flowVelocity(p.x + k1.vx * h, p.y + k1.vy * h, dvx, dvy);
+  const k3 = flowVelocity(p.x + k2.vx * h, p.y + k2.vy * h, dvx, dvy);
+  const k4 = flowVelocity(p.x + k3.vx * dt, p.y + k3.vy * dt, dvx, dvy);
+  const vx = (k1.vx + 2 * k2.vx + 2 * k3.vx + k4.vx) / 6;
+  const vy = (k1.vy + 2 * k2.vy + 2 * k3.vy + k4.vy) / 6;
+  return { x: p.x + vx * dt, y: p.y + vy * dt };
+}
+
+// ── Particle recycling and pair loss ─────────────────────────────────────
+//
+// A particle that leaves the domain and re-enters elsewhere between Frame A and
+// Frame B is an UNPAIRED particle: it contributes noise to the correlation
+// rather than signal. Every periodic synthetic field has this, it is unavoidable
+// at the boundaries, and it is small — but it is a property of the stimulus, so
+// it is counted and reported rather than left for a reviewer to ask about.
+//
+// `returnToDeployment` is the old behaviour: after a full field-span of travel a
+// particle teleports back to where it was first placed. It is OFF by default
+// now. All five flow fields here are incompressible, so the field cannot clump
+// and the periodic wrap alone recycles it correctly — the teleport was
+// redundant, and it injected unpaired particles at a rate nothing reported.
+let returnToDeployment = false;
+let _wrapEvents = 0, _resetEvents = 0, _advanceSteps = 0;
+let _pairLossEMA = 0;
+
+function noteAdvanceBatch(n) {
+  if (n <= 0) return;
+  const frac = (_wrapEvents + _resetEvents) / n;
+  _pairLossEMA = _advanceSteps === 0 ? frac : _pairLossEMA * 0.9 + frac * 0.1;
+  _wrapEvents = 0; _resetEvents = 0;
+  _advanceSteps++;
+}
+
+function advanceParticle(p, dt) {
+  const step = integrateStep(p, dt);
+
+  // Cumulative displacement tells us when a full transit has elapsed. Taken
+  // from the actual step, so it stays right whichever scheme produced it.
+  p.cumX += step.x - p.x;
+  p.cumY += step.y - p.y;
 
   const spanX = domX1 - domX0, spanY = domY1 - domY0;
-  let nx = domX0 + ((((p.x - domX0 + pvx*dt) % spanX) + spanX) % spanX);
-  let ny = domY0 + ((((p.y - domY0 + pvy*dt) % spanY) + spanY) % spanY);
+  let nx = domX0 + ((((step.x - domX0) % spanX) + spanX) % spanX);
+  let ny = domY0 + ((((step.y - domY0) % spanY) + spanY) % spanY);
+
+  // Test the pre-wrap position against the domain, not the post-wrap value
+  // against it: the modulo recomputes the coordinate in floating point and
+  // lands a bit off the input even when nothing wrapped, so comparing the two
+  // counts rounding as a wrap and reports ~100 % loss.
+  if (step.x < domX0 || step.x >= domX1 || step.y < domY0 || step.y >= domY1) _wrapEvents++;
 
   // Keep particles out of the obstacle interior (zero-velocity solid): a fast step
   // can overshoot the thin surface, so push any such particle radially back out.
@@ -1610,9 +2324,11 @@ function advanceParticle(p, dt) {
   // of snapping onto the solid).
   if (Math.abs(p.cumX) >= spanX || Math.abs(p.cumY) >= spanY) {
     p.cumX = 0; p.cumY = 0;
-    if (!(obstacle && distSq(p.origX, p.origY, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r)) {
+    if (returnToDeployment &&
+        !(obstacle && distSq(p.origX, p.origY, obstacle.cx, obstacle.cy) < obstacle.r*obstacle.r)) {
       p.x = p.origX;
       p.y = p.origY;
+      _resetEvents++;
     }
   }
 
@@ -1622,167 +2338,391 @@ function advanceParticle(p, dt) {
   }
 }
 
-// ── Sprite system (correlated 2D Gaussian) ──────────────────────────────
-// The unit sprite is a symmetric Gaussian (σ=1), drawn at scale=radius.
-// Per-particle elongation is applied via canvas transform (scale + rotate).
-// Colored variants used in frame pair mode.
+// ── Particle image renderer (analytic PSF, direct pixel accumulation) ────
+//
+// Every particle image is evaluated analytically, per output pixel, at the
+// particle's exact sub-pixel position. Nothing is resampled: no sprite bitmap,
+// no drawImage interpolation, no alpha compositing. That matters because the
+// rendered point-spread function IS the reference standard — PIV sub-pixel
+// bias (peak locking) is governed by the particle image diameter and by how
+// faithfully the sub-pixel phase is reproduced.
+//
+// Intensity model, in display DN:
+//
+//   I(u,v) = A · exp( −( u²/(2σa²) + v²/(2σb²) ) )
+//
+// (u,v) is the offset from the particle centre rotated into the particle's own
+// frame; σa = σ·aspect, σb = σ/aspect, aspect = 1 + |ρ|, σ = the particle's
+// radius parameter in px. Overlapping particles add LINEARLY and are clamped
+// once, at output — which is what a sensor does.
+//
+// Particle image diameter — the number to quote in a methods section:
+//   d_τ (1/e²) = 4σ        FWHM = 2·√(2 ln2)·σ ≈ 2.3548 σ
+// The "Diameter (px)" control sets 2σ, so d_τ = 2 × that control. The live
+// d_τ readout in the Particles section states it directly.
+//
+// REPLACES a 13×13 Gaussian bitmap scaled with drawImage under
+// globalCompositeOperation='lighter'. Because ImageData is unpremultiplied and
+// 'lighter' evaluates dst + src_color·src_alpha, writing both colour and alpha
+// as the same Gaussian squared it: the delivered profile was exp(−r²) — σ/√2,
+// not σ — and the peak was brightness²/255, not brightness. Both are exact now.
 
-const UNIT_SZ = 13;
-const SPRITE_CENTER = 6; // center pixel in the 13×13 grid
+// Amplitude below which a pixel's contribution rounds to zero at 8 bits. The
+// evaluation radius is derived from this per particle rather than fixed, so a
+// faint particle costs less than a bright one and neither is truncated
+// visibly: reach = σ·√(2·ln(amp/PSF_FLOOR_DN)).
+const PSF_FLOOR_DN  = 0.4;
+const PSF_MIN_EXTENT = 2.0;
+const PSF_MAX_EXTENT = 4.5;
 
-function buildColoredSprite(bright, rCh, gCh, bCh) {
-  const oc = document.createElement('canvas');
-  oc.width = oc.height = UNIT_SZ;
-  const ox = oc.getContext('2d');
-  const img = ox.createImageData(UNIT_SZ, UNIT_SZ);
-  for (let py = 0; py < UNIT_SZ; py++) {
-    for (let px = 0; px < UNIT_SZ; px++) {
-      const r2  = (px-SPRITE_CENTER)**2 + (py-SPRITE_CENTER)**2;
-      const val = bright * Math.exp(-r2/2);
-      const i   = (py*UNIT_SZ + px) * 4;
-      img.data[i]   = val * rCh;
-      img.data[i+1] = val * gCh;
-      img.data[i+2] = val * bCh;
-      img.data[i+3] = Math.round(val);
-    }
-  }
-  ox.putImageData(img, 0, 0);
-  return oc;
-}
+// SAMPLING MODEL — state this in a methods section.
+// A pixel takes the value of the continuous profile at its CENTRE:
+//     I[i,j] = A · exp( −( u²/(2σa²) + v²/(2σb²) ) )   evaluated at (i+½, j+½)
+// It is not the integral of the profile over the pixel. For σ ≥ 1 px the two
+// differ by well under 1 % of the peak; below σ = 1 px the profile is
+// under-sampled and the difference is not negligible, so the panel raises an
+// under-sampling warning there (d_τ < 4 px is outside sensible PIV practice
+// anyway). Point sampling is used because it is exactly specifiable in one
+// line, which matters more here than the last fraction of a percent.
 
-let _whiteSpr = null, _redSpr = null, _greenSpr = null, _cachedBright = -1;
-let _bubbleSpr = null, _bubbleRedSpr = null, _bubbleGreenSpr = null;
+let _accA = null, _accB = null;      // Float32 intensity accumulators, in DN
+let _outImg = null, _out32 = null;   // output ImageData + 32-bit word view
+let _accW = 0, _accH = 0;
+let _bgWordCache = -1;
+
+// Per-particle footprints. Only these pixels are touched: clearing, stamping
+// and output all iterate the box list rather than the full canvas, which is
+// what keeps the frame budget intact at 1080p. `_prevBoxes` is last frame's
+// list — the region that has to be restored to background this frame.
+let _curBoxes = [], _prevBoxes = [];
+
+// Scratch rows/columns for the separable evaluation.
+let _ex = new Float64Array(64), _ey = new Float64Array(64);
+
 let bgColor  = '#000000';
 let dotColor = '#ffffff';
+
+// Display transfer function. Off by default — the tool renders in DN exactly
+// as before. When on, the accumulated intensity is treated as LINEAR LIGHT and
+// encoded with the inverse EOTF, so the light actually leaving the panel
+// carries the intended Gaussian rather than a Gaussian raised to the panel's
+// gamma. Set the gamma from the display calibration, not from the nameplate.
+let linearLight  = false;
+let displayGamma = 2.2;
 
 function hexToRgb01(hex) {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255];
 }
 
-// Bubble sprite: thin bright rim (meniscus) + faint translucent fill + a small
-// offset specular highlight. Same 13×13 grid/scaling convention as the Gaussian
-// sprite so it drops into the existing draw path with no change to particle motion.
-function buildBubbleSprite(bright, rCh, gCh, bCh) {
-  const oc = document.createElement('canvas');
-  oc.width = oc.height = UNIT_SZ;
-  const ox = oc.getContext('2d');
-  const img = ox.createImageData(UNIT_SZ, UNIT_SZ);
-  const R = SPRITE_CENTER;
-  for (let py = 0; py < UNIT_SZ; py++) {
-    for (let px = 0; px < UNIT_SZ; px++) {
-      const dx = px - SPRITE_CENTER, dy = py - SPRITE_CENTER;
-      const rn = Math.sqrt(dx*dx + dy*dy) / R;
+// ImageData is byte-ordered RGBA; a Uint32 view therefore packs as ABGR on a
+// little-endian host. Probe rather than assume.
+const _LITTLE_ENDIAN = (() => {
+  const buf = new ArrayBuffer(4);
+  new Uint32Array(buf)[0] = 1;
+  return new Uint8Array(buf)[0] === 1;
+})();
 
-      const rim       = Math.exp(-((rn - 0.85) ** 2) / (2 * 0.05 * 0.05));
-      const fill       = rn < 1 ? (1 - rn) * 0.22 : 0;
-      const hx = dx + 0.38 * R, hy = dy + 0.38 * R;
-      const highlight  = Math.exp(-(hx*hx + hy*hy) / (2 * (0.16*R) * (0.16*R)));
+// Round to nearest, not truncate. Truncation is a uniform −0.5 DN systematic
+// across the whole image, which is small but is exactly the kind of unforced
+// bias a reference standard should not carry.
+function packRGBA(r, g, b) {
+  const R = r < 0 ? 0 : r > 255 ? 255 : (r + 0.5) | 0;
+  const G = g < 0 ? 0 : g > 255 ? 255 : (g + 0.5) | 0;
+  const B = b < 0 ? 0 : b > 255 ? 255 : (b + 0.5) | 0;
+  return (_LITTLE_ENDIAN ? (255 << 24 | B << 16 | G << 8 | R)
+                         : (R << 24 | G << 16 | B << 8 | 255)) >>> 0;
+}
 
-      let val = bright * Math.min(1, rim * 0.9 + fill + highlight * 0.85);
-      if (rn > 1.05) val = 0;
+function ensureAccum() {
+  if (_accW === W && _accH === H && _accA) return;
+  _accW = W; _accH = H;
+  _accA   = new Float32Array(W * H);
+  _accB   = new Float32Array(W * H);
+  _outImg = ctx.createImageData(W, H);
+  _out32  = new Uint32Array(_outImg.data.buffer);
+  _curBoxes = []; _prevBoxes = [];
+  _bgWordCache = -1;                 // force a full background repaint
+}
 
-      const i = (py*UNIT_SZ + px) * 4;
-      img.data[i]   = val * rCh;
-      img.data[i+1] = val * gCh;
-      img.data[i+2] = val * bCh;
-      img.data[i+3] = Math.round(Math.min(255, val));
+// The bubble profile, kept as an analytic function of the offset normalised by
+// the bubble radius (6σ, matching the sprite geometry this replaces). Cosmetic
+// only; particle motion is unaffected, as before.
+const BUBBLE_RADIUS_SIGMA = 6;
+function bubbleProfile(nx, ny) {
+  const rn = Math.sqrt(nx * nx + ny * ny);
+  if (rn > 1.05) return 0;
+  const rim       = Math.exp(-((rn - 0.85) ** 2) / (2 * 0.05 * 0.05));
+  const fill      = rn < 1 ? (1 - rn) * 0.22 : 0;
+  const hx = nx + 0.38, hy = ny + 0.38;
+  const highlight = Math.exp(-(hx * hx + hy * hy) / (2 * 0.16 * 0.16));
+  return Math.min(1, rim * 0.9 + fill + highlight * 0.85);
+}
+
+// Accumulate one particle's analytic image into `acc` and record its footprint.
+//
+// The exponent expands to a quadratic form in the pixel offsets:
+//     e = A·dx² + B·dy² + C·dx·dy
+// When C = 0 — which is every circular particle, so every metrology case — the
+// profile is separable and the row and column factors are computed once each,
+// leaving one multiply per pixel. That is the difference between this renderer
+// fitting in a 60 Hz frame budget and not.
+function stampParticle(acc, p, amp) {
+  const sigma = p.r * (p.sizeFactor ?? 1);
+  if (!(sigma > 0) || !(amp > 0)) return;
+
+  const rho    = p.rho ?? 0;
+  const aspect = 1 + Math.abs(rho);
+  const sa     = sigma * aspect;      // σ along the particle's major axis
+  const sb     = sigma / aspect;      // σ across it
+  const ang    = alignToFlow ? (p._flowAngle ?? 0) : p.angle;
+  const ca     = Math.cos(ang), sn = Math.sin(ang);
+  const bub    = bubbleMode;
+
+  let ext = Math.sqrt(2 * Math.log(amp / PSF_FLOOR_DN));
+  if (!(ext > PSF_MIN_EXTENT)) ext = PSF_MIN_EXTENT;
+  if (ext > PSF_MAX_EXTENT)    ext = PSF_MAX_EXTENT;
+  const reach = bub ? BUBBLE_RADIUS_SIGMA * 1.06 * sigma : ext * sa;
+
+  let x0 = Math.floor(p.x - reach), x1 = Math.ceil(p.x + reach);
+  let y0 = Math.floor(p.y - reach), y1 = Math.ceil(p.y + reach);
+  if (x1 < 0 || y1 < 0 || x0 >= W || y0 >= H) return;
+  if (x0 < 0) x0 = 0;
+  if (y0 < 0) y0 = 0;
+  if (x1 > W - 1) x1 = W - 1;
+  if (y1 > H - 1) y1 = H - 1;
+
+  const nx = x1 - x0 + 1, ny = y1 - y0 + 1;
+  if (_ex.length < nx) _ex = new Float64Array(nx * 2);
+  if (_ey.length < ny) _ey = new Float64Array(ny * 2);
+
+  if (bub) {
+    const rInv = 1 / (sigma * BUBBLE_RADIUS_SIGMA);
+    for (let py = y0; py <= y1; py++) {
+      const dy = (py + 0.5 - p.y) * rInv, row = py * W;
+      for (let px = x0; px <= x1; px++) {
+        const v = bubbleProfile((px + 0.5 - p.x) * rInv, dy);
+        if (v > 0) acc[row + px] += amp * v;
+      }
+    }
+    _curBoxes.push(x0, y0, x1, y1);
+    return;
+  }
+
+  const ia = -1 / (2 * sa * sa), ib = -1 / (2 * sb * sb);
+  const A  = ia * ca * ca + ib * sn * sn;
+  const B  = ia * sn * sn + ib * ca * ca;
+  const C  = 2 * (ia - ib) * ca * sn;
+
+  for (let i = 0; i < nx; i++) {
+    const dx = x0 + i + 0.5 - p.x;
+    _ex[i] = Math.exp(A * dx * dx);
+  }
+  for (let j = 0; j < ny; j++) {
+    const dy = y0 + j + 0.5 - p.y;
+    _ey[j] = Math.exp(B * dy * dy);
+  }
+
+  if (Math.abs(C) < 1e-12) {
+    // Separable: one multiply per pixel.
+    for (let j = 0; j < ny; j++) {
+      const row = (y0 + j) * W + x0, fy = amp * _ey[j];
+      if (fy < PSF_FLOOR_DN * 0.02) continue;
+      for (let i = 0; i < nx; i++) acc[row + i] += fy * _ex[i];
+    }
+  } else {
+    // Elongated and rotated off-axis: the cross term is irreducible, but the
+    // row and column factors still come out of the inner loop.
+    for (let j = 0; j < ny; j++) {
+      const dy = y0 + j + 0.5 - p.y;
+      const row = (y0 + j) * W + x0, fy = amp * _ey[j];
+      if (fy < PSF_FLOOR_DN * 0.02) continue;
+      const cdy = C * dy;
+      for (let i = 0; i < nx; i++) {
+        const dx = x0 + i + 0.5 - p.x;
+        acc[row + i] += fy * _ex[i] * Math.exp(cdy * dx);
+      }
     }
   }
-  ox.putImageData(img, 0, 0);
-  return oc;
+  _curBoxes.push(x0, y0, x1, y1);
 }
 
-function refreshSprites() {
-  const [r, g, b] = hexToRgb01(dotColor);
-  _whiteSpr  = buildColoredSprite(brightness, r, g, b);
-  _redSpr    = buildColoredSprite(brightness, 1, 0, 0);
-  _greenSpr  = buildColoredSprite(brightness, 0, 0.85, 0);
-  _bubbleSpr      = buildBubbleSprite(brightness, r, g, b);
-  _bubbleRedSpr   = buildBubbleSprite(brightness, 1, 0, 0);
-  _bubbleGreenSpr = buildBubbleSprite(brightness, 0, 0.85, 0);
-  _cachedBright = brightness;
+// ── Sensor noise ─────────────────────────────────────────────────────────
+//
+// Applied to the ACCUMULATED intensity, so shot noise is genuinely
+// signal-dependent — σ_shot = √(scale · I_local) — and every term is
+// zero-mean. The previous implementation drew σ from the global `brightness`
+// (making it a uniform floor, not shot noise) and passed it through
+// Math.abs(), which is a half-normal and added a deterministic pedestal of
+// σ√(2/π) to every pixel rather than a zero-mean fluctuation.
+//
+// A fresh realisation is drawn EVERY rendered frame. The previous code
+// rebuilt the field only every 4th frame, so whether Frame A and Frame B of a
+// step-pair shared a realisation depended on where the stride happened to
+// land. Noise correlated across a pair plants a spurious correlation peak at
+// zero displacement and biases the measured velocity LOW — the same direction
+// as the effect this tool exists to measure.
+//
+// The realisation is keyed on (seed, frameIndex), so with a seed set it is
+// reproducible, and A and B are guaranteed independent because their frame
+// indices differ.
+//
+// Cost: noise touches every pixel, so it is the one setting that turns the
+// frame into a full-canvas pass. Run the §1 timing gate with noise at zero.
+function _noiseOffsetForFrame() {
+  let h = ((currentSeed !== null ? currentSeed : 0) ^ 0x9e3779b9) >>> 0;
+  h = (h ^ frameIndex) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 2246822507) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 3266489909) >>> 0;
+  return (h ^ (h >>> 16)) >>> 0;
 }
 
-function getSprite() {
-  if (_cachedBright !== brightness) refreshSprites();
-  return bubbleMode ? _bubbleSpr : _whiteSpr;
-}
+// ── Frame composition ────────────────────────────────────────────────────
+//
+// Replaces the background fill, the particle draw and the noise overlay in a
+// single pass. Background, particle images and noise are composed in the
+// intensity domain and clamped once, at output — which is what a sensor does.
+// listB is non-null only in frame-pair mode (A red, B green).
+// Exponential moving mean of the compose+blit cost. The renderer's own cost is
+// part of the frame budget, so it is measured and reported rather than assumed
+// — the same reason every other timing figure here is measured.
+let _renderMsEMA = 0;
 
-// Draw a set of particles using a given sprite, with per-particle transform.
-function drawParticles(ptList, spr) {
-  ctx.globalCompositeOperation = 'lighter';
-  for (const p of ptList) {
-    if (p.dimmed) continue;
-    const rEff    = p.r * (p.sizeFactor ?? 1);
-    const drawSz  = UNIT_SZ * rEff;
-    const alpha   = Math.max(0.05, Math.min(1.0, p.brightFactor ?? 1));
+function renderParticleLayer(listA, listB) {
+  const _t0 = performance.now();
+  ensureAccum();
 
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(p.x, p.y);
+  const useB = !!listB;
+  const [dr, dg, db] = hexToRgb01(dotColor);
+  const [kr, kg, kb] = hexToRgb01(bgColor);
+  const baseR = kr * 255, baseG = kg * 255, baseB = kb * 255;
+  const bgWord = packRGBA(baseR, baseG, baseB);
 
-    const rho = p.rho ?? 0;
-    if (rho !== 0 || (alignToFlow && p._flowAngle != null)) {
-      const ang    = alignToFlow ? (p._flowAngle ?? 0) : p.angle;
-      const aspect = 1 + Math.abs(rho) * 1.0; // 1.0 at rho=0, up to 2.0 at rho=0.95
-      ctx.rotate(ang);
-      ctx.scale(aspect, 1 / aspect);  // preserves area approximately
+  const A = _accA, B = _accB, out = _out32;
+
+  // Restore last frame's footprints to background, and zero the accumulator
+  // over exactly the region that is non-zero.
+  const fullRepaint = (bgWord !== _bgWordCache);
+  if (fullRepaint) {
+    out.fill(bgWord);
+    A.fill(0);
+    if (useB) B.fill(0);
+    _bgWordCache = bgWord;
+  } else {
+    for (let k = 0; k < _prevBoxes.length; k += 4) {
+      const x0 = _prevBoxes[k], y0 = _prevBoxes[k+1], x1 = _prevBoxes[k+2], y1 = _prevBoxes[k+3];
+      for (let py = y0; py <= y1; py++) {
+        const row = py * W;
+        for (let px = x0; px <= x1; px++) { A[row + px] = 0; out[row + px] = bgWord; }
+      }
     }
-
-    ctx.drawImage(spr, -drawSz/2, -drawSz/2, drawSz, drawSz);
-    ctx.restore();
-  }
-  ctx.globalAlpha = 1;
-  ctx.globalCompositeOperation = 'source-over';
-}
-
-// ── Noise canvas ─────────────────────────────────────────────────────────
-const NOISE_REBUILD_EVERY = 4;
-let _noiseCvs = null, _noiseCtxOff = null, _noiseImg = null, _noiseStride = 0;
-
-function applyNoise() {
-  if (!noiseActive) return;
-
-  if (!_noiseCvs || _noiseCvs.width !== W || _noiseCvs.height !== H) {
-    _noiseCvs = document.createElement('canvas');
-    _noiseCvs.width  = W;
-    _noiseCvs.height = H;
-    _noiseCtxOff = _noiseCvs.getContext('2d');
-    _noiseImg    = _noiseCtxOff.createImageData(W, H);
-    _noiseStride = 0;
+    if (useB) B.fill(0);
   }
 
-  if (_noiseStride++ % NOISE_REBUILD_EVERY === 0) {
-    const d     = _noiseImg.data;
+  _curBoxes = [];
+  const ampOf = (p) => brightness * Math.max(0.05, Math.min(2.0, p.brightFactor ?? 1));
+  for (const p of listA) { if (!p.dimmed) stampParticle(A, p, ampOf(p)); }
+  const boxesA = _curBoxes.length;
+  if (useB) for (const p of listB) { if (!p.dimmed) stampParticle(B, p, ampOf(p)); }
+
+  // Ink tints: normal mode uses the dot colour; frame-pair uses red / green.
+  const aR = useB ? 1 : dr, aG = useB ? 0 : dg, aB = useB ? 0 : db;
+  const bG = 0.85;
+
+  const gOn  = linearLight, gInv = 1 / displayGamma;
+  const enc  = gOn ? (v) => (v <= 0 ? 0 : 255 * Math.pow(v / 255, gInv))
+                   : (v) => v;
+
+  if (!noiseActive) {
+    for (let k = 0; k < _curBoxes.length; k += 4) {
+      const x0 = _curBoxes[k], y0 = _curBoxes[k+1], x1 = _curBoxes[k+2], y1 = _curBoxes[k+3];
+      for (let py = y0; py <= y1; py++) {
+        const row = py * W;
+        for (let px = x0; px <= x1; px++) {
+          const i = row + px;
+          const ia = A[i], ib = useB ? B[i] : 0;
+          if (ia === 0 && ib === 0) continue;
+          out[i] = useB
+            ? packRGBA(baseR + enc(ia), baseG + enc(ib * bG), baseB)
+            : packRGBA(baseR + enc(ia) * aR, baseG + enc(ia) * aG, baseB + enc(ia) * aB);
+        }
+      }
+    }
+  } else {
+    // Noise carries a realisation on every pixel, so the whole frame is written.
+    const ped = noiseBackground, rs = noiseReadSigma, shot = noiseShotScale;
+    const tbl = _noiseTable, mask = NOISE_TABLE_LEN - 1;
+    let ni = _noiseOffsetForFrame() & mask;
     const total = W * H;
-    const bg    = noiseBackground;
-    const rs    = noiseReadSigma;
-    const ss    = noiseShotScale > 0 ? Math.sqrt(noiseShotScale * brightness) : 0;
-    if (rs === 0 && ss === 0) {
-      const bgi = bg > 255 ? 255 : bg | 0;
+    const greyBase = (baseR === baseG && baseG === baseB);
+    const greyInk  = (aR === aG && aG === aB);
+    if (!useB && !gOn && _LITTLE_ENDIAN && greyBase && greyInk && aR === 1) {
+      // Monochrome ink on a neutral background — i.e. every metrology
+      // configuration. All three channels carry the same value, so this does
+      // one clamp and one pack per pixel instead of three. Worth roughly 2×
+      // on the full-canvas noise pass, which is the only full-canvas work the
+      // renderer does.
+      const v0 = baseR + ped;
       for (let i = 0; i < total; i++) {
-        const idx = i << 2;
-        d[idx] = d[idx+1] = d[idx+2] = bgi; d[idx+3] = 255;
+        let la = A[i];
+        if (shot > 0 && la > 0) la += tbl[ni++ & mask] * Math.sqrt(shot * la);
+        const v = v0 + la + (rs > 0 ? tbl[ni++ & mask] * rs : 0);
+        const V = v < 0 ? 0 : v > 255 ? 255 : (v + 0.5) | 0;
+        out[i] = (255 << 24 | V << 16 | V << 8 | V);
+      }
+    } else if (!useB && !gOn && _LITTLE_ENDIAN) {
+      // The metrology path — single phase, no transfer function — written out
+      // with the clamp and the word packing inlined. This loop runs on every
+      // pixel of every frame whenever noise is on, so it is worth the
+      // specialisation; the general version below is kept for the other cases.
+      const r0 = baseR + ped, g0 = baseG + ped, b0 = baseB + ped;
+      for (let i = 0; i < total; i++) {
+        let la = A[i];
+        if (shot > 0 && la > 0) la += tbl[ni++ & mask] * Math.sqrt(shot * la);
+        let r = r0 + la * aR, g = g0 + la * aG, b = b0 + la * aB;
+        if (rs > 0) {
+          const n = tbl[ni++ & mask] * rs;  // one draw per pixel, not per channel
+          r += n; g += n; b += n;
+        }
+        const R = r < 0 ? 0 : r > 255 ? 255 : (r + 0.5) | 0;
+        const G = g < 0 ? 0 : g > 255 ? 255 : (g + 0.5) | 0;
+        const B2 = b < 0 ? 0 : b > 255 ? 255 : (b + 0.5) | 0;
+        out[i] = (255 << 24 | B2 << 16 | G << 8 | R);
       }
     } else {
-      const mask = NOISE_TABLE_LEN - 1;
-      const tbl  = _noiseTable;
-      let   ni   = (Math.random() * NOISE_TABLE_LEN) | 0;
       for (let i = 0; i < total; i++) {
-        const idx = i << 2;
-        let v = bg;
-        if (rs > 0) v += tbl[ni++ & mask] * rs;
-        if (ss > 0) v += Math.abs(tbl[ni++ & mask]) * ss;
-        d[idx] = d[idx+1] = d[idx+2] = v<0?0:v>255?255:v|0; d[idx+3] = 255;
+        let la = A[i];
+        let lb = useB ? B[i] : 0;
+        if (shot > 0) {
+          if (la > 0) la += tbl[ni++ & mask] * Math.sqrt(shot * la);
+          if (lb > 0) lb += tbl[ni++ & mask] * Math.sqrt(shot * lb);
+        }
+        let r, g, b;
+        if (useB) { r = baseR + enc(la); g = baseG + enc(lb * bG); b = baseB; }
+        else      { const e = enc(la); r = baseR + e * aR; g = baseG + e * aG; b = baseB + e * aB; }
+        r += ped; g += ped; b += ped;
+        if (rs > 0) {
+          const n = tbl[ni++ & mask] * rs;
+          r += n; g += n; b += n;
+        }
+        out[i] = packRGBA(r, g, b);
       }
     }
-    _noiseCtxOff.putImageData(_noiseImg, 0, 0);
+    _bgWordCache = -1;   // the whole frame now carries noise, not flat background
   }
 
-  ctx.globalCompositeOperation = 'lighter';
-  ctx.drawImage(_noiseCvs, 0, 0);
-  ctx.globalCompositeOperation = 'source-over';
+  ctx.putImageData(_outImg, 0, 0);
+  _prevBoxes = _curBoxes;
+  void boxesA;
+
+  const ms = performance.now() - _t0;
+  _renderMsEMA = _renderMsEMA === 0 ? ms : _renderMsEMA * 0.94 + ms * 0.06;
+}
+
+// Peak-normalised 1/e² particle image diameter for the current size settings.
+// This is the d_τ a methods section should quote.
+function dTauRangePx() {
+  return [minRadius * 4, maxRadius * 4];
 }
 
 // ── Flume overlay & hydraulics ───────────────────────────────────────────
@@ -1880,7 +2820,7 @@ function drawFlume() {
     const stepPx = stepU * uMm * pxPerWorldMm;
     const yRef   = Math.max(cy0, 0);
     ctx.strokeStyle = '#1d3a44';
-    ctx.fillStyle   = '#2f5f70';
+    ctx.fillStyle   = '#fff';
     ctx.textAlign   = 'center';
     ctx.lineWidth   = 1;
     const nSteps = Math.floor((chX1 - chX0) / stepPx) + 1;
@@ -1909,7 +2849,7 @@ function drawFlume() {
         ctx.rotate(-Math.PI / 2);
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
-        ctx.fillStyle = '#2f5f70';
+        ctx.fillStyle = '#fff';
         ctx.fillText(`B = ${flumeWidthU} ${unitLbl}`, 0, 0);
         ctx.restore();
         ctx.textBaseline = 'top';
@@ -1932,10 +2872,10 @@ function drawFlume() {
       ctx.moveTo(bx0, by - 4); ctx.lineTo(bx0, by + 4);
       ctx.moveTo(bx1, by - 4); ctx.lineTo(bx1, by + 4);
       ctx.stroke();
-      ctx.fillStyle = '#2f5f70';
+      ctx.fillStyle = '#fff';
       ctx.textAlign = 'left';
       ctx.fillText(`${fmtU(stepU, stepU)} ${unitLbl}`, bx0, by + 7);
-      ctx.fillStyle = '#25454f';
+      ctx.fillStyle = '#fff';
       ctx.fillText(`${flumeWidthU} × ${flumeDepthU} ${unitLbl} channel · 1 px = ` +
                    `${(1 / pxPerWorldMm).toFixed(2)} mm`, bx0, by + 19);
     }
@@ -1947,6 +2887,9 @@ function drawFlume() {
 // ── Frame pair ───────────────────────────────────────────────────────────
 
 function captureFramePair() {
+  if (stepPairMode) exitStepPair();   // the pair modes are mutually exclusive
+  if (sweepMode)    exitSweep();
+
   // Snapshot current state as Frame A
   frameAParticles = particles.map(p => ({ ...p }));
 
@@ -1967,40 +2910,298 @@ function exitFramePair() {
   document.getElementById('pairBadge').classList.remove('active');
 }
 
+// ── Timing telemetry ─────────────────────────────────────────────────────
+// A rolling window of the REAL inter-frame intervals reported by the rAF
+// timestamp. This is the only place the tool learns what the browser and the
+// panel actually did, as opposed to what was commanded — every figure in the
+// metrology panel and in the exported manifest derives from this window.
+const TELE_WINDOW   = 600;   // rendered frames retained
+const TELE_DROP_K   = 1.5;   // interval > k × median ⇒ dropped refresh(es)
+const TELE_SUSPEND  = 5000;  // ms — a hidden tab, not jitter; excluded from stats
+const TELE_STATS_MS = 200;   // statistics recompute cadence
+
+const _teleBuf  = new Float64Array(TELE_WINDOW);
+const _teleSort = new Float64Array(TELE_WINDOW);
+let teleCount = 0, teleHead = 0;
+let teleFrames = 0, teleDropped = 0, teleMissed = 0, teleSuspends = 0;
+let teleMaxStall = 0, teleMaxStallFrame = -1;
+let teleMedian = 0;
+let _teleStatsAcc = 0;
+
+const TELE_ZERO = { valid: false, n: 0, min: 0, max: 0, med: 0, mean: 0, sd: 0, hz: 0, uRel: 0 };
+let teleStats = TELE_ZERO;
+
+function resetTelemetry() {
+  teleCount = 0; teleHead = 0;
+  teleFrames = 0; teleDropped = 0; teleMissed = 0; teleSuspends = 0;
+  teleMaxStall = 0; teleMaxStallFrame = -1;
+  teleMedian = 0; _teleStatsAcc = 0;
+  teleStats = TELE_ZERO;
+}
+
+// Drop detection runs per-frame against the median from the last statistics
+// pass, so it costs nothing in the render loop.
+function recordInterval(ms, atFrame) {
+  if (!(ms > 0)) return;
+  if (ms > TELE_SUSPEND) { teleSuspends++; return; }
+  _teleBuf[teleHead] = ms;
+  teleHead = (teleHead + 1) % TELE_WINDOW;
+  if (teleCount < TELE_WINDOW) teleCount++;
+  teleFrames++;
+  if (teleMedian > 0 && ms > TELE_DROP_K * teleMedian) {
+    teleDropped++;
+    teleMissed += Math.max(1, Math.round(ms / teleMedian) - 1);
+  }
+  if (ms > teleMaxStall) { teleMaxStall = ms; teleMaxStallFrame = atFrame; }
+}
+
+function computeTeleStats() {
+  const n = teleCount;
+  if (n < 2) { teleStats = TELE_ZERO; return; }
+  // Entries [0, teleCount) are always the valid ones: the head starts at 0 and
+  // only wraps once the window is full.
+  for (let i = 0; i < n; i++) _teleSort[i] = _teleBuf[i];
+  const a = _teleSort.subarray(0, n);
+  a.sort();                                  // typed-array sort is numeric
+  const med  = n % 2 ? a[(n - 1) >> 1] : (a[n/2 - 1] + a[n/2]) / 2;
+  let sum = 0; for (let i = 0; i < n; i++) sum += a[i];
+  const mean = sum / n;
+  let acc = 0; for (let i = 0; i < n; i++) { const d = a[i] - mean; acc += d * d; }
+  const sd = Math.sqrt(acc / (n - 1));
+  teleMedian = med;
+  teleStats = {
+    valid: true, n, min: a[0], max: a[n-1], med, mean, sd,
+    hz:   med  > 0 ? 1000 / med : 0,
+    uRel: mean > 0 ? (sd / mean) * 100 : 0,   // u_Δt/Δt, per cent
+  };
+}
+
+function measuredRefreshHz() { return teleStats.valid ? teleStats.hz : 0; }
+function centerSpeedPs() { const c = centerFlow(); return Math.hypot(c.vx, c.vy); }
+
+// ── Optical frame code ───────────────────────────────────────────────────
+// A camera pointed at the screen must be able to tell, from the captured image
+// alone, which rendered frame it caught. Each strip is [clock][b0 … b11], LSB
+// leftmost, pure black / pure white:
+//
+//   normal      data = frameIndex mod 4096
+//   step-pair   bit 11 is reserved for the phase (0 = A, 1 = B) and the count
+//               runs mod 2048, so the word stays a single 12-bit field
+//
+// The clock block flips every rendered frame, which catches a repeated frame
+// even when the count itself is misread. Two (or four) IDENTICAL copies sit at
+// opposite corners: a panel that tears mid-refresh shows different indices in
+// different copies of the SAME captured image, which is the only direct
+// evidence of tearing available to the operator.
+const FC_DATA_BITS = 12;
+const FC_BLOCKS    = FC_DATA_BITS + 1;   // clock block + data blocks
+const FC_MARGIN    = 4;                  // px quiet zone around each strip
+
+function frameCodeWord() {
+  // In either paired mode the top data bit carries the displayed phase, so a
+  // single captured frame identifies itself as A or B without cross-referencing
+  // anything. The remaining 11 bits are the rendered-frame count.
+  if (stepPairMode)
+    return (frameIndex % 2048) | (stepPairPhase === 1 ? 1 << (FC_DATA_BITS - 1) : 0);
+  if (sweepMode)
+    return (frameIndex % 2048) | (sweepPhase === 1 ? 1 << (FC_DATA_BITS - 1) : 0);
+  return frameIndex % 4096;
+}
+
+function drawFrameCodeStrip(x0, y0, word, clockOn, bs) {
+  // Quiet zone — puts the blocks on a known black field whatever the background
+  // colour, the particles or the noise layer are doing, and anchors the strip
+  // geometrically to the canvas corner for the decoder.
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x0 - FC_MARGIN, y0 - FC_MARGIN,
+               FC_BLOCKS * bs + FC_MARGIN * 2, bs + FC_MARGIN * 2);
+
+  ctx.fillStyle = clockOn ? '#fff' : '#000';
+  ctx.fillRect(x0, y0, bs, bs);
+  for (let b = 0; b < FC_DATA_BITS; b++) {
+    ctx.fillStyle = ((word >> b) & 1) ? '#fff' : '#000';
+    ctx.fillRect(x0 + (b + 1) * bs, y0, bs, bs);
+  }
+}
+
+function drawFrameCode() {
+  if (!frameCodeOn) return;
+  const bs     = Math.round(frameCodeBlock);
+  const stripW = FC_BLOCKS * bs;
+  if (stripW + FC_MARGIN * 2 > W || bs + FC_MARGIN * 2 > H) return;
+
+  const word    = frameCodeWord();
+  const clockOn = (frameIndex & 1) === 1;
+  const m  = FC_MARGIN;
+  const tl = [m, m];
+  const tr = [W - stripW - m, m];
+  const bl = [m, H - bs - m];
+  const br = [W - stripW - m, H - bs - m];
+
+  // Only the four-corner layout puts two strips on the same row; if the window
+  // is too narrow (or too short) for that, they would overlap and corrupt each
+  // other's blocks. Fall back to the diagonal pair, which never collides —
+  // silently wrong codes are far worse than two copies instead of four.
+  const fitsFour = (2 * stripW + 3 * m <= W) && (2 * bs + 3 * m <= H);
+  const spots = frameCodePos === 'trbl'              ? [tr, bl]
+              : (frameCodePos === 'all' && fitsFour) ? [tl, tr, bl, br]
+              :                                        [tl, br];
+
+  // Hard-edged and unblended: integer-aligned fillRect only, additive blending
+  // and global alpha explicitly reset, no smoothing, no filter.
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  ctx.filter = 'none';
+  ctx.imageSmoothingEnabled = false;
+  ctx.setLineDash([]);
+  for (const s of spots) drawFrameCodeStrip(Math.round(s[0]), Math.round(s[1]), word, clockOn, bs);
+  ctx.restore();
+}
+
+// ── Step-pair capture ────────────────────────────────────────────────────
+// The overlay frame-pair composites A and B into one image, so a camera sees a
+// single frame containing both and cannot produce a real PIV pair. Step-pair
+// SEQUENCES them instead: only A on screen for holdFrames rendered frames, then
+// exactly one 1/stepFps advance, then only B for holdFrames — two temporally
+// distinct, separately capturable frames.
+function stepPairStepDt() { return 1 / stepFps; }
+
+function enterStepPair() {
+  if (framePairMode) exitFramePair();
+  if (sweepMode)     exitSweep();
+  stepPairAParticles = particles.map(p => ({ ...p }));
+  for (const p of particles) advanceParticle(p, stepPairStepDt());  // particles === Frame B
+  // Draw a fresh light-sheet dropout set for B. The snapshot above already froze
+  // A's set, so the pair decorrelates exactly as a real light sheet would — the
+  // spread copy carries `dimmed` verbatim and advanceParticle never touches it,
+  // so without this A and B would share an identical dropout set and out-of-plane
+  // loss would be untestable in the one mode that makes a real pair.
+  if (outOfPlanePct > 0) refreshOutOfPlane();
+  stepPairPhase = 0;
+  stepPairHeld  = 0;
+  stepPairDone  = false;
+  stepPairMode  = true;
+  paused        = false;
+  document.getElementById('paused').style.display = 'none';
+  syncStepPairUI();
+}
+
+function exitStepPair() {
+  stepPairMode       = false;
+  stepPairAParticles = null;
+  stepPairDone       = false;
+  syncStepPairUI();
+}
+
+// One rendered frame of the A/B sequencer. Called AFTER the draw so each phase
+// is held for the full holdFrames worth of rendered frames.
+function tickStepPair() {
+  if (stepPairDone) return;
+  if (++stepPairHeld < Math.max(1, Math.round(stepPairHold))) return;
+  stepPairHeld = 0;
+
+  if (stepPairPhase === 0) { stepPairPhase = 1; return; }  // A held → show B
+  if (!stepPairLoop) { stepPairDone = true; return; }      // stop, frozen on B
+
+  // Loop: the frame we were showing as B becomes the next A, then advance one
+  // step to build the next B — exactly one sim step per A→B→A cycle.
+  stepPairAParticles = particles.map(p => ({ ...p }));
+  for (const p of particles) advanceParticle(p, stepPairStepDt());
+  if (outOfPlanePct > 0) refreshOutOfPlane();   // new dropout set for the new B
+  stepPairPhase = 0;
+}
+
+function syncStepPairUI() {
+  const btn = document.getElementById('stepPairBtn');
+  btn.textContent = stepPairMode ? '[S] Stop A/B' : '[S] Start A/B';
+  btn.classList.toggle('active', stepPairMode);
+  updatePhaseBadge();
+}
+
+function updatePhaseBadge() {
+  const el   = document.getElementById('stepPhaseBadge');
+  const show = (stepPairMode || sweepMode) && phaseBadgeOn;
+  el.classList.toggle('visible', show);
+  if (!show) return;
+  const isA = sweepMode ? (sweepPhase === 0) : (stepPairPhase === 0);
+  el.classList.toggle('pa',  isA);
+  el.classList.toggle('pb', !isA);
+  document.getElementById('stepPhaseChar').textContent = isA ? 'A' : 'B';
+  if (sweepMode) {
+    const { d } = sweepDelta(sweepIndex);
+    document.getElementById('stepPhaseSub').textContent =
+      'sweep ' + (sweepIndex + 1) + '/' + sweepSchedule.length +
+      ' · Δ ' + d.toFixed(3) + ' px' + (sweepDone ? ' · done' : '');
+  } else {
+    document.getElementById('stepPhaseSub').textContent =
+      'Δ ' + (centerSpeedPs() / stepFps).toFixed(2) + ' px · 1/' + stepFps + ' s' +
+      (stepPairDone ? ' · done' : '');
+  }
+}
+
 // ── Render loop ───────────────────────────────────────────────────────────
 let lastTime = null;
 
 function frame(ts) {
   requestAnimationFrame(frame);
-  if (lastTime === null) lastTime = ts;
-  const dt = Math.min((ts - lastTime) / 1000, 0.05);
+
+  // Real inter-frame interval, recorded before anything else so a stall inside
+  // this callback lands on the NEXT sample rather than contaminating this one.
+  if (lastTime !== null) recordInterval(ts - lastTime, frameIndex);
+  const wallDt = lastTime === null ? 0 : (ts - lastTime) / 1000;
   lastTime = ts;
 
-  if (!paused && !framePairMode) {
+  _teleStatsAcc += wallDt * 1000;
+  if (_teleStatsAcc >= TELE_STATS_MS) { _teleStatsAcc = 0; computeTeleStats(); tickAutoLock(); }
+
+  // Simulation timestep. Deterministic mode advances by an EXACT 1/stepFps per
+  // rendered frame and is deliberately NOT clamped — the entire point is that
+  // the step no longer depends on what the wall clock did.
+  const dt = deterministic ? 1 / stepFps : Math.min(wallDt, 0.05);
+
+  if (!stepPairMode && !sweepMode && !paused && !framePairMode) {
     // Advance particles
     for (const p of particles) advanceParticle(p, dt);
+    noteAdvanceBatch(particles.length);
 
-    // Per-camera-frame out-of-plane refresh
+    // Out-of-plane refresh. In deterministic mode the sim step IS the unit of
+    // time, so the dropout redraws exactly once per step — keying it to camFps
+    // there would let a second, unrelated rate govern it (stepFps 30 / camFps 60
+    // refreshed every frame while _camFrameAcc drifted without bound). In
+    // free-run mode the original camera-frame accumulator is preserved verbatim.
     if (outOfPlanePct > 0) {
-      _camFrameAcc += dt;
-      if (_camFrameAcc >= 1/camFps) {
-        _camFrameAcc -= 1/camFps;
+      if (deterministic) {
         refreshOutOfPlane();
+      } else {
+        _camFrameAcc += dt;
+        if (_camFrameAcc >= 1/camFps) {
+          _camFrameAcc -= 1/camFps;
+          refreshOutOfPlane();
+        }
       }
     }
   }
 
   // ── Draw ──
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, W, H);
+  // The set actually on screen this frame. In step-pair mode that is exactly one
+  // phase — every later drawing pass must use this, not `particles`, or both
+  // phases end up composited into a single image and the pair is worthless.
+  const shownParticles = stepPairMode
+    ? (stepPairPhase === 0 ? stepPairAParticles : particles)
+    : sweepMode
+      ? (sweepPhase === 0 ? sweepAParticles : particles)
+      : particles;
 
+  // Background, particle images and sensor noise are composed together in the
+  // intensity domain and blitted in one pass, so overlapping particles add
+  // linearly and the frame is clamped exactly once — see renderParticleLayer.
   if (framePairMode && frameAParticles) {
     // Frame pair: A in red, B in green, overlap → yellow
-    if (_cachedBright !== brightness) refreshSprites();
-    drawParticles(frameAParticles, bubbleMode ? _bubbleRedSpr   : _redSpr);
-    drawParticles(particles,       bubbleMode ? _bubbleGreenSpr : _greenSpr);
+    renderParticleLayer(frameAParticles, particles);
   } else {
-    drawParticles(particles, getSprite());
+    // Step-pair puts exactly one phase on screen, rendered normally.
+    renderParticleLayer(shownParticles, null);
   }
 
   // Obstacle
@@ -2031,7 +3232,7 @@ function frame(ts) {
   if (colorBySpeed) {
     const stats = analyticalVelocityStats();
     const vMaxMs = Math.abs(stats.vMaxMs) || 1;
-    drawParticlesColored(particles, vMaxMs);
+    drawParticlesColored(shownParticles, vMaxMs);
     updateColorbar(vMaxMs);
     document.getElementById('colorbar').classList.add('visible');
   } else {
@@ -2040,9 +3241,252 @@ function frame(ts) {
 
   drawFlume();
 
-  applyNoise();
+  // Sensor noise is applied inside renderParticleLayer, on the accumulated
+  // intensity, so shot noise can be signal-dependent. It therefore lands under
+  // the flume overlay rather than over it — the overlay is a lab annotation,
+  // not part of the imaged particle field.
+
+  // The frame code goes on last — after the noise layer and outside every blend
+  // mode — so the blocks stay pure #000 / #fff with hard edges.
+  drawFrameCode();
+
   updateReadout();
+  updateInterrogationDisplay();
   updateCursorProbe();
+  updateMetroPanel();
+  if (stepPairMode || sweepMode) updatePhaseBadge();
+
+  // The A/B sequencer runs after the draw, so the frame just rendered counts
+  // toward the current phase's hold. Pause freezes it like any other motion —
+  // the displayed phase stays put instead of advancing behind the overlay.
+  if (stepPairMode && !paused) tickStepPair();
+  if (sweepMode    && !paused) tickSweep();
+
+  frameIndex++;
+}
+
+// ── Metrology readout ────────────────────────────────────────────────────
+// Top block: the camera-sync arithmetic that deterministic mode forces on the
+// operator. Bottom block: the raw interval statistics it rests on.
+function updateMetroPanel() {
+  if (!metroVisible) return;
+
+  const speedPs = centerSpeedPs();
+  const st      = teleStats;
+  const hz      = measuredRefreshHz();
+
+  // u_Δt/Δt — the single most decision-relevant number on the screen.
+  const uEl = document.getElementById('m-urel');
+  if (st.valid) {
+    uEl.textContent = st.uRel.toFixed(2) + ' %';
+    uEl.className   = 'num ' + (st.uRel < 0.5 ? 'm-ok' : st.uRel < 1.5 ? 'm-amber' : 'm-red');
+  } else {
+    uEl.textContent = '—'; uEl.className = 'num m-dim';
+  }
+
+  document.getElementById('m-mode').textContent =
+    deterministic ? 'deterministic · ' + stepFps + ' step/s' : 'wall clock (free-run)';
+
+  // Δpx per RENDERED frame: exact in deterministic mode; otherwise only whatever
+  // the mean measured interval happened to be — which is the defect this fixes.
+  const dpxRend = deterministic ? speedPs / stepFps
+                : (st.valid ? speedPs * st.mean / 1000 : NaN);
+  document.getElementById('m-dpxrend').textContent = isNaN(dpxRend) ? '—'
+    : dpxRend.toFixed(3) + ' px' + (deterministic ? ' (exact)' : ' (measured)');
+
+  document.getElementById('m-refresh').textContent = hz > 0 ? hz.toFixed(2) + ' Hz' : '—';
+
+  // k = how many panel refreshes the camera integrates per frame.
+  const kEl   = document.getElementById('m-k');
+  const warnK = document.getElementById('m-warn-k');
+  let k = 1, kErr = 0, haveK = false;
+  if (hz > 0 && camFps > 0) {
+    const ratio = hz / camFps;
+    k     = Math.max(1, Math.round(ratio));
+    kErr  = Math.abs(ratio - k);
+    haveK = true;
+    kEl.textContent = ratio.toFixed(3) + '  →  k = ' + k;
+    kEl.className   = 'v ' + (kErr > 0.02 ? 'm-amber' : 'm-ok');
+  } else {
+    kEl.textContent = '—'; kEl.className = 'v m-dim';
+  }
+
+  // When auto-lock is already naming the camera rate, this would be the same
+  // instruction twice. Auto-lock's version says more, so let it own the message.
+  const alOwnsCam = autoLock && autoLockState === 'locked' && autoLockRecord &&
+                    autoLockRecord.camRecommendFps > 0 &&
+                    Math.abs(camFps - autoLockRecord.camRecommendFps) / autoLockRecord.camRecommendFps > 0.0005;
+
+  if (haveK && kErr > 0.02 && !alOwnsCam) {
+    warnK.textContent = 'Camera fps is not an integer divisor of the panel refresh: ' +
+      '|refresh/fps − k| = ' + kErr.toFixed(3) + ' > 0.02. Displacement per camera frame ' +
+      'will beat between k and k±1 steps. Set camera fps to ' + (hz / k).toFixed(2) + ' fps.';
+    warnK.classList.add('on');
+  } else {
+    warnK.classList.remove('on');
+  }
+
+  document.getElementById('m-dpxcam').textContent = deterministic
+    ? (haveK ? (k * speedPs / stepFps).toFixed(3) + ' px  (k × Δpx/step)' : '—')
+    : (speedPs / camFps).toFixed(3) + ' px  (nominal)';
+
+  // Sim-time scale. In deterministic mode each refresh advances 1/stepFps of sim
+  // time, so the field runs at refresh/stepFps × real time. This is the trap that
+  // matters most in practice: a PIV package divides Δx by the REAL camera
+  // interval, so it reports the True Speed readout multiplied by this factor.
+  const simScale = (deterministic && hz > 0 && stepFps > 0) ? hz / stepFps : 1;
+  const scaleOff = deterministic && hz > 0 && Math.abs(simScale - 1) > 0.02;
+  const tsEl = document.getElementById('m-tscale');
+  tsEl.textContent = deterministic
+    ? (hz > 0 ? '×' + simScale.toFixed(3) + ' sim-s per real-s' : '—')
+    : '×1.000 (real time)';
+  tsEl.className = 'v ' + (!deterministic ? 'm-ok' : hz <= 0 ? 'm-dim' : scaleOff ? 'm-amber' : 'm-ok');
+
+  const dprEl = document.getElementById('m-dpr');
+  const dprV  = dprValue();
+  dprEl.textContent = dprV.toFixed(3) + (dprOK() ? '  (1:1)' : '  ✕ NOT 1:1');
+  dprEl.className   = 'v ' + (dprOK() ? 'm-ok' : 'm-red');
+
+  // Render cost against the frame budget. If composing the image takes a large
+  // fraction of the refresh interval there is no headroom left, and a dropped
+  // frame stops being bad luck and becomes the expected outcome.
+  const budget = teleStats.valid && teleStats.med > 0 ? teleStats.med : 0;
+  const renderEl = document.getElementById('m-render');
+  const frac = budget > 0 ? _renderMsEMA / budget : 0;
+  renderEl.textContent = _renderMsEMA.toFixed(2) + ' ms' +
+    (budget > 0 ? '  (' + (frac * 100).toFixed(0) + ' % of ' + budget.toFixed(2) + ' ms)' : '');
+  renderEl.className = 'v ' + (frac > 0.5 ? 'm-red' : frac > 0.3 ? 'm-amber' : 'm-ok');
+
+  const warnRender = document.getElementById('m-warn-render');
+  if (frac > 0.5) {
+    warnRender.textContent =
+      'RENDER COST ' + (frac * 100).toFixed(0) + ' % OF THE FRAME BUDGET — composing the ' +
+      'image takes ' + _renderMsEMA.toFixed(2) + ' ms of a ' + budget.toFixed(2) + ' ms refresh ' +
+      'interval, so there is little headroom before frames start dropping. Image noise is ' +
+      'the expensive setting: it is the only one that writes every pixel. Reduce particle ' +
+      'count, shrink the window, or run the timing gate with noise at zero.';
+    warnRender.classList.add('on');
+  } else {
+    warnRender.classList.remove('on');
+  }
+
+  const us = stimulusUncertainty();
+  const usEl = document.getElementById('m-ustim');
+  usEl.textContent = us.uc.toFixed(3) + ' %' +
+    (us.terms.length ? '  (' + us.terms.map(t => t.name.split(' ')[0]).join(' + ') + ')' : '  (no terms)');
+  usEl.className = 'v ' + (us.uc < 0.5 ? 'm-ok' : us.uc < 1.5 ? 'm-amber' : 'm-red');
+
+  // ── Auto-lock ──
+  const alEl = document.getElementById('m-autolock');
+  const alW  = document.getElementById('m-warn-autolock');
+  if (!autoLock) {
+    alEl.textContent = 'off';
+    alEl.className   = 'v m-dim';
+    alW.classList.remove('on');
+  } else if (autoLockState === 'locked' && autoLockRecord) {
+    const r = autoLockRecord;
+    alEl.textContent = 'locked ' + r.hz.toFixed(3) + ' Hz';
+    alEl.className   = 'v m-ok';
+    if (r.camRecommendFps > 0 && Math.abs(camFps - r.camRecommendFps) / r.camRecommendFps > 0.0005) {
+      alW.textContent =
+        'SET THE CAMERA TO ' + r.camRecommendFps.toFixed(3) + ' fps (k = ' + r.camK + '). ' +
+        'Step rate is locked to ' + r.hz.toFixed(3) + ' Hz and the sim-time scale is 1.000, but ' +
+        'camera fps is still ' + camFps.toFixed(3) + ', which is not an integer divisor of the ' +
+        'refresh — the per-camera-frame displacement will beat between k and k±1 steps. This is ' +
+        'NOT applied for you: it describes your physical camera, and the tool will not assert a ' +
+        'rate your camera is not at. Change the camera, then press the button in the Timing ' +
+        'section to confirm it.';
+      alW.classList.add('on');
+    } else alW.classList.remove('on');
+  } else if (autoLockState === 'measuring') {
+    alEl.textContent = 'measuring ' + teleCount + '/' + TELE_WINDOW;
+    alEl.className   = 'v m-amber';
+    alW.textContent  = 'AUTO-LOCK MEASURING — filling a full ' + TELE_WINDOW + '-frame window before ' +
+                       'it will trust a refresh figure. Leave the machine alone; moving the mouse is work.';
+    alW.classList.add('on');
+  } else {
+    const bad = autoLockState === 'blocked';
+    alEl.textContent = bad ? 'BLOCKED' : 'LOCK LOST';
+    alEl.className   = 'v m-red';
+    const diag = autoLockDiagnosis();
+    alW.innerHTML =
+      (bad ? 'AUTO-LOCK REFUSING TO LOCK' : 'AUTO-LOCK NO LONGER TRUSTWORTHY') + ' — ' +
+      (bad ? 'the refresh measurement is not good enough to lock to. Locking anyway would bake a ' +
+             'wrong step rate into the stimulus and print a reassuring ×1.000 next to it.'
+           : 'the step rate is still applied (reverting it mid-run would change the stimulus), but ' +
+             'the conditions it was measured under no longer hold. Do not trust a capture taken now.') +
+      '<br><br><b>WHY</b><br>' + autoLockReasons.map(r => '· ' + r).join('<br>') +
+      (diag.length ? '<br><br><b>WHAT TO CHECK, IN ORDER</b><br>' +
+        diag.map(d => '· <b>' + d.t + '.</b> ' + d.d).join('<br><br>') : '');
+    alW.classList.add('on');
+  }
+
+  const warnDpr = document.getElementById('m-warn-dpr');
+  if (!dprOK()) {
+    warnDpr.textContent =
+      'DISPLAY NOT 1:1 — devicePixelRatio is ' + dprV.toFixed(3) + '. The canvas is ' +
+      'resampled by the compositor before it reaches the panel, so the rendered PSF ' +
+      'is interpolated again and every px/mm figure on this screen is out by a factor ' +
+      'of ' + dprV.toFixed(3) + '. This invalidates the ground truth regardless of how ' +
+      'clean the timing is. Set browser zoom to 100 % (Ctrl+0) and OS display scaling ' +
+      'to 100 %, reload, and re-run the §1 gate.';
+    warnDpr.classList.add('on');
+  } else {
+    warnDpr.classList.remove('on');
+  }
+
+  const warnScale = document.getElementById('m-warn-scale');
+  if (scaleOff) {
+    const trueMs = psToActiveMs(speedPs);
+    warnScale.textContent =
+      'SIM TIME ≠ REAL TIME — the field advances ' + simScale.toFixed(3) + '× real time. ' +
+      'A PIV package divides Δx by the REAL camera interval, so it will report ' +
+      (trueMs * simScale).toFixed(4) + ' m/s against a True Speed readout of ' +
+      trueMs.toFixed(4) + ' m/s. That is this mode, not your algorithm. ' +
+      'Set Step rate to ' + Math.round(hz) + ' (Match refresh) to make the scale 1.000, ' +
+      'or divide your measurement by ' + simScale.toFixed(3) + '.';
+    warnScale.classList.add('on');
+  } else {
+    warnScale.classList.remove('on');
+  }
+
+  // Deterministic mode is only trustworthy on a stable panel: there, a dropped
+  // refresh is a dropped SIM STEP, and the field silently falls behind.
+  const warnStab = document.getElementById('m-warn-stab');
+  const unstable = st.valid && (st.sd > 3 || st.uRel > 1.5 || teleDropped > 0);
+  if (deterministic && unstable) {
+    warnStab.textContent = 'REFRESH UNSTABLE — σ = ' + st.sd.toFixed(2) + ' ms, ' +
+      teleDropped + ' dropped (' + teleMissed + ' missed refreshes). In deterministic ' +
+      'mode a dropped refresh is a dropped sim step: the field falls behind real time ' +
+      'without changing Δpx per rendered frame. Quiet the machine, reset telemetry and ' +
+      're-run before trusting a capture.';
+    warnStab.classList.add('on');
+  } else {
+    warnStab.classList.remove('on');
+  }
+
+  // ── Raw interval statistics ──
+  if (st.valid) {
+    document.getElementById('m-mmm').textContent =
+      st.min.toFixed(2) + ' / ' + st.med.toFixed(2) + ' / ' + st.max.toFixed(2) + ' ms';
+    document.getElementById('m-mean').textContent = st.mean.toFixed(3) + ' ms';
+    const sdEl = document.getElementById('m-sd');
+    sdEl.textContent = st.sd.toFixed(3) + ' ms';
+    sdEl.className   = 'v ' + (st.sd < 1 ? 'm-ok' : st.sd <= 3 ? 'm-amber' : 'm-red');
+  } else {
+    ['m-mmm','m-mean','m-sd'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = '—'; el.className = 'v m-dim';
+    });
+  }
+
+  const dropEl = document.getElementById('m-drop');
+  dropEl.textContent = teleDropped + '  (' + teleMissed + ')';
+  dropEl.className   = 'v ' + (teleDropped === 0 ? 'm-ok' : 'm-red');
+  document.getElementById('m-stall').textContent =
+    teleMaxStall > 0 ? teleMaxStall.toFixed(1) + ' ms @ frame ' + teleMaxStallFrame : '—';
+  document.getElementById('m-frames').textContent = teleFrames;
+  document.getElementById('m-susp').textContent   = teleSuspends;
 }
 
 // ── Readout ───────────────────────────────────────────────────────────────
@@ -2070,6 +3514,28 @@ function updateReadout() {
   document.getElementById('tvFpsLabel').textContent  = dispFps;
   document.getElementById('camFpsLabel').textContent = camFps;
   document.getElementById('gtMmTrue').textContent    = trueMs.toFixed(4);
+
+  // "Display fps" is a typed number used ONLY in the readout above — it never
+  // touches the motion. Flag it as soon as telemetry knows better.
+  const dw   = document.getElementById('dispFpsWarn');
+  const mHz  = measuredRefreshHz();
+  const dMsg = (mHz > 0 && Math.abs(mHz - dispFps) > 1)
+    ? `Display fps ${dispFps} ≠ measured refresh ${mHz.toFixed(1)} Hz — "Δpx / TV frame" ` +
+      `is quoting a frame interval this panel is not running at.`
+    : '';
+  if (dw._msg !== dMsg) {
+    dw._msg = dMsg;
+    dw.textContent   = dMsg;
+    dw.style.display = dMsg ? 'block' : 'none';
+  }
+
+  // Match-refresh button: name the target rate, and highlight it while the
+  // sim-time scale is off 1.000 — that is when it actually needs pressing.
+  const mb = document.getElementById('matchRefreshBtn');
+  const mLbl = mHz > 0 ? 'Match refresh (' + mHz.toFixed(2) + ')' : 'Match refresh (—)';
+  const mHot = deterministic && mHz > 0 && Math.abs(mHz / stepFps - 1) > 0.02;
+  if (mb._lbl !== mLbl) { mb._lbl = mLbl; mb.textContent = mLbl; }
+  if (mb._hot !== mHot) { mb._hot = mHot; mb.classList.toggle('active-orange', mHot); }
 
   const measVal = parseFloat(document.getElementById('measInput').value);
   if (!isNaN(measVal) && trueMs > 0) {
@@ -2105,6 +3571,18 @@ function updateReadout() {
     document.getElementById('gtVMax').textContent     = stats.vMaxMs.toFixed(4);
     document.getElementById('gtProfileType').textContent = stats.label;
     document.getElementById('gtProfileNote').textContent = stats.note;
+
+    // Window-averaged truth at the reference location, and the gradient bias it
+    // implies — the amount a point-valued comparison would misattribute.
+    const wa   = windowAveragedFlowPs(chCenterX(), chCenterY(), iwDisplayPx());
+    const waMs = psToActiveMs(Math.hypot(wa.vx, wa.vy));
+    const ptMs = Math.abs(stats.vCenterMs);
+    document.getElementById('gtVWindow').textContent = waMs.toFixed(4);
+    const dPct = ptMs > 1e-9 ? ((waMs - ptMs) / ptMs) * 100 : 0;
+    const noteEl = document.getElementById('gtVWindowNote');
+    noteEl.textContent = 'm/s · ' + iwDisplayPx().toFixed(0) + ' disp-px IW · ' +
+                         (dPct >= 0 ? '+' : '') + dPct.toFixed(2) + '% vs point';
+    noteEl.style.color = Math.abs(dPct) < 1 ? '#333' : Math.abs(dPct) < 5 ? '#fa0' : '#f44';
 
     // Label the min/center/max columns contextually
     if (flowType === 'shear') {
@@ -2163,7 +3641,11 @@ recomputeScale();
 
 // ── Flume geometry controls ───────────────────────────────────────────────
 const FLUME_PRESETS = {
-  d1:      { unit: 'ft', width: 6,  length: 20,  depth: 4    },
+  // D1 is 250 ft long × 6 ft wide × 3 ft deep (USGS HIF published facility
+  // specification). `length` is the reach modelled on screen, not the full
+  // flume. The depth previously read 4 ft, which propagated into freeboard,
+  // wall-effect geometry and field-of-view planning.
+  d1:      { unit: 'ft', width: 6,  length: 20,  depth: 3    },
   lab1m:   { unit: 'm',  width: 1,  length: 3,   depth: 0.30 },
   field10: { unit: 'm',  width: 10, length: 25,  depth: 1.5  },
 };
@@ -2286,6 +3768,7 @@ wireSliderNum('timeScaleSlider', 'timeScaleNum', 0.05, 10, 2, v => {
   timeScale = Math.max(0.001, v);
   recomputeScale();       // px/s conversions depend on the playback scale
   updateFlumeReadouts();
+  resetTelemetry();
 });
 
 function wireFlumeToggle(btnId, get, set, reseed) {
@@ -2342,6 +3825,7 @@ document.getElementById('flowType').addEventListener('change', e => {
   Object.entries(flowParamDivs).forEach(([k, el]) => {
     el.style.display = k === flowType ? 'block' : 'none';
   });
+  resetTelemetry();
 });
 
 // ── Align to flow toggle ──────────────────────────────────────────────────
@@ -2398,31 +3882,34 @@ document.querySelectorAll('input').forEach(el => {
 });
 
 // Uniform flow
-wireSliderNum('vxSlider', 'vxNum', -2, 2, 3, v => { vxMs = v; vx = msToPs(v); });
-wireSliderNum('vySlider', 'vyNum', -2, 2, 3, v => { vyMs = v; vy = msToPs(v); });
+// Every flow control resets the telemetry window: the statistics describe the
+// conditions of one run, and a parameter change starts a new one.
+wireSliderNum('vxSlider', 'vxNum', -2, 2, 3, v => { vxMs = v; vx = msToPs(v); resetTelemetry(); });
+wireSliderNum('vySlider', 'vyNum', -2, 2, 3, v => { vyMs = v; vy = msToPs(v); resetTelemetry(); });
 
 // Turbulence (all modes)
 wireSliderNum('turbSlider', 'turbNum', 0, 1, 3, v => {
   turbMs = v; turbulence = msToPs(v);
   document.getElementById('turbInfo').style.display = v > 0 ? 'block' : 'none';
   reseedTurbulence();
+  resetTelemetry();
 });
 
 // Shear
-wireSliderNum('shearVxSlider',  'shearVxNum',  -2,  2,  3, v => { shearVxMs = v; });
-wireSliderNum('shearRateSlider','shearRateNum', -2,  2,  2, v => { shearRate  = v; });
+wireSliderNum('shearVxSlider',  'shearVxNum',  -2,  2,  3, v => { shearVxMs = v; resetTelemetry(); });
+wireSliderNum('shearRateSlider','shearRateNum', -2,  2,  2, v => { shearRate  = v; resetTelemetry(); });
 
 // Vortex
-wireSliderNum('vortexOmegaSlider','vortexOmegaNum', -3, 3, 2, v => { vortexOmega  = v; });
-wireSliderNum('vortexBgVxSlider', 'vortexBgVxNum',  -1, 1, 3, v => { vortexBgVxMs = v; });
+wireSliderNum('vortexOmegaSlider','vortexOmegaNum', -3, 3, 2, v => { vortexOmega  = v; resetTelemetry(); });
+wireSliderNum('vortexBgVxSlider', 'vortexBgVxNum',  -1, 1, 3, v => { vortexBgVxMs = v; resetTelemetry(); });
 
 // Poiseuille
-wireSliderNum('poisVxSlider','poisVxNum', 0, 3, 3, v => { poisVxMaxMs = v; });
+wireSliderNum('poisVxSlider','poisVxNum', 0, 3, 3, v => { poisVxMaxMs = v; resetTelemetry(); });
 
 // Rankine
-wireSliderNum('rankineVcSlider',   'rankineVcNum',    0,   2,  3, v => { rankineVcMs   = v; });
-wireSliderNum('rankineRcSlider',   'rankineRcNum',    2,  45,  1, v => { rankineRcPct  = v; });
-wireSliderNum('rankineBgVxSlider', 'rankineBgVxNum', -1,   1,  3, v => { rankineBgVxMs = v; });
+wireSliderNum('rankineVcSlider',   'rankineVcNum',    0,   2,  3, v => { rankineVcMs   = v; resetTelemetry(); });
+wireSliderNum('rankineRcSlider',   'rankineRcNum',    2,  45,  1, v => { rankineRcPct  = v; resetTelemetry(); });
+wireSliderNum('rankineBgVxSlider', 'rankineBgVxNum', -1,   1,  3, v => { rankineBgVxMs = v; resetTelemetry(); });
 
 // Particles
 wireSliderNum('countSlider',   'countNum',   50, 2000, 0, v => { resizeParticles(Math.max(1, Math.round(v))); });
@@ -2447,7 +3934,7 @@ wireSliderNum('maxSizeSlider', 'maxSizeNum', 0.5, 20, 1, v => {
 wireSliderNum('brightSlider', 'brightNum', 50, 255, 0, v => { brightness = Math.max(1, Math.min(255, v)); });
 
 document.getElementById('bgColorPicker').addEventListener('input', e => { bgColor = e.target.value; });
-document.getElementById('dotColorPicker').addEventListener('input', e => { dotColor = e.target.value; _cachedBright = -1; });
+document.getElementById('dotColorPicker').addEventListener('input', e => { dotColor = e.target.value; });
 
 // Particle shape
 wireSliderNum('rhoSlider',    'rhoNum',    -0.95, 0.95, 2, v => { rhoBase = v; reseedShapes(); });
@@ -2458,31 +3945,173 @@ function updateVarInfo() {
   const any = intensVar > 0 || diamVar > 0 || outOfPlanePct > 0;
   document.getElementById('varInfo').style.display = any ? 'block' : 'none';
 }
+// These patch the per-particle factors in place, drawing from the PRNG in a
+// different order than makeParticle — so the field stops being derivable from
+// the seed. Use rand() rather than Math.random() so at least the draw is seeded,
+// and mark the field non-canonical so the manifest can say so.
 wireSliderNum('intensVarSlider', 'intensVarNum', 0, 0.8, 2, v => {
   intensVar = v; updateVarInfo();
   for (const p of particles) {
-    const b = intensVar > 0 ? 1 + (Math.random()*2-1)*intensVar*2 : 1;
+    const b = intensVar > 0 ? 1 + (rand()*2-1)*intensVar*2 : 1;
     p.brightFactor = Math.max(0.1, Math.min(2.0, b));
   }
+  fieldCanonical = false;
 });
 wireSliderNum('diamVarSlider', 'diamVarNum', 0, 0.8, 2, v => {
   diamVar = v; updateVarInfo();
   for (const p of particles) {
-    const s = diamVar > 0 ? 1 + (Math.random()*2-1)*diamVar*2 : 1;
+    const s = diamVar > 0 ? 1 + (rand()*2-1)*diamVar*2 : 1;
     p.sizeFactor = Math.max(0.3, Math.min(2.0, s));
   }
+  fieldCanonical = false;
 });
 wireSliderNum('outPlaneSlider', 'outPlaneNum', 0, 80, 0, v => {
   outOfPlanePct = v / 100; updateVarInfo(); refreshOutOfPlane();
 });
 
 // Timing
-wireSliderNum('camFpsSlider',  'camFpsNum',  1,   240, 0, v => { camFps  = Math.max(1, v); });
-wireSliderNum('dispFpsSlider', 'dispFpsNum', 24,  240, 0, v => { dispFps = Math.max(1, v); });
+wireSliderNum('camFpsSlider',  'camFpsNum',  1,   480, 3, v => {
+  camFps = Math.max(1, v);
+  // Typing a camera rate by hand states the operator's intent, so the auto-lock
+  // recommendation is recomputed from it rather than from its own last output.
+  if (!(autoLockRecord && Math.abs(camFps - (autoLockRecord.camRecommendFps || -1)) < 1e-6))
+    camFpsRequested = camFps;
+  resetTelemetry();
+  syncAutoLockUI();
+});
+wireSliderNum('dispFpsSlider', 'dispFpsNum', 24,  240, 0, v => { dispFps = Math.max(1, v); resetTelemetry(); });
+
+// ── Deterministic step mode ───────────────────────────────────────────────
+// Turning it on opens the metrology panel unprompted: in this mode the sync
+// arithmetic between step rate, panel refresh and camera fps is not optional.
+function setDeterministic(on) {
+  deterministic = on;
+  const btn = document.getElementById('detBtn');
+  btn.textContent = on ? '[D] On' : '[D] Off';
+  btn.classList.toggle('active', on);
+  document.getElementById('stepFpsRow').style.display      = on ? 'flex' : 'none';
+  document.getElementById('matchRefreshRow').style.display = on ? 'flex' : 'none';
+  document.getElementById('autoLockRow').style.display      = on ? 'flex' : 'none';
+  document.getElementById('autoLockInfo').style.display     = on ? 'block' : 'none';
+  if (!on && autoLock) setAutoLock(false);
+  syncAutoLockUI();
+  if (on) setMetro(true);
+  resetTelemetry();
+}
+document.getElementById('detBtn').addEventListener('click', () => setDeterministic(!deterministic));
+wireSliderNum('stepFpsSlider', 'stepFpsNum', 1, 480, 2, v => {
+  stepFps = Math.max(1, Math.min(240, Math.round(v)));
+  resetTelemetry();
+});
+
+// Setting the step rate to the measured refresh makes the sim-time scale exactly
+// 1.000, so sim time and real time coincide and a PIV package's m/s can be
+// compared against the True Speed readout directly, with no correction.
+function matchStepToRefresh() {
+  const hz = measuredRefreshHz();
+  if (!(hz > 0)) return;
+  // Exact, not rounded — rounding 232.56 Hz to 233 leaves a 0.2 % sim-time
+  // scale error standing for no reason at all.
+  stepFps = Math.max(1, Math.min(480, hz));
+  _setCtrl('stepFpsSlider', 'stepFpsNum', +stepFps.toFixed(2));
+  resetTelemetry();     // the step rate changed — this is a new run
+}
+document.getElementById('matchRefreshBtn').addEventListener('click', matchStepToRefresh);
+document.getElementById('autoLockBtn').addEventListener('click', () => setAutoLock(!autoLock));
+document.getElementById('autoLockCamBtn').addEventListener('click', applyAutoLockCameraFps);
+
+// ── Step-pair controls ────────────────────────────────────────────────────
+document.getElementById('stepPairBtn').addEventListener('click', () => {
+  if (stepPairMode) exitStepPair(); else enterStepPair();
+});
+wireSliderNum('holdFramesSlider', 'holdFramesNum', 1, 120, 0, v => {
+  stepPairHold = Math.max(1, Math.min(120, Math.round(v)));
+});
+// ── Sweep controls ──
+function _wireSweepNum(id, setter) {
+  const el = document.getElementById(id);
+  const commit = () => {
+    const v = parseFloat(el.value);
+    if (isFinite(v)) { setter(v); restageSweep(); }
+    else el.value = '';
+  };
+  el.addEventListener('change', commit);
+  el.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') el.blur(); });
+}
+_wireSweepNum('sweepStartNum', v => { sweepStartPx = v; });
+_wireSweepNum('sweepEndNum',   v => { sweepEndPx   = v; });
+_wireSweepNum('sweepStepNum',  v => { sweepStepPx  = Math.max(0.001, Math.abs(v)); });
+_wireSweepNum('sweepAngleNum', v => { sweepAngleDeg = v; });
+
+document.getElementById('sweepBtn').addEventListener('click', () => {
+  if (sweepMode) exitSweep(); else { openSweepPanel(); enterSweep(); }
+});
+document.getElementById('sweep-run-btn').addEventListener('click', () => {
+  if (sweepMode) exitSweep(); else enterSweep();
+});
+document.getElementById('sweep-restage-btn').addEventListener('click', restageSweep);
+document.getElementById('sweep-export-btn').addEventListener('click', exportSweepCSV);
+document.getElementById('sweepPanelBtn').addEventListener('click', () => {
+  const panel = document.getElementById('sweepPanel');
+  if (panel.style.display === 'block') closeSweepPanel(); else openSweepPanel();
+});
+document.getElementById('sweepPanel-close').addEventListener('click', closeSweepPanel);
+
+const returnOriginBtn = document.getElementById('returnOriginBtn');
+returnOriginBtn.addEventListener('click', () => {
+  returnToDeployment = !returnToDeployment;
+  returnOriginBtn.textContent = returnToDeployment ? 'On' : 'Off';
+  returnOriginBtn.classList.toggle('active', returnToDeployment);
+  resetTelemetry();
+});
+
+const stepLoopBtn = document.getElementById('stepPairLoopBtn');
+stepLoopBtn.addEventListener('click', () => {
+  stepPairLoop = !stepPairLoop;
+  stepLoopBtn.textContent = stepPairLoop ? 'On' : 'Off';
+  stepLoopBtn.classList.toggle('active', stepPairLoop);
+  if (stepPairLoop) stepPairDone = false;   // re-arm a sequence that already stopped
+});
+const phaseBadgeBtn = document.getElementById('phaseBadgeBtn');
+phaseBadgeBtn.addEventListener('click', () => {
+  phaseBadgeOn = !phaseBadgeOn;
+  phaseBadgeBtn.textContent = phaseBadgeOn ? 'On' : 'Off';
+  phaseBadgeBtn.classList.toggle('active', phaseBadgeOn);
+  updatePhaseBadge();
+});
+
+// ── Frame-code controls ───────────────────────────────────────────────────
+function setFrameCode(on) {
+  frameCodeOn = on;
+  const btn = document.getElementById('frameCodeBtn');
+  btn.textContent = on ? '[G] On' : '[G] Off';
+  btn.classList.toggle('active', on);
+}
+document.getElementById('frameCodeBtn').addEventListener('click', () => setFrameCode(!frameCodeOn));
+document.getElementById('frameCodePosSel').addEventListener('change', e => {
+  frameCodePos = e.target.value;
+});
+wireSliderNum('fcBlockSlider', 'fcBlockNum', 8, 48, 0, v => {
+  frameCodeBlock = Math.max(8, Math.min(48, Math.round(v)));
+});
+
+// ── Metrology panel controls ──────────────────────────────────────────────
+function setMetro(on) {
+  metroVisible = on;
+  document.getElementById('metro').classList.toggle('visible', on);
+  const btn = document.getElementById('metroBtn');
+  btn.textContent = on ? '[T] On' : '[T] Off';
+  btn.classList.toggle('active', on);
+}
+document.getElementById('metroBtn').addEventListener('click', () => setMetro(!metroVisible));
+document.getElementById('metro-close').addEventListener('click', () => setMetro(false));
+document.getElementById('metro-reset').addEventListener('click', resetTelemetry);
+document.getElementById('metroResetBtn').addEventListener('click', resetTelemetry);
 
 // Scale
 wireSliderNum('tvWSlider',  'tvWNum',  200,  3000, 2, v => { tvWidthMm   = Math.max(1,v); recomputeScale(); });
 wireSliderNum('tvHSlider',  'tvHNum',  100,  2000, 2, v => { tvHeightMm  = Math.max(1,v); recomputeScale(); });
+wireSliderNum('tvUncertSlider','tvUncertNum', 0, 20, 2, v => { tvDimUncertMm = Math.max(0, v); });
 wireSliderNum('resWSlider', 'resWNum', 640,  7680, 0, v => { resWidthPx  = Math.max(1,v); recomputeScale(); });
 wireSliderNum('resHSlider', 'resHNum', 360,  4320, 0, v => { resHeightPx = Math.max(1,v); recomputeScale(); });
 
@@ -2495,12 +4124,34 @@ wireSliderNum('obsRadiusSlider','obsRadiusNum', 10, 400, 0, v => {
 // Noise
 function updateNoiseActive() {
   noiseActive  = noiseReadSigma > 0 || noiseShotScale > 0 || noiseBackground > 0;
-  _noiseStride = 0;
   document.getElementById('noiseInfo').style.display = noiseActive ? 'block' : 'none';
 }
 wireSliderNum('readNoiseSlider','readNoiseNum', 0,  30, 1, v => { noiseReadSigma  = v; updateNoiseActive(); });
 wireSliderNum('shotNoiseSlider','shotNoiseNum', 0,   3, 2, v => { noiseShotScale  = v; updateNoiseActive(); });
+wireSliderNum('iwSlider', 'iwNum', 8, 256, 0, v => {
+  iwPx = Math.max(8, Math.min(256, Math.round(v)));
+  updateInterrogationDisplay();
+});
+wireSliderNum('camMagSlider', 'camMagNum', 0.1, 8, 2, v => {
+  camPxPerDisplayPx = Math.max(0.01, v);
+  updateInterrogationDisplay();
+});
 wireSliderNum('bgNoiseSlider',  'bgNoiseNum',   0,  40, 0, v => { noiseBackground = v; updateNoiseActive(); });
+
+// Display transfer function. Changing how light leaves the panel changes the
+// stimulus, so it resets the telemetry window like any other run parameter.
+const linearLightBtn = document.getElementById('linearLightBtn');
+linearLightBtn.addEventListener('click', () => {
+  linearLight = !linearLight;
+  linearLightBtn.textContent = linearLight ? 'On' : 'Off';
+  linearLightBtn.classList.toggle('active', linearLight);
+  document.getElementById('gammaSlider').disabled = !linearLight;
+  document.getElementById('gammaNum').disabled    = !linearLight;
+  resetTelemetry();
+});
+document.getElementById('gammaSlider').disabled = true;
+document.getElementById('gammaNum').disabled    = true;
+wireSliderNum('gammaSlider', 'gammaNum', 1, 3, 2, v => { displayGamma = Math.max(1, Math.min(3, v)); });
 
 // ── Panel show / hide ─────────────────────────────────────────────────────
 const panel   = document.getElementById('panel');
@@ -2541,16 +4192,37 @@ document.addEventListener('keydown', e => {
     case 'v':
       colorBySpeed = !colorBySpeed;
       break;
+    case 'a':
+      setAutoLock(!autoLock);
+      break;
+    case 'w':
+      if (sweepMode) exitSweep();
+      else { openSweepPanel(); enterSweep(); }
+      break;
     case 'b':
       bubbleBtn.click();
       break;
     case 'l':
       setFlumeOn(!flumeOn);
       break;
+    case 'd':
+      setDeterministic(!deterministic);
+      break;
+    case 's':
+      if (stepPairMode) exitStepPair(); else enterStepPair();
+      break;
+    case 'g':
+      setFrameCode(!frameCodeOn);
+      break;
+    case 't':
+      setMetro(!metroVisible);
+      break;
     case 'escape':
       if (document.getElementById('keybindsModal').classList.contains('active')) {
         document.getElementById('keybindsModal').classList.remove('active'); break;
       }
+      if (sweepMode)     { exitSweep();     break; }
+      if (stepPairMode)  { exitStepPair();  break; }
       if (framePairMode) { exitFramePair(); break; }
       if (obstacleActive) setObstacleActive(false);
       break;
@@ -2613,6 +4285,646 @@ document.addEventListener('mousemove', showCursor);
 document.addEventListener('mousedown', showCursor);
 showCursor();
 
+// ── Auto-lock timing ─────────────────────────────────────────────────────
+//
+// Two of the three timing warnings this tool raises are arithmetic the operator
+// should not have to do by hand. One of them is not fixable from in here at all,
+// and the distinction is the whole design of this feature.
+//
+//   SIM TIME ≠ REAL TIME        stepFps is a TOOL-side number. Auto-lock owns
+//                               it and sets it to the measured refresh exactly,
+//                               which makes the scale 1.000.
+//
+//   CAMERA NOT AN INTEGER       camFps describes the PHYSICAL CAMERA. Auto-lock
+//   DIVISOR                     computes the correct rate and tells the operator
+//                               to set it, but does NOT apply it silently —
+//                               writing a rate the camera is not actually at
+//                               would make the tool assert something false,
+//                               which is the exact failure class it exists to
+//                               remove. One click applies it, after the camera
+//                               has really been changed.
+//
+//   REFRESH UNSTABLE            Not fixable from in here. It is the machine, the
+//                               display mode, or the render load. Auto-lock
+//                               REFUSES TO LOCK while it holds, and says why.
+//
+// That refusal is the most important part. Locking the step rate to a refresh
+// measured through 37 % interval jitter bakes a wrong number into the stimulus
+// and then reports a reassuring ×1.000 next to it. A tool that cannot fix the
+// problem should not be able to hide it either.
+
+let autoLock        = false;
+let autoLockState   = 'off';     // off · measuring · locked · blocked · lost
+let autoLockRecord  = null;      // what was locked, and the evidence for it
+let autoLockReasons = [];
+let camFpsRequested = 30;        // the operator's intended camera rate
+
+let _alPrevMed = 0, _alLastLockMs = 0, _alDriftStrikes = 0;
+
+// Gate. A lock is only as good as the measurement behind it, so these are the
+// same thresholds VERIFICATION.md §1 makes the operator check by eye.
+const AL_MAX_UREL    = 0.5;    // %   u_Δt/Δt
+const AL_MAX_SD_MS   = 1.0;    // ms  interval σ
+const AL_MEDIAN_TOL  = 0.002;  //     agreement between consecutive windows
+const AL_RELOCK_TOL  = 0.005;  //     refresh drift that justifies re-locking
+const AL_MIN_RELOCK_MS = 5000; //     never re-lock faster than this
+const AL_COMMON_HZ = [50, 60, 75, 85, 90, 100, 120, 144, 165, 180, 200, 240, 360, 480];
+
+function nearestCommonHz(hz) {
+  let best = AL_COMMON_HZ[0];
+  for (const c of AL_COMMON_HZ) if (Math.abs(c - hz) < Math.abs(best - hz)) best = c;
+  return best;
+}
+
+// The recommended camera rate: the largest integer divisor of the panel refresh
+// at or near the operator's intended rate. k is what the metrology panel already
+// reports; this just solves it the other way round.
+function autoLockCameraTarget(hz) {
+  if (!(hz > 0)) return null;
+  const want = Math.max(0.1, camFpsRequested);
+  const k = Math.max(1, Math.round(hz / want));
+  return { k, fps: hz / k };
+}
+
+function autoLockGate() {
+  const st = teleStats;
+  const reasons = [];
+  if (!st.valid || teleCount < TELE_WINDOW) {
+    return { ok: false, filling: true,
+             reasons: ['Filling the measurement window — ' + teleCount + ' / ' + TELE_WINDOW + ' frames.'] };
+  }
+  if (st.uRel >= AL_MAX_UREL)
+    reasons.push('u_Δt/Δt is ' + st.uRel.toFixed(2) + ' %, over the ' + AL_MAX_UREL +
+                 ' % gate. The refresh interval is not repeatable enough for its median to mean anything.');
+  if (st.sd >= AL_MAX_SD_MS)
+    reasons.push('Interval σ is ' + st.sd.toFixed(2) + ' ms, over the ' + AL_MAX_SD_MS.toFixed(1) + ' ms gate.');
+  if (teleDropped > 0)
+    reasons.push(teleDropped + ' dropped intervals (' + teleMissed + ' missed refreshes) in this window. ' +
+                 'In deterministic mode a dropped refresh is a dropped sim step, so the field silently falls ' +
+                 'behind real time while Δpx per rendered frame stays correct.');
+  if (_alPrevMed > 0 && st.med > 0 && Math.abs(st.med - _alPrevMed) / st.med > AL_MEDIAN_TOL)
+    reasons.push('The median interval moved from ' + _alPrevMed.toFixed(3) + ' ms to ' + st.med.toFixed(3) +
+                 ' ms between checks — the refresh is not settled.');
+  return { ok: reasons.length === 0, filling: false, reasons };
+}
+
+// Why the machine is unstable, and what to actually do about it. These are
+// diagnoses, offered in the order they are worth checking.
+function autoLockDiagnosis() {
+  const st = teleStats;
+  const out = [];
+  if (!st.valid) return out;
+
+  // Variable-refresh displays are the single most common cause of a jittery
+  // interval on an otherwise idle machine, and they are invisible unless you
+  // look for them: the rate sits between standard panel rates and wanders.
+  const near = nearestCommonHz(st.hz);
+  const off  = Math.abs(st.hz - near) / near;
+  if (st.sd >= AL_MAX_SD_MS && off > 0.005 && off < 0.2) {
+    out.push({ t: 'Adaptive sync is probably on',
+      d: 'The measured refresh is ' + st.hz.toFixed(2) + ' Hz, which is near ' + near +
+         ' Hz but not on it, and the interval is jittery. That is the signature of a ' +
+         'variable-refresh display — G-SYNC, FreeSync, VRR, "adaptive sync". A panel ' +
+         'that changes its own refresh rate cannot be a timing reference. Turn adaptive ' +
+         'sync OFF for this display in the GPU control panel and set a fixed refresh rate.' });
+  }
+
+  // Render headroom. The renderer's own cost is part of the frame budget, and at
+  // a very high refresh there is barely any budget to spend.
+  const budget = st.med > 0 ? st.med : 0;
+  if (budget > 0 && _renderMsEMA / budget > 0.4) {
+    out.push({ t: 'The renderer is using ' + ((_renderMsEMA / budget) * 100).toFixed(0) + ' % of the frame budget',
+      d: 'Composing the image takes ' + _renderMsEMA.toFixed(2) + ' ms of a ' + budget.toFixed(2) +
+         ' ms interval, so almost anything else on the machine will push a frame over. ' +
+         'Image noise is the expensive setting — it is the only one that writes every ' +
+         'pixel. Set all noise to 0 for the timing gate, reduce particle count, or run ' +
+         'the window smaller.' });
+  }
+
+  // A very fast panel is a liability here, not an asset.
+  if (st.hz > 130 && (teleDropped > 0 || st.sd >= AL_MAX_SD_MS)) {
+    const target = st.hz > 200 ? 120 : 60;
+    out.push({ t: 'Consider running the panel slower',
+      d: 'At ' + st.hz.toFixed(1) + ' Hz the frame budget is ' + (1000 / st.hz).toFixed(2) +
+         ' ms and this machine is not sustaining it. Nothing about this stimulus needs a ' +
+         'high refresh — a rock-steady ' + target + ' Hz is worth far more than an unstable ' +
+         st.hz.toFixed(0) + ' Hz, because every timing figure here rests on the interval ' +
+         'being repeatable. Set the display to a fixed ' + target + ' Hz and re-run the gate.' });
+  }
+
+  if (teleDropped > 0) {
+    out.push({ t: 'Something else is running',
+      d: 'Close every other application and browser tab, and disable OS notifications, ' +
+         'screen savers, automatic updates and any background sync client. These are the ' +
+         'dominant source of dropped frames and they are the first thing to rule out.' });
+  }
+  return out;
+}
+
+function applyAutoLock(hz) {
+  const st = teleStats;
+  const cam = autoLockCameraTarget(hz);
+  // Exact, not rounded: rounding 232.56 Hz to 233 leaves a 0.2 % scale error
+  // standing for no reason. The scale is 1.000 only if these are equal.
+  const target = Math.max(1, Math.min(480, hz));
+  autoLockRecord = {
+    hz, stepFps: target,
+    camRecommendFps: cam ? cam.fps : null,
+    camK: cam ? cam.k : null,
+    camApplied: false,
+    evidence: { uRelPct: +st.uRel.toFixed(4), sdMs: +st.sd.toFixed(4),
+                medianMs: +st.med.toFixed(4), frames: teleCount,
+                dropped: teleDropped, renderMs: +_renderMsEMA.toFixed(3) },
+    at: new Date().toISOString(),
+  };
+  stepFps = target;
+  _setCtrl('stepFpsSlider', 'stepFpsNum', +target.toFixed(2));
+  autoLockState = 'locked';
+  _alLastLockMs = performance.now();
+  _alDriftStrikes = 0;
+  resetTelemetry();          // the step rate changed — this is a new run
+  syncAutoLockUI();
+}
+
+// Evaluated on the telemetry cadence, not per frame.
+function tickAutoLock() {
+  if (!autoLock) { autoLockState = 'off'; return; }
+
+  const st = teleStats;
+  const hz = st.valid ? st.hz : 0;
+
+  if (autoLockState === 'locked' || autoLockState === 'lost') {
+    if (!autoLockRecord) { autoLockState = 'measuring'; return; }
+    // Has the measurement the lock rests on stopped being true?
+    const gate = autoLockGate();
+    if (!gate.filling && !gate.ok) {
+      // Keep the applied step rate — reverting would change the stimulus
+      // mid-run — but stop claiming the conditions still hold.
+      autoLockState   = 'lost';
+      autoLockReasons = gate.reasons;
+      syncAutoLockUI();
+      return;
+    }
+    if (!gate.filling && gate.ok) {
+      autoLockState = 'locked'; autoLockReasons = [];
+      // Re-lock only on a drift that persists, and never in a tight loop.
+      if (hz > 0 && Math.abs(hz - autoLockRecord.hz) / autoLockRecord.hz > AL_RELOCK_TOL) {
+        if (++_alDriftStrikes >= 3 && performance.now() - _alLastLockMs > AL_MIN_RELOCK_MS) {
+          applyAutoLock(hz);
+          return;
+        }
+      } else _alDriftStrikes = 0;
+      syncAutoLockUI();
+    }
+    _alPrevMed = st.med || _alPrevMed;
+    return;
+  }
+
+  const gate = autoLockGate();
+  if (gate.filling) {
+    autoLockState = 'measuring';
+    autoLockReasons = gate.reasons;
+  } else if (gate.ok && hz > 0) {
+    applyAutoLock(hz);
+    return;
+  } else {
+    autoLockState = 'blocked';
+    autoLockReasons = gate.reasons;
+  }
+  _alPrevMed = st.med || _alPrevMed;
+  syncAutoLockUI();
+}
+
+function setAutoLock(on) {
+  autoLock = !!on;
+  const btn = document.getElementById('autoLockBtn');
+  if (btn) {
+    btn.textContent = autoLock ? '[A] On' : '[A] Off';
+    btn.classList.toggle('active', autoLock);
+  }
+  if (autoLock) {
+    // A timing lock is meaningless outside deterministic mode, so turn it on
+    // rather than silently doing nothing.
+    if (!deterministic) setDeterministic(true);
+    autoLockState = 'measuring';
+    autoLockRecord = null;
+    _alPrevMed = 0; _alDriftStrikes = 0;
+    resetTelemetry();
+  } else {
+    autoLockState = 'off';
+    autoLockReasons = [];
+  }
+  syncAutoLockUI();
+}
+
+function applyAutoLockCameraFps() {
+  if (!autoLockRecord || !(autoLockRecord.camRecommendFps > 0)) return;
+  camFps = autoLockRecord.camRecommendFps;
+  autoLockRecord.camApplied = true;
+  _setCtrl('camFpsSlider', 'camFpsNum', +camFps.toFixed(3));
+  resetTelemetry();
+  syncAutoLockUI();
+}
+
+function syncAutoLockUI() {
+  const row = document.getElementById('autoLockStatusRow');
+  const st  = document.getElementById('autoLockStatus');
+  const cam = document.getElementById('autoLockCamRow');
+  const camBtn = document.getElementById('autoLockCamBtn');
+  if (!st) return;
+
+  const label = {
+    off:       ['off', '#444'],
+    measuring: ['measuring…', '#4af'],
+    locked:    ['locked', '#3c3'],
+    blocked:   ['blocked — machine not stable', '#f44'],
+    lost:      ['lock no longer trustworthy', '#fa0'],
+  }[autoLockState] || ['—', '#444'];
+
+  st.textContent  = label[0];
+  st.style.color  = label[1];
+  if (row) row.style.display = autoLock ? 'flex' : 'none';
+
+  const showCam = autoLock && autoLockState === 'locked' && autoLockRecord &&
+                  autoLockRecord.camRecommendFps > 0;
+  if (cam) cam.style.display = showCam ? 'flex' : 'none';
+  if (showCam && camBtn) {
+    const f = autoLockRecord.camRecommendFps;
+    const near = Math.abs(camFps - f) / f < 0.0005;
+    camBtn.textContent = near ? 'camera at ' + f.toFixed(3) + ' ✓'
+                              : 'set camera to ' + f.toFixed(3) + ' fps';
+    camBtn.classList.toggle('active-orange', !near);
+  }
+}
+
+// ── Sub-pixel displacement sweep ─────────────────────────────────────────
+//
+// The single most diagnostic thing this tool can do to a PIV package.
+//
+// Peak locking — the tendency of a correlation peak-fit to pull measured
+// displacements toward integer pixel values — is the dominant systematic in
+// sub-pixel PIV, and it is a property of the ALGORITHM, not of the flow. It
+// shows up as a bias that oscillates with the fractional part of the true
+// displacement, with a period of exactly one pixel. You cannot see it by
+// running a flow at one speed; you have to sweep the commanded displacement
+// through a pixel and watch the bias trace out its curve.
+//
+// So this mode does not use the flow field at all. Each sweep point is a pure,
+// uniform translation of an identical particle layout by an exactly commanded
+// Δ px. Same particles, same intensities, same everything — the ONLY variable
+// between points is the sub-pixel displacement. Whatever structure appears in
+// (measured − commanded) is the algorithm's, with nothing else to blame it on.
+//
+// Every point starts from the same snapshot rather than accumulating, so
+// errors cannot compound down the sweep and point 10 is as clean as point 1.
+
+let sweepMode      = false;
+let sweepStartPx   = 0.0;
+let sweepEndPx     = 1.0;
+let sweepStepPx    = 0.1;
+let sweepAngleDeg  = 0;
+let sweepLoop      = false;
+let sweepIndex     = 0;
+let sweepPhase     = 0;          // 0 = A, 1 = B
+let sweepHeld      = 0;
+let sweepDone      = false;
+let sweepBase      = null;       // the one canonical layout every point uses
+let sweepAParticles = null;
+let sweepSchedule  = [];         // per point: commanded Δ and the frames it was shown on
+let sweepMeasured  = {};         // point index → operator-entered measured Δ (px)
+
+const SWEEP_MAX_POINTS = 201;
+
+function sweepPoints() {
+  const step = Math.abs(sweepStepPx) > 1e-6 ? Math.abs(sweepStepPx) : 0.1;
+  const n = Math.min(SWEEP_MAX_POINTS,
+                     Math.max(1, Math.floor((sweepEndPx - sweepStartPx) / step + 1e-9) + 1));
+  const out = new Array(n);
+  for (let i = 0; i < n; i++) out[i] = sweepStartPx + i * step;
+  return out;
+}
+
+function sweepDelta(i) {
+  const pts = sweepPoints();
+  const d = pts[Math.min(i, pts.length - 1)];
+  const th = sweepAngleDeg * Math.PI / 180;
+  return { d, dx: d * Math.cos(th), dy: d * Math.sin(th) };
+}
+
+// Build both phases of one sweep point from the canonical layout. Frame A is
+// the layout untouched; Frame B is the same layout translated by exactly Δ.
+// No wrapping is applied — a particle that walks off the edge is simply not
+// drawn, which costs a handful of pairs at the boundary and is preferable to
+// introducing a discontinuity into a test about sub-pixel continuity.
+function applySweepPoint(i) {
+  const { dx, dy } = sweepDelta(i);
+  sweepAParticles = sweepBase.map(p => ({ ...p }));
+  particles       = sweepBase.map(p => ({ ...p, x: p.x + dx, y: p.y + dy }));
+  // Independent light-sheet dropout for B, exactly as step-pair does it.
+  if (outOfPlanePct > 0) refreshOutOfPlane();
+}
+
+function enterSweep() {
+  if (framePairMode) exitFramePair();
+  if (stepPairMode)  exitStepPair();
+  sweepBase     = particles.map(p => ({ ...p }));
+  sweepIndex    = 0;
+  sweepPhase    = 0;
+  sweepHeld     = 0;
+  sweepDone     = false;
+  sweepSchedule = sweepPoints().map((d, i) => {
+    const th = sweepAngleDeg * Math.PI / 180;
+    return { i, commandedPx: d, dxPx: d * Math.cos(th), dyPx: d * Math.sin(th),
+             frameA: null, frameB: null };
+  });
+  sweepMode = true;
+  paused    = false;
+  document.getElementById('paused').style.display = 'none';
+  applySweepPoint(0);
+  syncSweepUI();
+  renderSweepPanel();
+}
+
+function exitSweep() {
+  if (!sweepMode) return;
+  sweepMode = false;
+  if (sweepBase) particles = sweepBase.map(p => ({ ...p }));
+  sweepAParticles = null;
+  sweepDone = false;
+  syncSweepUI();
+  renderSweepPanel();
+}
+
+// One rendered frame of the sweep sequencer. Called after the draw, so the
+// frame index recorded here is the index of the frame just shown — which is
+// what the frame-code strip in that image decodes to, and therefore what ties
+// a recorded frame to a commanded Δ.
+function tickSweep() {
+  if (sweepDone) return;
+  const hold = Math.max(1, Math.round(stepPairHold));
+  const rec  = sweepSchedule[sweepIndex];
+
+  if (sweepHeld === 0 && rec) {
+    if (sweepPhase === 0 && rec.frameA === null) rec.frameA = frameIndex;
+    if (sweepPhase === 1 && rec.frameB === null) rec.frameB = frameIndex;
+  }
+
+  if (++sweepHeld < hold) return;
+  sweepHeld = 0;
+
+  if (sweepPhase === 0) { sweepPhase = 1; return; }   // A held → show B
+
+  sweepIndex++;
+  if (sweepIndex >= sweepSchedule.length) {
+    if (!sweepLoop) { sweepIndex--; sweepDone = true; renderSweepPanel(); return; }
+    sweepIndex = 0;
+    for (const r of sweepSchedule) { r.frameA = null; r.frameB = null; }
+  }
+  sweepPhase = 0;
+  applySweepPoint(sweepIndex);
+  renderSweepPanel();
+}
+
+function syncSweepUI() {
+  const btn = document.getElementById('sweepBtn');
+  if (btn) {
+    btn.textContent = sweepMode ? '[W] Stop sweep' : '[W] Start sweep';
+    btn.classList.toggle('active', sweepMode);
+  }
+  const run = document.getElementById('sweep-run-btn');
+  if (run) run.textContent = sweepMode ? '■ Stop sweep' : '▶ Run sweep';
+  updatePhaseBadge();
+}
+
+// ── Results ──────────────────────────────────────────────────────────────
+//
+// bias = measured − commanded. That is the whole quantity of interest: its
+// oscillation with the fractional part of Δ is the peak-locking signature, and
+// its RMS is the number to quote.
+function sweepStats() {
+  const rows = sweepSchedule
+    .map(r => ({ ...r, measuredPx: sweepMeasured[r.i] }))
+    .filter(r => typeof r.measuredPx === 'number' && isFinite(r.measuredPx));
+  if (!rows.length) return { n: 0, rows: [] };
+  const bias = rows.map(r => r.measuredPx - r.commandedPx);
+  const mean = bias.reduce((a, b) => a + b, 0) / bias.length;
+  const rms  = Math.sqrt(bias.reduce((a, b) => a + b * b, 0) / bias.length);
+  return {
+    n: rows.length, rows, bias, mean, rms,
+    p2p: Math.max(...bias) - Math.min(...bias),
+    maxAbs: Math.max(...bias.map(Math.abs)),
+  };
+}
+
+// The peak-locking curve. Bias against commanded Δ, with the zero line drawn
+// heavy — a package with no sub-pixel bias sits on it, and one that locks to
+// integers traces a full oscillation across each pixel of displacement.
+function drawSweepPlot() {
+  const cv = document.getElementById('sweepPlot');
+  if (!cv) return;
+  const g = cv.getContext('2d');
+  const W0 = cv.width, H0 = cv.height;
+  const L = 42, R = 10, T = 10, B = 26;
+  g.clearRect(0, 0, W0, H0);
+  g.fillStyle = '#050505'; g.fillRect(0, 0, W0, H0);
+
+  const st = sweepStats();
+  const pts = sweepSchedule;
+  const xMin = pts.length ? pts[0].commandedPx : 0;
+  const xMax = pts.length ? pts[pts.length - 1].commandedPx : 1;
+  const span = (xMax - xMin) || 1;
+  let yMax = st.n ? Math.max(0.05, st.maxAbs * 1.25) : 0.25;
+
+  const px = v => L + ((v - xMin) / span) * (W0 - L - R);
+  const py = v => T + (1 - (v + yMax) / (2 * yMax)) * (H0 - T - B);
+
+  // frame + grid
+  g.strokeStyle = '#161616'; g.lineWidth = 1;
+  g.strokeRect(L + 0.5, T + 0.5, W0 - L - R - 1, H0 - T - B - 1);
+  g.fillStyle = '#3a3a3a'; g.font = '8px Courier New'; g.textBaseline = 'middle';
+  g.textAlign = 'right';
+  for (const v of [-yMax, -yMax / 2, 0, yMax / 2, yMax]) {
+    const y = py(v);
+    g.strokeStyle = v === 0 ? '#333' : '#131313';
+    g.beginPath(); g.moveTo(L, y + 0.5); g.lineTo(W0 - R, y + 0.5); g.stroke();
+    g.fillText(v.toFixed(2), L - 5, y);
+  }
+  // integer-pixel gridlines: the displacements a locking algorithm is pulled to
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  for (let k = Math.ceil(xMin); k <= Math.floor(xMax); k++) {
+    const x = px(k);
+    g.strokeStyle = '#2a2a1a';
+    g.beginPath(); g.moveTo(x + 0.5, T); g.lineTo(x + 0.5, H0 - B); g.stroke();
+  }
+  for (const v of [xMin, (xMin + xMax) / 2, xMax]) {
+    g.fillStyle = '#3a3a3a';
+    g.fillText(v.toFixed(2), px(v), H0 - B + 5);
+  }
+  g.fillStyle = '#555'; g.textAlign = 'center';
+  g.fillText('commanded Δ (px)', (L + W0 - R) / 2, H0 - 11);
+  g.save(); g.translate(9, (T + H0 - B) / 2); g.rotate(-Math.PI / 2);
+  g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText('bias (px)', 0, 0);
+  g.restore();
+
+  if (!st.n) {
+    g.fillStyle = '#2a2a2a'; g.font = '9px Courier New';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText('enter measured Δ below', (L + W0 - R) / 2, (T + H0 - B) / 2);
+    return;
+  }
+
+  const ordered = st.rows.slice().sort((a, b) => a.commandedPx - b.commandedPx);
+  g.strokeStyle = '#4af'; g.lineWidth = 1.4; g.beginPath();
+  ordered.forEach((r, k) => {
+    const x = px(r.commandedPx), y = py(r.measuredPx - r.commandedPx);
+    k ? g.lineTo(x, y) : g.moveTo(x, y);
+  });
+  g.stroke();
+  g.fillStyle = '#8cf';
+  for (const r of ordered) {
+    g.beginPath();
+    g.arc(px(r.commandedPx), py(r.measuredPx - r.commandedPx), 2.4, 0, Math.PI * 2);
+    g.fill();
+  }
+}
+
+function setSweepMeasured(i, raw) {
+  const v = parseFloat(raw);
+  if (raw === '' || !isFinite(v)) delete sweepMeasured[i];
+  else sweepMeasured[i] = v;
+  renderSweepSummary();
+  drawSweepPlot();
+}
+
+function renderSweepSummary() {
+  const st = sweepStats();
+  const set = (id, txt, cls) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = txt;
+    if (cls) el.className = 'val ' + cls;
+  };
+  if (!st.n) {
+    set('sweep-rms', '—'); set('sweep-p2p', '—'); set('sweep-mean', '—');
+    return;
+  }
+  // A well-behaved package sits below ~0.05 px RMS; 0.1 px is the level at
+  // which peak locking is usually visible by eye in a histogram of
+  // displacements. These are reporting bands, not pass criteria.
+  const cls = st.rms < 0.05 ? 'qa-pass-val' : st.rms < 0.1 ? 'qa-warn-val' : 'qa-fail-val';
+  set('sweep-rms',  st.rms.toFixed(4) + ' px', cls);
+  set('sweep-p2p',  st.p2p.toFixed(4) + ' px');
+  set('sweep-mean', (st.mean >= 0 ? '+' : '') + st.mean.toFixed(4) + ' px');
+}
+
+function renderSweepPanel() {
+  const body = document.getElementById('sweep-rows');
+  if (!body) return;
+
+  const statusEl = document.getElementById('sweep-status');
+  if (statusEl) {
+    if (!sweepMode) {
+      statusEl.textContent = 'idle · ' + sweepSchedule.length + ' points staged';
+      statusEl.className = 'sweep-status';
+    } else {
+      const { d } = sweepDelta(sweepIndex);
+      statusEl.textContent = (sweepDone ? 'done' : 'running') +
+        ' · point ' + (sweepIndex + 1) + '/' + sweepSchedule.length +
+        ' · Δ ' + d.toFixed(3) + ' px · phase ' + (sweepPhase === 0 ? 'A' : 'B');
+      statusEl.className = 'sweep-status on';
+    }
+  }
+
+  const rows = sweepSchedule.map(r => {
+    const m = sweepMeasured[r.i];
+    const hasM = typeof m === 'number' && isFinite(m);
+    const bias = hasM ? (m - r.commandedPx) : null;
+    const live = sweepMode && r.i === sweepIndex;
+    return `<div class="sweep-row${live ? ' live' : ''}">
+      <span class="sw-i">${r.i + 1}</span>
+      <span class="sw-cmd">${r.commandedPx.toFixed(3)}</span>
+      <span class="sw-fr">${r.frameA === null ? '—' : r.frameA}/${r.frameB === null ? '—' : r.frameB}</span>
+      <input class="sw-meas" type="number" step="0.001" value="${hasM ? m : ''}"
+             placeholder="—" oninput="setSweepMeasured(${r.i}, this.value)">
+      <span class="sw-bias ${bias === null ? '' : Math.abs(bias) < 0.05 ? 'ok' : Math.abs(bias) < 0.1 ? 'warn' : 'bad'}">${
+        bias === null ? '—' : (bias >= 0 ? '+' : '') + bias.toFixed(3)}</span>
+    </div>`;
+  }).join('');
+  body.innerHTML = rows;
+  renderSweepSummary();
+  drawSweepPlot();
+}
+
+function openSweepPanel() {
+  document.getElementById('qaPanel').style.display = 'none';
+  document.getElementById('sweepPanel').style.display = 'block';
+  if (!sweepSchedule.length) {
+    sweepSchedule = sweepPoints().map((d, i) => {
+      const th = sweepAngleDeg * Math.PI / 180;
+      return { i, commandedPx: d, dxPx: d * Math.cos(th), dyPx: d * Math.sin(th),
+               frameA: null, frameB: null };
+    });
+  }
+  renderSweepPanel();
+}
+function closeSweepPanel() {
+  document.getElementById('sweepPanel').style.display = 'none';
+}
+
+// Re-stage the schedule from the current start/end/step/angle without running.
+function restageSweep() {
+  if (sweepMode) exitSweep();
+  sweepMeasured = {};
+  sweepSchedule = sweepPoints().map((d, i) => {
+    const th = sweepAngleDeg * Math.PI / 180;
+    return { i, commandedPx: d, dxPx: d * Math.cos(th), dyPx: d * Math.sin(th),
+             frameA: null, frameB: null };
+  });
+  renderSweepPanel();
+}
+
+function exportSweepCSV() {
+  const st = sweepStats();
+  const hz = measuredRefreshHz();
+  const [dtLo, dtHi] = dTauRangePx();
+  const meta = [
+    ['# PIV Ground Truth — sub-pixel displacement sweep'],
+    ['# exported', new Date().toISOString()],
+    ['# sweep_angle_deg', sweepAngleDeg],
+    ['# hold_frames', Math.max(1, Math.round(stepPairHold))],
+    ['# step_fps', stepFps],
+    ['# deterministic', deterministic],
+    ['# measured_refresh_hz', hz ? hz.toFixed(3) : ''],
+    ['# device_pixel_ratio', dprValue().toFixed(3)],
+    ['# d_tau_min_px', dtLo], ['# d_tau_max_px', dtHi],
+    ['# particle_count', sweepBase ? sweepBase.length : particles.length],
+    ['# seed', currentSeed === null ? '' : currentSeed],
+    ['# read_noise_dn', noiseReadSigma], ['# shot_noise_scale', noiseShotScale],
+    ['# background_dn', noiseBackground],
+    ['# linear_light', linearLight], ['# display_gamma', displayGamma],
+    ['# bias_rms_px', st.n ? st.rms.toFixed(5) : ''],
+    ['# bias_mean_px', st.n ? st.mean.toFixed(5) : ''],
+    ['# bias_p2p_px', st.n ? st.p2p.toFixed(5) : ''],
+  ].map(r => r.join(',')).join('\n');
+
+  const head = 'point,commanded_px,dx_px,dy_px,frame_A,frame_B,measured_px,bias_px';
+  const body = sweepSchedule.map(r => {
+    const m = sweepMeasured[r.i];
+    const hasM = typeof m === 'number' && isFinite(m);
+    return [r.i + 1, r.commandedPx.toFixed(4), r.dxPx.toFixed(4), r.dyPx.toFixed(4),
+            r.frameA === null ? '' : r.frameA, r.frameB === null ? '' : r.frameB,
+            hasM ? m : '', hasM ? (m - r.commandedPx).toFixed(5) : ''].join(',');
+  }).join('\n');
+
+  const blob = new Blob([meta + '\n' + head + '\n' + body + '\n'], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')
+             + '_pivgt_sweep.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 // ── QA Suite ──────────────────────────────────────────────────────────────
 const QA_PASSWORD = 'pivlab';
 
@@ -2648,6 +4960,26 @@ const QA_TESTS = [
     config: { flowType:'rankine', rankineVcMs:0.20, rankineRcPct:15, rankineBgVxMs:0, turbMs:0, count:800, minDiam:2, maxDiam:4, brightness:220, noiseRead:0, noiseShot:0, noiseBg:0, camFps:30 }
   }
 ];
+
+// Operator-set pass thresholds, overriding each test's shipped default. They
+// are recorded in the export and flagged as operator-set, because a threshold
+// is a decision someone made, not a property of the tool — and a criterion
+// tighter than the stimulus's own uncertainty is not a criterion at all.
+let qaThresholds   = {};
+function qaThresholdFor(test) {
+  const v = qaThresholds[test.id];
+  return (typeof v === 'number' && isFinite(v) && v > 0) ? v : test.threshold;
+}
+function setQAThreshold(id, raw) {
+  const v = parseFloat(raw);
+  if (raw === '' || !isFinite(v) || v <= 0) delete qaThresholds[id];
+  else qaThresholds[id] = v;
+  const test = QA_TESTS.find(t => t.id === id);
+  const r = qaResults[id];
+  if (test && r) r.pass = Math.abs(r.pctErr) < qaThresholdFor(test);
+  renderQATests();
+  updateQASummary();
+}
 
 let qaResults      = {};
 let qaActiveTestId = null;
@@ -2720,7 +5052,6 @@ function applyQAConfig(cfg) {
   _setCtrl('shotNoiseSlider','shotNoiseNum', noiseShotScale);
   _setCtrl('bgNoiseSlider','bgNoiseNum', noiseBackground);
   noiseActive  = noiseReadSigma > 0 || noiseShotScale > 0 || noiseBackground > 0;
-  _noiseStride = 0;
   document.getElementById('noiseInfo').style.display = noiseActive ? 'block' : 'none';
 
   // Timing
@@ -2736,6 +5067,9 @@ function applyQAConfig(cfg) {
   });
   document.getElementById('gtVerdict').textContent = '';
   if (framePairMode) exitFramePair();
+  if (stepPairMode)  exitStepPair();
+  if (sweepMode)     exitSweep();
+  resetTelemetry();
   paused = false;
   document.getElementById('paused').style.display = 'none';
 
@@ -2761,7 +5095,11 @@ function logQAResult(testId) {
   if (isNaN(measVal))               { flashQAError('Enter your PIV-measured velocity in the bottom readout first.'); return; }
   const errMs  = measVal - trueMs;
   const pctErr = (errMs / trueMs) * 100;
-  qaResults[testId] = { trueMs, measVal, errMs, pctErr, pass: Math.abs(pctErr) < test.threshold, ts: new Date().toLocaleTimeString() };
+  qaResults[testId] = { trueMs, measVal, errMs, pctErr,
+                        pass: Math.abs(pctErr) < qaThresholdFor(test),
+                        thr: qaThresholdFor(test),
+                        uStim: stimulusUncertainty().uc,
+                        ts: new Date().toLocaleTimeString() };
   renderQATests();
   updateQASummary();
 }
@@ -2776,6 +5114,17 @@ function flashQAError(msg) {
 function toggleQADetail(testId) {
   const d = document.getElementById('qa-detail-' + testId);
   if (d) d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+
+// A pass criterion only means something if it sits outside the uncertainty of
+// the stimulus it is being judged against.
+function thrNote(test) {
+  const uc = stimulusUncertainty().uc;
+  const thr = qaThresholdFor(test);
+  if (!(uc > 0)) return 'operator-set · stimulus u\u2091 not yet measured';
+  if (thr < 2 * uc)
+    return `operator-set · <b style="color:#f44">inside 2 u\u2091 (${(2*uc).toFixed(2)} %) — not a criterion</b>`;
+  return `operator-set · ${(thr / uc).toFixed(1)}\u00d7 stimulus u\u2091 (${uc.toFixed(2)} %)`;
 }
 
 function renderQATests() {
@@ -2815,7 +5164,12 @@ function renderQATests() {
       </div>
       <div class="qa-test-detail" id="qa-detail-${test.id}" style="display:${showDetail?'block':'none'}">
         <div class="qa-desc">${test.desc}</div>
-        <div class="qa-criterion">Pass criterion: ${test.criterion}</div>
+        <div class="qa-criterion">Pass criterion: |% error| &lt;
+          <input class="qa-thr" type="number" step="0.5" min="0.1"
+                 value="${qaThresholdFor(test)}"
+                 oninput="setQAThreshold('${test.id}', this.value)"> %
+          <span class="qa-thr-note">${thrNote(test)}</span>
+        </div>
         ${resultHtml}
         <button class="qa-run-btn" onclick="runQATest('${test.id}')">&#9654; Run</button>
         ${isActive ? `<button class="qa-log-btn" onclick="logQAResult('${test.id}')">Log Result</button>` : ''}
@@ -2842,12 +5196,26 @@ function closeQAPanel() {
 }
 
 function exportQACSV() {
-  const rows = ['Test ID,Test Name,True (m/s),Measured (m/s),Error (m/s),% Error,Result,Timestamp'];
+  const us = stimulusUncertainty();
+  const rows = [
+    '# PIV Ground Truth — QA suite results',
+    '# exported,' + new Date().toISOString(),
+    '# stimulus_uc_k1_pct,' + us.uc.toFixed(4),
+    '# uc_terms,' + (us.terms.map(t => t.name + '=' + t.pct.toFixed(4) + '%').join(' | ') || 'none'),
+    '# uncorrected_systematics,' + (us.syst.map(t => t.name + '=' + t.pct.toFixed(3) + '%').join(' | ') || 'none'),
+    '# tv_dimension_uncertainty_mm,' + tvDimUncertMm,
+    '# interrogation_window_cam_px,' + iwPx,
+    '# cam_px_per_display_px,' + camPxPerDisplayPx,
+    '# interrogation_window_display_px,' + iwDisplayPx().toFixed(2),
+    '# particles_per_window_NI,' + particlesPerWindow().toFixed(2),
+    '# device_pixel_ratio,' + dprValue().toFixed(3),
+    '# thresholds_are,operator-set (not derived from an uncertainty budget)',
+    'Test ID,Test Name,True (m/s),Measured (m/s),Error (m/s),% Error,Threshold %,Stimulus uc % at log,Result,Timestamp'];
   for (const t of QA_TESTS) {
     const r = qaResults[t.id];
-    if (!r) { rows.push(`${t.id},${t.name},,,,, PENDING,`); continue; }
+    if (!r) { rows.push(`${t.id},${t.name},,,,,${qaThresholdFor(t)},,PENDING,`); continue; }
     const sign = r.pctErr >= 0 ? '+' : '';
-    rows.push(`${t.id},${t.name},${r.trueMs.toFixed(6)},${r.measVal.toFixed(6)},${r.errMs.toFixed(6)},${sign}${r.pctErr.toFixed(3)},${r.pass?'PASS':'FAIL'},${r.ts}`);
+    rows.push(`${t.id},${t.name},${r.trueMs.toFixed(6)},${r.measVal.toFixed(6)},${r.errMs.toFixed(6)},${sign}${r.pctErr.toFixed(3)},${r.thr},${(r.uStim ?? 0).toFixed(4)},${r.pass?'PASS':'FAIL'},${r.ts}`);
   }
   const blob = new Blob([rows.join('\n')], { type:'text/csv' });
   const url  = URL.createObjectURL(blob);
@@ -2857,6 +5225,426 @@ function exportQACSV() {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// ── Run manifest ──────────────────────────────────────────────────────────
+// A run is only reproducible if the configuration and the seed travel together,
+// and only defensible if what the timing ACTUALLY did travels with them too.
+// Schema version 1.
+const MANIFEST_SCHEMA = 1;
+
+function setToggleBtn(id, on) {
+  const b = document.getElementById(id);
+  if (!b) return;
+  b.textContent = on ? 'On' : 'Off';
+  b.classList.toggle('active', on);
+}
+
+function r6(v) { return (typeof v === 'number' && isFinite(v)) ? +v.toFixed(6) : null; }
+
+function telemetrySummary() {
+  const st = teleStats;
+  return {
+    windowFrames:           TELE_WINDOW,
+    samples:                st.n,
+    measuredRefreshHz:      st.valid ? r6(st.hz)   : null,
+    intervalMinMs:          st.valid ? r6(st.min)  : null,
+    intervalMeanMs:         st.valid ? r6(st.mean) : null,
+    intervalMedianMs:       st.valid ? r6(st.med)  : null,
+    intervalMaxMs:          st.valid ? r6(st.max)  : null,
+    intervalSdMs:           st.valid ? r6(st.sd)   : null,
+    uDtOverDtPct:           st.valid ? r6(st.uRel) : null,
+    droppedFrames:          teleDropped,
+    impliedMissedRefreshes: teleMissed,
+    longestStallMs:         r6(teleMaxStall),
+    longestStallAtFrame:    teleMaxStallFrame,
+    framesSinceReset:       teleFrames,
+    suspendEvents:          teleSuspends,
+  };
+}
+
+// Everything in the run that is NOT reconstructable from the seed. Importing a
+// manifest rebuilds the field with seedParticles(), so the imported state is
+// always the canonical layout — but that only equals the EXPORTING session's
+// field if the exporter never patched it in place, and per-frame stochastic
+// processes never match at all. This block says so explicitly instead of
+// leaving the operator to assume bit-identity they do not have.
+function reproducibilityReport() {
+  const notes = [];
+  if (currentSeed === null)
+    notes.push('No seed set — the particle layout is drawn from Math.random() and cannot be reproduced. Set a seed (↻ New) and re-export.');
+  if (!fieldCanonical)
+    notes.push('Particle field is non-canonical — a size, shape, turbulence, count or variability control was changed in place after the last re-seed. Import rebuilds the canonical layout for this seed, which will NOT match this session. Press [R] to re-seed, then re-export.');
+  if (outOfPlanePct > 0)
+    notes.push('Out-of-plane dropout is redrawn every step from Math.random(); the dropout realisation is never reproducible. Set Out-of-plane % to 0 for a bit-reproducible run.');
+  if (noiseActive)
+    notes.push('Image noise draws from an unseeded Gaussian table at a random offset; the noise realisation is never reproducible. Set all noise to 0 for a bit-reproducible run.');
+  return {
+    fieldReproducible: currentSeed !== null && fieldCanonical,
+    bitReproducible:   currentSeed !== null && fieldCanonical && outOfPlanePct === 0 && !noiseActive,
+    seeded:            currentSeed !== null,
+    fieldCanonical,
+    stochastic: {
+      outOfPlaneDropout: outOfPlanePct > 0,
+      imageNoise:        noiseActive,
+    },
+    notes,
+  };
+}
+
+function collectManifest() {
+  return {
+    schemaVersion: MANIFEST_SCHEMA,
+    tool:          'piv_ground_truth',
+    timestamp:     new Date().toISOString(),
+    reproducibility: reproducibilityReport(),
+    environment: {
+      userAgent:        navigator.userAgent,
+      screenWidthPx:    screen.width,
+      screenHeightPx:   screen.height,
+      devicePixelRatio: window.devicePixelRatio,
+      devicePixelRatio1to1: dprOK(),
+      canvasWidthPx:    W,
+      canvasHeightPx:   H,
+    },
+    seed: currentSeed,
+    flow: { flowType, vxMs, vyMs, turbMs, shearVxMs, shearRate,
+            vortexOmega, vortexBgVxMs, poisVxMaxMs,
+            rankineVcMs, rankineRcPct, rankineBgVxMs },
+    particles: { count: particles.length,
+                 minDiamPx: minRadius * 2, maxDiamPx: maxRadius * 2,
+                 brightness, bgColor, dotColor },
+    shape:       { rhoBase, rhoVar, alignToFlow, bubbleMode },
+    variability: { intensVar, diamVar, outOfPlanePct },
+    noise:       { readSigmaDN: noiseReadSigma, shotScale: noiseShotScale,
+                   backgroundDN: noiseBackground },
+    // The rendered stimulus is defined by the PSF and the transfer function as
+    // much as by the flow, so both travel with the run.
+    interrogation: { iwCamPx: iwPx, camPxPerDisplayPx,
+                     iwDisplayPx: +iwDisplayPx().toFixed(2),
+                     nI: +particlesPerWindow().toFixed(2) },
+    recycling:   { returnToDeployment, pairLossPerStep: +_pairLossEMA.toFixed(6) },
+    uncertainty: (() => { const u = stimulusUncertainty();
+                   return { tvDimUncertMm, ucPct: +u.uc.toFixed(4),
+                            terms: u.terms.map(t => ({ name: t.name, pct: +t.pct.toFixed(4) })),
+                            uncorrectedSystematics: u.syst.map(t => ({ name: t.name, pct: +t.pct.toFixed(3) })) }; })(),
+    sweep:       { startPx: sweepStartPx, endPx: sweepEndPx, stepPx: sweepStepPx,
+                   angleDeg: sweepAngleDeg,
+                   schedule: sweepSchedule.map(r => ({ i: r.i, commandedPx: r.commandedPx,
+                                                       frameA: r.frameA, frameB: r.frameB,
+                                                       measuredPx: sweepMeasured[r.i] ?? null })) },
+    render:      { psf: 'analytic-gaussian-point-sampled',
+                   psfFloorDN: PSF_FLOOR_DN,
+                   psfMinExtentSigma: PSF_MIN_EXTENT, psfMaxExtentSigma: PSF_MAX_EXTENT,
+                   dTauMinPx: dTauRangePx()[0], dTauMaxPx: dTauRangePx()[1],
+                   linearLight, displayGamma,
+                   renderMsMean: +_renderMsEMA.toFixed(3) },
+    autoLock:    { on: autoLock, state: autoLockState, record: autoLockRecord,
+                   camFpsRequested, blockedReasons: autoLock ? autoLockReasons : [] },
+    timing:      { camFps, dispFps, deterministic, stepFps,
+                   holdFrames: stepPairHold, stepPairLoop },
+    frameCode:   { on: frameCodeOn, position: frameCodePos,
+                   blockPx: frameCodeBlock, phaseBadge: phaseBadgeOn },
+    scale:       { tvWidthMm, tvHeightMm, resWidthPx, resHeightPx,
+                   pxPerMmX: r6(pxPerMmX), pxPerMmY: r6(pxPerMmY) },
+    flume:       { on: flumeOn, unit: flumeUnit, widthU: flumeWidthU,
+                   lengthU: flumeLengthU, depthU: flumeDepthU, fit: flumeFit,
+                   alpha: flumeAlpha, timeScale,
+                   showBanks: flumeShowBanks, showGrid: flumeShowGrid,
+                   showScale: flumeShowScale, confine: flumeConfine },
+    obstacle: (obstacleActive && obstacle)
+      ? { active: true, cx: obstacle.cx, cy: obstacle.cy, r: obstacle.r, defaultRadius: obsRadius }
+      : { active: false, cx: null, cy: null, r: null, defaultRadius: obsRadius },
+    view:      { colorBySpeed },
+    telemetry: telemetrySummary(),
+  };
+}
+
+function manifestStamp() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return d.getFullYear() + p(d.getMonth()+1) + p(d.getDate()) + '_' +
+         p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+}
+
+function exportManifest() {
+  const blob = new Blob([JSON.stringify(collectManifest(), null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = manifestStamp() + '_pivgt_manifest.json';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  // Say plainly whether this manifest can actually rebuild the run.
+  const rep = reproducibilityReport();
+  manifestNote(rep.bitReproducible
+    ? 'Exported ' + a.download + ' · bit-reproducible.'
+    : 'Exported ' + a.download + ' · NOT bit-reproducible. ' + rep.notes.join(' '),
+    !rep.bitReproducible);
+}
+
+// Restore every setting, then rebuild the field from the restored seed. Order
+// matters: scale and flume geometry first (every m/s → px/s conversion and the
+// particle domain depend on them), seed and seedParticles() last.
+function applyManifest(m) {
+  if (!m || typeof m !== 'object') throw new Error('not a manifest object');
+  if (m.schemaVersion !== MANIFEST_SCHEMA)
+    throw new Error('schema v' + m.schemaVersion + ', this build reads v' + MANIFEST_SCHEMA);
+
+  const F  = m.flow || {},  P  = m.particles || {}, S  = m.shape || {},
+        V  = m.variability || {}, N = m.noise || {}, T = m.timing || {},
+        C  = m.frameCode || {},   SC = m.scale || {}, FL = m.flume || {},
+        RN = m.render || {}, IW = m.interrogation || {},
+        RC = m.recycling || {}, UN = m.uncertainty || {}, SW = m.sweep || {},
+        OB = m.obstacle || {},    VW = m.view || {};
+  const num  = (v, d) => (typeof v === 'number' && isFinite(v)) ? v : d;
+  const bool = (v, d) => (typeof v === 'boolean') ? v : d;
+
+  // Leave the running capture modes before rewriting state underneath them.
+  if (framePairMode) exitFramePair();
+  if (stepPairMode)  exitStepPair();
+  if (sweepMode)     exitSweep();
+
+  // ── Scale calibration ──
+  tvWidthMm   = num(SC.tvWidthMm,   tvWidthMm);
+  tvHeightMm  = num(SC.tvHeightMm,  tvHeightMm);
+  resWidthPx  = num(SC.resWidthPx,  resWidthPx);
+  resHeightPx = num(SC.resHeightPx, resHeightPx);
+  _setCtrl('tvWSlider','tvWNum',   tvWidthMm);
+  _setCtrl('tvHSlider','tvHNum',   tvHeightMm);
+  _setCtrl('resWSlider','resWNum', resWidthPx);
+  _setCtrl('resHSlider','resHNum', resHeightPx);
+
+  // ── Flume geometry ──
+  flumeUnit      = FL.unit || flumeUnit;
+  flumeWidthU    = num(FL.widthU,    flumeWidthU);
+  flumeLengthU   = num(FL.lengthU,   flumeLengthU);
+  flumeDepthU    = num(FL.depthU,    flumeDepthU);
+  flumeFit       = FL.fit || flumeFit;
+  flumeAlpha     = num(FL.alpha,     flumeAlpha);
+  timeScale      = num(FL.timeScale, timeScale);
+  flumeShowBanks = bool(FL.showBanks, flumeShowBanks);
+  flumeShowGrid  = bool(FL.showGrid,  flumeShowGrid);
+  flumeShowScale = bool(FL.showScale, flumeShowScale);
+  flumeConfine   = bool(FL.confine,   flumeConfine);
+  flumeOn        = bool(FL.on,        flumeOn);
+  syncFlumeDimInputs();
+  document.getElementById('flumeFitSel').value = flumeFit;
+  document.getElementById('flumePreset').value = 'custom';
+  _setCtrl('flumeAlphaSlider','flumeAlphaNum', flumeAlpha);
+  _setCtrl('timeScaleSlider','timeScaleNum',   timeScale);
+  const fbtn = document.getElementById('flumeToggle');
+  fbtn.textContent = flumeOn ? 'On' : 'Off';
+  fbtn.classList.toggle('active', flumeOn);
+  document.getElementById('flumeControls').style.display = flumeOn ? 'block' : 'none';
+  [['flumeBanksBtn', flumeShowBanks], ['flumeGridBtn', flumeShowGrid],
+   ['flumeScaleBtn', flumeShowScale], ['flumeConfineBtn', flumeConfine]]
+    .forEach(pair => document.getElementById(pair[0]).classList.toggle('active', pair[1]));
+
+  // ── Flow field ──
+  flowType = F.flowType || flowType;
+  document.getElementById('flowType').value = flowType;
+  Object.entries(flowParamDivs).forEach(([k, el]) => {
+    el.style.display = k === flowType ? 'block' : 'none';
+  });
+  vxMs          = num(F.vxMs,          vxMs);
+  vyMs          = num(F.vyMs,          vyMs);
+  turbMs        = num(F.turbMs,        turbMs);
+  shearVxMs     = num(F.shearVxMs,     shearVxMs);
+  shearRate     = num(F.shearRate,     shearRate);
+  vortexOmega   = num(F.vortexOmega,   vortexOmega);
+  vortexBgVxMs  = num(F.vortexBgVxMs,  vortexBgVxMs);
+  poisVxMaxMs   = num(F.poisVxMaxMs,   poisVxMaxMs);
+  rankineVcMs   = num(F.rankineVcMs,   rankineVcMs);
+  rankineRcPct  = num(F.rankineRcPct,  rankineRcPct);
+  rankineBgVxMs = num(F.rankineBgVxMs, rankineBgVxMs);
+  _setCtrl('vxSlider','vxNum', vxMs);
+  _setCtrl('vySlider','vyNum', vyMs);
+  _setCtrl('turbSlider','turbNum', turbMs);
+  _setCtrl('shearVxSlider','shearVxNum', shearVxMs);
+  _setCtrl('shearRateSlider','shearRateNum', shearRate);
+  _setCtrl('vortexOmegaSlider','vortexOmegaNum', vortexOmega);
+  _setCtrl('vortexBgVxSlider','vortexBgVxNum', vortexBgVxMs);
+  _setCtrl('poisVxSlider','poisVxNum', poisVxMaxMs);
+  _setCtrl('rankineVcSlider','rankineVcNum', rankineVcMs);
+  _setCtrl('rankineRcSlider','rankineRcNum', rankineRcPct);
+  _setCtrl('rankineBgVxSlider','rankineBgVxNum', rankineBgVxMs);
+  document.getElementById('turbInfo').style.display = turbMs > 0 ? 'block' : 'none';
+
+  // ── Particles, shape, variability, noise ──
+  const count = Math.max(1, Math.round(num(P.count, particles.length)));
+  minRadius  = num(P.minDiamPx, minRadius * 2) / 2;
+  maxRadius  = num(P.maxDiamPx, maxRadius * 2) / 2;
+  brightness = num(P.brightness, brightness);
+  bgColor    = P.bgColor  || bgColor;
+  dotColor   = P.dotColor || dotColor;
+  _setCtrl('countSlider','countNum', count);
+  _setCtrl('minSizeSlider','minSizeNum', minRadius * 2);
+  _setCtrl('maxSizeSlider','maxSizeNum', maxRadius * 2);
+  _setCtrl('brightSlider','brightNum', brightness);
+  document.getElementById('bgColorPicker').value  = bgColor;
+  document.getElementById('dotColorPicker').value = dotColor;
+
+  rhoBase     = num(S.rhoBase, rhoBase);
+  rhoVar      = num(S.rhoVar,  rhoVar);
+  alignToFlow = bool(S.alignToFlow, alignToFlow);
+  bubbleMode  = bool(S.bubbleMode,  bubbleMode);
+  _setCtrl('rhoSlider','rhoNum', rhoBase);
+  _setCtrl('rhoVarSlider','rhoVarNum', rhoVar);
+  setToggleBtn('alignFlowBtn',  alignToFlow);
+  setToggleBtn('bubbleModeBtn', bubbleMode);
+
+  intensVar     = num(V.intensVar,     intensVar);
+  diamVar       = num(V.diamVar,       diamVar);
+  outOfPlanePct = num(V.outOfPlanePct, outOfPlanePct);
+  _setCtrl('intensVarSlider','intensVarNum', intensVar);
+  _setCtrl('diamVarSlider','diamVarNum', diamVar);
+  _setCtrl('outPlaneSlider','outPlaneNum', Math.round(outOfPlanePct * 100));
+  updateVarInfo();
+
+  noiseReadSigma  = num(N.readSigmaDN,  noiseReadSigma);
+  noiseShotScale  = num(N.shotScale,    noiseShotScale);
+  noiseBackground = num(N.backgroundDN, noiseBackground);
+  _setCtrl('readNoiseSlider','readNoiseNum', noiseReadSigma);
+  _setCtrl('shotNoiseSlider','shotNoiseNum', noiseShotScale);
+  _setCtrl('bgNoiseSlider','bgNoiseNum', noiseBackground);
+  updateNoiseActive();
+
+  // ── Auto-lock ──
+  // The lock is a property of the machine it was measured on, not of the run, so
+  // the recorded lock is NOT replayed — only the operator's camera intent and
+  // whether the feature was enabled. Importing re-measures on this machine.
+  const AL = m.autoLock || {};
+  camFpsRequested = Math.max(0.1, num(AL.camFpsRequested, camFpsRequested));
+
+  // ── Interrogation window, recycling, uncertainty, sweep ──
+  iwPx = Math.max(8, Math.min(256, Math.round(num(IW.iwCamPx, num(IW.iwPx, iwPx)))));
+  _setCtrl('iwSlider','iwNum', iwPx);
+  camPxPerDisplayPx = Math.max(0.01, num(IW.camPxPerDisplayPx, camPxPerDisplayPx));
+  _setCtrl('camMagSlider','camMagNum', camPxPerDisplayPx);
+  returnToDeployment = bool(RC.returnToDeployment, returnToDeployment);
+  setToggleBtn('returnOriginBtn', returnToDeployment);
+  tvDimUncertMm = Math.max(0, num(UN.tvDimUncertMm, tvDimUncertMm));
+  _setCtrl('tvUncertSlider','tvUncertNum', tvDimUncertMm);
+  sweepStartPx  = num(SW.startPx,  sweepStartPx);
+  sweepEndPx    = num(SW.endPx,    sweepEndPx);
+  sweepStepPx   = Math.max(0.001, Math.abs(num(SW.stepPx, sweepStepPx)));
+  sweepAngleDeg = num(SW.angleDeg, sweepAngleDeg);
+  document.getElementById('sweepStartNum').value = sweepStartPx;
+  document.getElementById('sweepEndNum').value   = sweepEndPx;
+  document.getElementById('sweepStepNum').value  = sweepStepPx;
+  document.getElementById('sweepAngleNum').value = sweepAngleDeg;
+  sweepMeasured = {};
+  restageSweep();
+  if (Array.isArray(SW.schedule)) {
+    for (const r of SW.schedule) {
+      if (r && typeof r.measuredPx === 'number' && isFinite(r.measuredPx))
+        sweepMeasured[r.i] = r.measuredPx;
+    }
+    renderSweepPanel();
+  }
+  updateInterrogationDisplay();
+
+  // ── Display transfer function ──
+  linearLight  = bool(RN.linearLight, linearLight);
+  displayGamma = Math.max(1, Math.min(3, num(RN.displayGamma, displayGamma)));
+  linearLightBtn.textContent = linearLight ? 'On' : 'Off';
+  linearLightBtn.classList.toggle('active', linearLight);
+  _setCtrl('gammaSlider','gammaNum', displayGamma);
+  document.getElementById('gammaSlider').disabled = !linearLight;
+  document.getElementById('gammaNum').disabled    = !linearLight;
+
+  // ── Timing and frame code ──
+  camFps       = Math.max(1, num(T.camFps,  camFps));
+  dispFps      = Math.max(1, num(T.dispFps, dispFps));
+  stepFps      = Math.max(1, Math.min(240, num(T.stepFps, stepFps)));
+  stepPairHold = Math.max(1, Math.min(120, Math.round(num(T.holdFrames, stepPairHold))));
+  stepPairLoop = bool(T.stepPairLoop, stepPairLoop);
+  _setCtrl('camFpsSlider','camFpsNum',   camFps);
+  _setCtrl('dispFpsSlider','dispFpsNum', dispFps);
+  _setCtrl('stepFpsSlider','stepFpsNum', stepFps);
+  _setCtrl('holdFramesSlider','holdFramesNum', stepPairHold);
+  setToggleBtn('stepPairLoopBtn', stepPairLoop);
+  setDeterministic(bool(T.deterministic, deterministic));
+
+  frameCodeBlock = Math.max(8, Math.min(48, Math.round(num(C.blockPx, frameCodeBlock))));
+  frameCodePos   = C.position || frameCodePos;
+  phaseBadgeOn   = bool(C.phaseBadge, phaseBadgeOn);
+  _setCtrl('fcBlockSlider','fcBlockNum', frameCodeBlock);
+  document.getElementById('frameCodePosSel').value = frameCodePos;
+  setToggleBtn('phaseBadgeBtn', phaseBadgeOn);
+  setFrameCode(bool(C.on, frameCodeOn));
+
+  // ── Obstacle ──
+  obsRadius = num(OB.defaultRadius, obsRadius);
+  _setCtrl('obsRadiusSlider','obsRadiusNum', obsRadius);
+  obstacleActive = bool(OB.active, false);
+  obstacle = obstacleActive
+    ? { cx: num(OB.cx, W/2), cy: num(OB.cy, H/2), r: num(OB.r, obsRadius) }
+    : null;
+  const obtn = document.getElementById('obstacleToggle');
+  obtn.textContent = obstacleActive ? 'Remove obstacle' : 'Add obstacle';
+  obtn.classList.toggle('active', obstacleActive);
+  document.getElementById('obstacleControls').style.display = obstacleActive ? 'block' : 'none';
+  document.body.classList.toggle('placing', obstacleActive);
+
+  colorBySpeed = bool(VW.colorBySpeed, colorBySpeed);
+
+  // ── Seed last, then rebuild the field deterministically from it. ──
+  currentSeed = (typeof m.seed === 'number') ? (m.seed >>> 0) : null;
+  document.getElementById('seedNum').value = currentSeed === null ? '' : currentSeed;
+
+  recomputeFlume();     // world mapping + domain; calls recomputeScale() internally
+
+  seedParticles(count);
+  resetTelemetry();
+}
+
+function manifestNote(msg, warn) {
+  const el = document.getElementById('manifestMsg');
+  el.textContent   = msg;
+  el.style.color   = warn ? '#fa0' : '#3c3';
+  el.style.display = 'block';
+}
+
+document.getElementById('manifestExportBtn').addEventListener('click', exportManifest);
+document.getElementById('manifestImportBtn').addEventListener('click', () => {
+  document.getElementById('manifestFile').click();
+});
+document.getElementById('manifestFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';                       // allow re-importing the same file
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onerror = () => manifestNote('Could not read ' + f.name, true);
+  rd.onload  = () => {
+    try {
+      const m   = JSON.parse(rd.result);
+      const env = m.environment || {};
+      applyManifest(m);
+      const mismatch = env.canvasWidthPx &&
+                       (env.canvasWidthPx !== W || env.canvasHeightPx !== H);
+      // Carry the EXPORTING session's caveats forward — the import rebuilt the
+      // canonical field, but that is not the same as reproducing the recorded run.
+      const rep   = m.reproducibility || null;
+      const caveats = [];
+      if (mismatch)
+        caveats.push(`Recorded at ${env.canvasWidthPx}×${env.canvasHeightPx}, this window is ` +
+                     `${W}×${H}. Particle positions are laid out across the canvas — match the ` +
+                     `window size for an identical field.`);
+      if (rep && rep.notes && rep.notes.length) caveats.push(...rep.notes);
+      else if (!rep) caveats.push('Manifest predates the reproducibility block — ' +
+                                  'bit-identity with the recorded run cannot be confirmed.');
+      manifestNote(caveats.length
+        ? `Restored ${f.name} · seed ${currentSeed === null ? 'auto' : currentSeed}. ` +
+          `NOT bit-identical to the recorded run: ` + caveats.join(' ')
+        : `Restored ${f.name} · seed ${currentSeed} · bit-reproducible.`,
+        caveats.length > 0);
+    } catch (err) {
+      manifestNote('Import failed: ' + err.message, true);
+    }
+  };
+  rd.readAsText(f);
+});
 
 // Password modal wiring
 document.getElementById('qaSuiteBtn').addEventListener('click', () => {
@@ -2897,7 +5685,14 @@ document.getElementById('qa-export-btn').addEventListener('click', exportQACSV);
 
 // ── Init ──────────────────────────────────────────────────────────────────
 resize();
-window.addEventListener('resize', () => { resize(); seedParticles(particles.length); });
+window.addEventListener('resize', () => {
+  // A resize relays the whole field, so any held Frame A is no longer a valid
+  // pair partner and the timing window no longer describes the same run.
+  if (stepPairMode) exitStepPair();
+  resize();
+  seedParticles(particles.length);
+  resetTelemetry();
+});
 seedParticles(400);
 requestAnimationFrame(frame);
 </script>

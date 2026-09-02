@@ -22,3 +22,9 @@ run.bat
 
 # graphify knowledge-graph output (built locally)
 graphify-out/
+
+# local Claude settings
+.claude/settings.local.json
+
+# timestamped working backups of the generator
+piv_ground_truth.BACKUP_*.html
